@@ -77,4 +77,4 @@ Na raiz:
 python3 -m unittest discover -s server/tests -v
 ```
 
-Há testes de protocolo em memória e testes HTTP por sockets com upstream controlado. Nenhum deles mede qualidade de modelo. No ambiente atual, 22 passaram; 18 por sockets foram ignorados devido à proibição de sockets locais. Execute todos no seu computador/CI com essa capacidade. Veja [relatório](../docs/RELATORIO_TESTES_SERVIDOR.md).
+Há testes de protocolo em memória e testes HTTP por sockets com upstream controlado. Nenhum deles mede qualidade de modelo. Na execução mais recente, após liberar a rede do terminal, **44 testes passaram sem ignorados**; no GitHub Actions os 44 também passaram. Veja [relatório](../docs/RELATORIO_TESTES_SERVIDOR.md). Uma verificação separada com modelo real está em [RELATORIO_IA_REAL.md](../docs/RELATORIO_IA_REAL.md).

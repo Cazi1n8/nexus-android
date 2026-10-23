@@ -2,15 +2,15 @@
 
 O código usa **MediaPipe Tasks Vision 0.10.21**, `HandLandmarker` com CPU e CameraX.
 O processamento de imagens acontece no aparelho e não envia quadros ao servidor de IA.
-O código deste módulo foi escrito, mas a compilação Android e o funcionamento em
-câmera física ainda precisam ser verificados. Isso não é uma certificação de precisão,
-latência, compatibilidade ou reconhecimento de sinais de Libras.
+O módulo foi compilado no build local e no GitHub Actions. O funcionamento em
+câmera física ainda precisa ser verificado. A compilação não certifica precisão,
+latência, compatibilidade em aparelhos ou reconhecimento de sinais de Libras.
 
 ## Modelo necessário
 
-O arquivo oficial `app/src/main/assets/hand_landmarker.task` **não estava disponível
-no ambiente de desenvolvimento durante esta etapa**. O download falhou por falta
-de conexão ao proxy; nenhum modelo fictício foi criado.
+O arquivo oficial `app/src/main/assets/hand_landmarker.task` foi baixado depois da
+liberação de rede e está incluído nos APKs local e do GitHub. Em uma cópia nova do
+repositório, o arquivo precisa ser baixado pelo script; ele não é armazenado no Git.
 
 No computador ou no GitHub Actions, execute antes do Gradle:
 
@@ -24,10 +24,10 @@ O script baixa somente a versão 1 do modelo de mãos no endereço oficial:
 <https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task>
 
 Ele exige HTTPS com verificação TLS, limita o tamanho, verifica o conteúdo e a
-integridade do pacote e imprime seu SHA-256. Um SHA-256 de referência ainda não foi
-obtido neste ambiente; portanto, não há um hash inventado no projeto. Para fixar um
-hash conferido por você, use `--sha256 VALOR_CONFERIDO`. Registre o hash e revise
-licença e model card antes de distribuir o APK publicamente.
+integridade do pacote e imprime seu SHA-256. O arquivo obtido do endereço oficial
+em 23/10/2026 tem SHA-256 `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1`.
+Você pode exigir esse valor com `--sha256 VALOR_CONFERIDO`. Revise a licença e o
+model card antes de distribuir o APK publicamente.
 
 O aplicativo pode compilar sem esse arquivo. Nesse caso, a tela informa que não
 conseguiu carregar o rastreador. Não há detecção de mãos por animação ou dados falsos.

@@ -2,6 +2,8 @@
 
 O Git registra versões do código. O GitHub guarda uma cópia remota desse histórico e pode compilar o aplicativo automaticamente. A pasta local do projeto e um repositório publicado no GitHub são entregas diferentes: confira em [PROGRESSO.md](../PROGRESSO.md) se o envio remoto realmente aconteceu.
 
+**Repositório deste projeto:** https://github.com/Cazi1n8/nexus-android. O código já foi enviado e o [build de teste foi aprovado](https://github.com/Cazi1n8/nexus-android/actions/runs/39980316020). Para instalar, baixe o artefato `nexus-debug-3`, extraia o ZIP e abra `app-debug.apk` no Android. As instruções de primeiro envio abaixo servem como referência para outras cópias.
+
 ## Começando pelo celular
 
 Você não precisa instalar Android Studio no celular para usar um APK de teste. Depois que o código estiver em um repositório GitHub e o workflow estiver ativo, a compilação pode acontecer no GitHub Actions.

@@ -2,7 +2,16 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, com interface escura em azul e ciano. O projeto prioriza uma primeira versão de chat por texto e imagem, voz e dados locais; as funções de mãos e 3D estão em validação.
 
-**Estado real em 23/10/2026:** o código e a configuração de CI foram criados. A rede foi liberada, o JDK 17 e o Gradle 8.11.1 foram instalados com checksums oficiais, e o SDK está em preparação. **Ainda não há resultado de compilação Android aprovado nem APK confirmado.** A conexão GitHub foi confirmada; falta um repositório acessível para enviar o projeto. Veja [PROGRESSO.md](PROGRESSO.md) para os resultados e pendências.
+**Estado real em 23/10/2026:** APK 0.1.0 gerado e assinado, compilação local aprovada, **27 testes Kotlin e 44 testes Python aprovados**, lint com zero erros. O [código está publicado](https://github.com/Cazi1n8/nexus-android) e o [GitHub Actions também compilou e publicou o APK](https://github.com/Cazi1n8/nexus-android/actions/runs/39980316020). Instalação e uso em celular físico ainda precisam de validação. Veja [PROGRESSO.md](PROGRESSO.md).
+
+## Instalar e experimentar agora
+
+1. Baixe o [APK de teste no GitHub Actions — artefato nexus-debug-3](https://github.com/Cazi1n8/nexus-android/actions/runs/39980316020/artifacts/12513442249). É necessário entrar no GitHub para baixar artefatos.
+2. Extraia o ZIP e abra `app-debug.apk` em um Android 8.0 ou superior. Autorize a instalação por essa origem quando o Android solicitar.
+3. Abra o NEXUS e explore as telas. Câmera e microfone serão solicitados somente ao abrir suas funções.
+4. Para conversar com a IA, configure URL, modelo, token de sessão e consentimento conforme a seção de Ollama abaixo. O APK não inclui uma chave nem um servidor de IA pronto.
+
+O artefato fica disponível por 30 dias; depois você pode recompilar pelo workflow. Detalhes: [relatório do APK](docs/RELATORIO_APK.md). Builds de depuração de ambientes diferentes podem ter assinaturas diferentes; exporte dados importantes antes de desinstalar uma versão para trocar de origem.
 
 ## O que está no projeto
 
@@ -44,7 +53,7 @@ Antes de compilar as funções de mãos, baixe o modelo oficial versionado do Me
 python3 scripts/fetch_hand_model.py
 ```
 
-O script verifica o tamanho, a estrutura do pacote e informa o SHA-256; também aceita `--sha256` com um valor esperado obtido por um canal confiável. O modelo não foi baixado neste ambiente. Sem ele, as funções de mãos informam indisponibilidade; não existe rastreamento simulado.
+O script verifica o tamanho, a estrutura do pacote e informa o SHA-256; também aceita `--sha256` com um valor esperado obtido por um canal confiável. O modelo oficial foi baixado e incluído nos APKs verificados. Em um checkout novo, execute esse comando antes do build; o CI já faz isso. Sem o arquivo, o app informa a limitação e não inicia o rastreamento.
 
 Em Linux/macOS:
 
@@ -115,7 +124,7 @@ Não há escuta permanente, serviço oculto ou controle global de outros aplicat
 python3 -m unittest discover -s server/tests -v
 ```
 
-Resultado mais recente neste ambiente, após liberar a rede: **44 testes Python aprovados, sem ignorados**, incluindo o transporte HTTP local. Os upstreams desses testes são controlados; isso não comprova a qualidade de um modelo de IA real. A compilação e os testes Android estão em preparação. [Relatório do servidor](docs/RELATORIO_TESTES_SERVIDOR.md).
+Resultado mais recente: **44 testes Python aprovados, sem ignorados**, incluindo HTTP local, e **27 testes Kotlin aprovados**. O APK e o APK de testes instrumentados foram compilados; os 6 testes instrumentados não puderam ser executados neste ambiente. A suíte de servidor usa upstreams controlados. Separadamente, um modelo Qwen real respondeu às verificações sintéticas de cálculo e contexto, fora do APK; isso não comprova qualidade geral nem análise de imagens. [Relatório do servidor](docs/RELATORIO_TESTES_SERVIDOR.md) e [teste com IA real](docs/RELATORIO_IA_REAL.md).
 
 - [Estado de cada função e fases](PROGRESSO.md)
 - [Arquitetura e decisões técnicas](docs/ARQUITETURA.md)
