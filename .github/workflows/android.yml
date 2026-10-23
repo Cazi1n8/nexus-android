@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +26,10 @@ jobs:
           java-version: '17'
       - name: Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '13114758'
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
       - name: Instalar SDK 35
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Gradle 8.11.1
@@ -38,7 +42,7 @@ jobs:
       - name: Testar servidor intermediário
         run: python3 -m unittest discover -s server/tests -v
       - name: Testes, lint e APK de depuração
-        run: gradle --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug
+        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
       - name: Resumo SHA256 do APK
         run: sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/SHA256SUMS.txt
       - name: Publicar APK de teste como artefato
