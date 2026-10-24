@@ -29,13 +29,25 @@ class VisionUiTest {
         compose.waitUntil(10_000) {
             compose.onAllNodesWithText("EXPLORE O NEXUS").fetchSemanticsNodes().isNotEmpty()
         }
+        // Finish the entrance animation before injecting a touch into a moving card.
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.waitForIdle()
     }
 
     @Test fun galleryAndQuestionWorkWithoutActivatingSensorsOrSendingAnImage() {
         val cameraPermission = ContextCompat.checkSelfPermission(compose.activity, Manifest.permission.CAMERA)
         val microphonePermission = ContextCompat.checkSelfPermission(compose.activity, Manifest.permission.RECORD_AUDIO)
 
-        compose.onNodeWithText("NEXUS Vision").performScrollTo().performClick()
+        compose.onNode(hasText("NEXUS Vision") and hasClickAction()).performScrollTo().performClick()
+        // Navigation completes asynchronously; await the destination, not a fixed delay.
+        try {
+            compose.waitUntil(10_000) {
+                compose.onAllNodesWithText("Escolher imagem", substring = true).fetchSemanticsNodes().isNotEmpty()
+            }
+        } catch (failure: Throwable) {
+            compose.onRoot(useUnmergedTree = true).printToLog("NEXUS_VISION_TEST")
+            throw failure
+        }
         compose.onNodeWithText("Escolher imagem", substring = true).performScrollTo().assertIsEnabled()
         compose.onNodeWithText("Ler texto no aparelho").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText("Encerrar câmera").assertDoesNotExist()
@@ -45,7 +57,9 @@ class VisionUiTest {
         compose.onNode(hasSetTextAction()).performScrollTo().performTextReplacement(question)
         compose.onNodeWithText("Analisar com a IA").performScrollTo().assertIsNotEnabled()
         compose.activityRule.scenario.recreate()
-        compose.waitForIdle()
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasSetTextAction() and hasText(question)).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNode(hasSetTextAction() and hasText(question)).performScrollTo().assertIsEnabled()
         compose.onNodeWithText("Ler texto no aparelho").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText("Encerrar câmera").assertDoesNotExist()
