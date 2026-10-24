@@ -39,7 +39,7 @@ class FirstRunFlowsTest {
         compose.onNodeWithText("NEXUS AI · local", useUnmergedTree = true).performScrollTo().performClick()
         compose.onNodeWithText("Provedor personalizado").performClick()
         compose.onNodeWithText("Atualizar token de sessão").performScrollTo()
-        compose.onNode(isToggleable() and hasAnySibling(hasText("Atualizar token de sessão"))).performClick()
+        compose.onNodeWithContentDescription("Atualizar token de sessão").performClick()
         compose.onNode(hasSetTextAction() and hasText("Token do seu servidor NEXUS")).performTextInput("unsaved-token-for-ui-test")
         compose.activityRule.scenario.recreate()
         compose.waitForIdle()

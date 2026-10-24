@@ -36,6 +36,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -961,7 +963,8 @@ private fun InfoCard(title: String, description: String) {
 @Composable
 private fun ToggleRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit, enabled: Boolean = true) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, Modifier.weight(1f).padding(end = 12.dp)); Switch(checked, onCheckedChange, enabled = enabled)
+        Text(label, Modifier.weight(1f).padding(end = 12.dp))
+        Switch(checked, onCheckedChange, modifier = Modifier.semantics { contentDescription = label }, enabled = enabled)
     }
 }
 
