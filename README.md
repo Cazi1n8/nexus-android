@@ -61,6 +61,7 @@ Instale Android Studio ou JDK 17 e Android SDK. O projeto usa Gradle Wrapper 8.1
 python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
 python3 scripts/fetch_ocr_models.py
+python3 scripts/fetch_ocr_runtime.py
 ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 ```
 

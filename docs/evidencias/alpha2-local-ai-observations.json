@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "executionStatus": "passed",
+  "androidApi": 29,
+  "abis": [
+    "x86_64",
+    "x86"
+  ],
+  "runtime": "llama.cpp b11838 packaged JNI",
+  "contextTokens": 512,
+  "threads": 1,
+  "cases": [
+    {
+      "name": "arithmetic",
+      "answer": "42",
+      "milliseconds": 6962,
+      "outputTokenLimit": 16
+    },
+    {
+      "name": "context_acknowledgement",
+      "answer": "O cubo ciano é meu favorito.",
+      "milliseconds": 7502,
+      "outputTokenLimit": 32
+    },
+    {
+      "name": "context_follow_up",
+      "answer": "Ciano.",
+      "milliseconds": 10938,
+      "outputTokenLimit": 16
+    },
+    {
+      "name": "unicode",
+      "answer": "Olá, coração! 🚀",
+      "milliseconds": 6661,
+      "outputTokenLimit": 32
+    }
+  ],
+  "scope": "Real text inference in Android; no camera, microphone or claim of general model quality.",
+  "model": "Qwen2.5 0.5B Instruct • Q4_K_M",
+  "modelBytes": 491400032,
+  "modelSha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "loadMilliseconds": 174,
+  "arithmeticMatchedExpected42": true,
+  "contextMatchedExpectedCiano": true,
+  "unicodeMatchedRequestedText": true,
+  "semanticAssessment": "observations_only_not_general_quality_certification"
+}

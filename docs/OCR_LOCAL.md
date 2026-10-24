@@ -16,14 +16,18 @@ O ditado preenche uma pergunta editável. A foto só é enviada ao provedor mult
 Antes do Gradle, execute no computador:
 
 ```sh
+python3 scripts/fetch_ocr_runtime.py
 python3 scripts/fetch_ocr_models.py
 ```
 
-O script baixa somente os dois arquivos oficiais fixados abaixo, valida tamanho e SHA-256 e os cria em `app/src/main/assets/ocr/`. Um arquivo existente com conteúdo diferente causa erro e é preservado. Downloads interrompidos não deixam um modelo parcial instalado. Os arquivos são ignorados pelo Git; os três workflows Android os preparam antes da compilação. O APK contém os modelos completos, sem download durante o uso.
+O primeiro script prepara o AAR oficial Tesseract4Android 4.9.0 em `.build-deps/ocr/tesseract4android-4.9.0.aar`: exige exatamente 12.848.454 bytes e SHA-256 `bce5d6413a1a5ae3d7240033fbbc851ba3217d0a08d9769400e17a077f42cb2a`. O Gradle usa esse arquivo verificado, evitando depender da disponibilidade dos metadados Maven do JitPack. O download usa a [URL oficial do AAR no JitPack](https://jitpack.io/cz/adaptech/tesseract4android/tesseract4android/4.9.0/tesseract4android-4.9.0.aar), com até três tentativas para HTTP 404, 429 ou 5xx; o intervalo máximo é de dois segundos. Não há substituição por outra versão nem aceitação de hash diferente.
+
+O segundo script baixa somente os dois arquivos de idioma oficiais fixados abaixo, valida tamanho e SHA-256 e os cria em `app/src/main/assets/ocr/`. Um arquivo existente com conteúdo diferente causa erro e é preservado. Downloads interrompidos não deixam uma dependência parcial instalada. AAR e modelos são ignorados pelo Git; os três workflows Android os preparam antes da compilação. O APK contém o motor e os modelos completos, sem download durante o uso.
 
 Para preparar sem rede usando uma cópia previamente baixada:
 
 ```sh
+python3 scripts/fetch_ocr_runtime.py --source-file /caminho/tesseract4android-4.9.0.aar
 python3 scripts/fetch_ocr_models.py --source-dir /caminho/dos/modelos
 ```
 
@@ -38,7 +42,7 @@ São 6.095.844 bytes antes da compressão do APK. Na primeira leitura o aplicati
 
 ## Escolha técnica e privacidade
 
-A dependência é `com.github.adaptech-cz.Tesseract4Android:tesseract4android:4.9.0`, publicada no JitPack pelo projeto [Tesseract4Android](https://github.com/adaptech-cz/Tesseract4Android/tree/4.9.0). Usamos a variante padrão, de uma thread, para conter o processamento em aparelhos modestos. A biblioteca é de código aberto e a leitura ocorre no dispositivo, sem SDK de análise remota. Não há serviço de OCR pago, chave secreta, download automático de idioma ou upload da foto nessa função.
+A dependência é o AAR oficial 4.9.0 do projeto [Tesseract4Android](https://github.com/adaptech-cz/Tesseract4Android/tree/4.9.0), distribuído no JitPack pela coordenada `cz.adaptech.tesseract4android:tesseract4android:4.9.0`. O script o valida antes de o Gradle consumir o arquivo local. Usamos a variante padrão, de uma thread, para conter o processamento em aparelhos modestos. A biblioteca é de código aberto e a leitura ocorre no dispositivo, sem SDK de análise remota. Não há serviço de OCR pago, chave secreta, download automático de idioma ou upload da foto nessa função.
 
 O AAR verificado oferece `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. As bibliotecas de 64 bits desse AAR têm segmentos ELF com alinhamento de 16 KB. As de 32 bits usam 4 KB; isso não é uma garantia de funcionamento em todo aparelho. A compilação e os testes automatizados precisam ser complementados por testes físicos de memória, velocidade, câmera e qualidade das imagens, inclusive no Galaxy S9+.
 
@@ -48,6 +52,7 @@ O reconhecimento é limitado a uma imagem por solicitação. O tamanho da imagem
 
 ```sh
 python3 -m unittest discover -s scripts/tests -p test_fetch_ocr_models.py -v
+python3 -m unittest discover -s scripts/tests -p test_fetch_ocr_runtime.py -v
 ```
 
-Esses testes cobrem o catálogo pinado, reuso offline, corrupção, tamanho incorreto, interrupção, links simbólicos, mudança de HTTPS e instalação concorrente. Eles verificam a preparação dos modelos, não a qualidade de reconhecimento do motor Android. Os resultados de compilação e de execução instrumentada constam no relatório da versão.
+Esses testes cobrem o catálogo pinado, reuso offline, corrupção, tamanho incorreto, interrupção, links simbólicos, mudança de HTTPS, tentativas HTTP limitadas e instalação concorrente. Eles verificam a preparação das dependências, não a qualidade de reconhecimento do motor Android. Os resultados de compilação e de execução instrumentada constam no relatório da versão.

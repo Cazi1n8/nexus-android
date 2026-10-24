@@ -17,6 +17,7 @@ __pycache__/
 *.aab
 *.hprof
 .gradle-dist/
+.build-deps/
 # MediaPipe model is downloaded from the official versioned URL by setup/CI.
 app/src/main/assets/hand_landmarker.task
 app/src/main/assets/.hand_model_*

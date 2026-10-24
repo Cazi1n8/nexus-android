@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -74,6 +76,31 @@ android {
 
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 
+// Prepared from the upstream release by fetch_ocr_runtime.py. Using the verified
+// AAR directly avoids intermittent JitPack POM failures on clean CI machines.
+val ocrRuntime = rootProject.file(".build-deps/ocr/tesseract4android-4.9.0.aar")
+val verifyOcrRuntime by tasks.registering {
+    inputs.files(ocrRuntime)
+    doLast {
+        check(ocrRuntime.isFile && ocrRuntime.length() == 12_848_454L) {
+            "Execute python3 scripts/fetch_ocr_runtime.py antes do Gradle para preparar o OCR."
+        }
+        val digest = MessageDigest.getInstance("SHA-256")
+        ocrRuntime.inputStream().buffered().use { input ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        val actual = digest.digest().joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
+        check(actual == "bce5d6413a1a5ae3d7240033fbbc851ba3217d0a08d9769400e17a077f42cb2a") {
+            "O AAR de OCR não corresponde ao checksum fixado. Prepare novamente com fetch_ocr_runtime.py."
+        }
+    }
+}
+
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.05.01")
     implementation(composeBom)
@@ -103,7 +130,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.4.2")
     implementation("com.google.mediapipe:tasks-vision:0.10.35")
-    implementation("com.github.adaptech-cz.Tesseract4Android:tesseract4android:4.9.0")
+    implementation(files(ocrRuntime).builtBy(verifyOcrRuntime))
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

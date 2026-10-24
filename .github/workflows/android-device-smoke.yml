@@ -47,6 +47,7 @@ jobs:
           python3 scripts/fetch_llama_cpp.py
           python3 scripts/fetch_hand_model.py
           python3 scripts/fetch_ocr_models.py
+          python3 scripts/fetch_ocr_runtime.py
       - name: Compilar aplicativo e testes instrumentados
         run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
       # KVM is exposed only on this temporary GitHub-hosted runner.

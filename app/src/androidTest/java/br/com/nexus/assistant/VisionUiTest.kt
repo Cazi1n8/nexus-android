@@ -3,6 +3,7 @@ package br.com.nexus.assistant
 import android.Manifest
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -38,7 +39,10 @@ class VisionUiTest {
         val cameraPermission = ContextCompat.checkSelfPermission(compose.activity, Manifest.permission.CAMERA)
         val microphonePermission = ContextCompat.checkSelfPermission(compose.activity, Manifest.permission.RECORD_AUDIO)
 
-        compose.onNode(hasText("NEXUS Vision") and hasClickAction()).performScrollTo().performClick()
+        // Use the real accessibility click action; a touch during scroll settling
+        // can be consumed to stop the scroll instead of opening the destination.
+        compose.onNode(hasText("NEXUS Vision") and hasClickAction()).performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick) { action -> check(action()) }
         // Navigation completes asynchronously; await the destination, not a fixed delay.
         try {
             compose.waitUntil(10_000) {

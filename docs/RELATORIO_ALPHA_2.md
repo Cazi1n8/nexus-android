@@ -39,6 +39,7 @@ A prova de IA local usa separadamente o Qwen2.5-0.5B-Instruct Q4_K_M público. O
 python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
 python3 scripts/fetch_ocr_models.py
+python3 scripts/fetch_ocr_runtime.py
 python3 -m unittest discover -s scripts/tests -v
 ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 ```
@@ -59,8 +60,8 @@ O workflow [android-device-smoke.yml](../.github/workflows/android-device-smoke.
 
 | Verificação alpha.2 | Resultado atual |
 | --- | --- |
-| Testes Python de preparação e runner | **30 aprovados**, 0 falhas/ignorados (0,063 s) |
-| Compilação Android e testes JVM | **BUILD SUCCESSFUL in 2m 29s**; **76 testes JVM aprovados**, 0 falhas/erros/ignorados |
+| Testes Python de preparação e runner | **44 aprovados**, 0 falhas/ignorados (incluindo o novo transporte do AAR OCR) |
+| Compilação Android e testes JVM | **BUILD SUCCESSFUL in 2m 10s**, após fixar o AAR OCR e verificar seu SHA-256 no Gradle; **76 testes JVM aprovados**, 0 falhas/erros/ignorados |
 | Lint | **0 erros, 37 avisos e 1 informação** |
 | APK de aplicativo e instrumentação | Ambos gerados; APK local 123.615.014 bytes, assinatura v2 válida, ZIP alinhado a 16 KB, quatro ABIs e modelos OCR conferidos por SHA-256. 40 bibliotecas nativas: todas as de 64 bits com ELF ≥16 KB; 32 bits ≥4 KB. |
 | OCR real no Android emulado | Ainda não executado ou resultado não registrado |

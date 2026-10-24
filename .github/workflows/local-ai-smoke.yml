@@ -11,6 +11,8 @@ on:
       - 'app/src/androidTest/java/br/com/nexus/assistant/LocalAiInferenceTest.kt'
       - 'app/build.gradle.kts'
       - 'scripts/fetch_language_model.py'
+      - 'scripts/fetch_ocr_runtime.py'
+      - 'scripts/fetch_ocr_models.py'
       - 'scripts/run_android_ai_smoke.py'
       - '.github/workflows/local-ai-smoke.yml'
   workflow_dispatch:
@@ -54,6 +56,7 @@ jobs:
           python3 scripts/fetch_llama_cpp.py
           python3 scripts/fetch_hand_model.py
           python3 scripts/fetch_ocr_models.py
+          python3 scripts/fetch_ocr_runtime.py
       # This explicit developer/CI download is not an automatic download on a user's phone.
       # Weights live only on the temporary runner and are never uploaded or included in the APK.
       - name: Baixar GGUF público fixado para o teste real

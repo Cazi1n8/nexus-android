@@ -10,10 +10,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        exclusiveContent {
-            forRepository { maven("https://jitpack.io") }
-            filter { includeGroup("com.github.adaptech-cz.Tesseract4Android") }
-        }
     }
 }
 rootProject.name = "NEXUS"
