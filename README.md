@@ -2,17 +2,21 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
 
-**Versão de teste: 2.0.0-alpha.1.** O APK universal foi compilado com **76 testes JVM aprovados**, lint sem erros, assinatura v2 válida e bibliotecas alinhadas a 16 KB. A compilação no GitHub e **8 testes no Android 10 emulado** também passaram; o download público foi verificado. Consulte [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
+**Código em desenvolvimento: 2.0.0-alpha.2, versão 21.** A nova etapa adiciona leitura de texto offline no Vision e uma prova de inferência real no Android. A compilação e os novos testes ainda estão em validação; acompanhe [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md).
+
+**APK publicado e verificado: 2.0.0-alpha.1.** Essa versão passou por **76 testes JVM**, lint sem erros e **8 testes no Android 10 emulado**. O download público, a assinatura v2 e o alinhamento de suas bibliotecas foram verificados. As evidências permanecem em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
 ## O que mudou
 
 NEXUS AI pode executar um modelo de texto no próprio aparelho compatível, sem URL, chave ou conta de IA. O perfil personalizado HTTPS continua disponível separadamente. A evolução também adiciona verificação do aparelho, ajustes de processamento, correções de voz pt-BR, mouse persistente, controles independentes de gestos/3D e exercícios preparatórios de Libras.
 
+Na alpha.2, **NEXUS Vision → Ler texto offline** usa Tesseract4Android e modelos português/inglês incluídos no APK. O fluxo recebe foto ou imagem da galeria, sem depender de câmera para importar; oferece copiar, ouvir e salvar o texto como memória por escolha explícita. O ditado preenche uma pergunta editável; o envio para IA continua manual. [Funcionamento e limites do OCR](docs/OCR_LOCAL.md). Esses acréscimos ainda aguardam os resultados da validação alpha.2.
+
 A implementação ainda precisa das verificações registradas no progresso. Não houve teste físico pelo ambiente no Samsung Galaxy S9+ informado pelo usuário.
 
 ## Instalar pelo celular
 
-**[Baixar NEXUS 2.0.0-alpha.1.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk)** — aproximadamente 87,3 MiB. Download direto, sem ZIP ou login no GitHub.
+**Alpha.1, última versão publicada verificada:** [Baixar NEXUS 2.0.0-alpha.1.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk) — aproximadamente 87,3 MiB. Download direto, sem ZIP ou login no GitHub.
 
 1. Abra [Releases do NEXUS](https://github.com/Cazi1n8/nexus-android/releases).
 2. Na versão de teste mais recente, em **Assets**, baixe o arquivo `NEXUS-2.0.0-alpha.1.apk`.
@@ -26,7 +30,7 @@ Builds de ambientes diferentes podem usar certificados de depuração diferentes
 
 ## Compatibilidade automática
 
-A base requer **Android 8.0/API 26 ou superior** e o APK 2.0 foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. As 24 bibliotecas nativas têm segmentos ELF alinhados a pelo menos 16 KB, e o alinhamento ZIP foi aprovado.
+A base requer **Android 8.0/API 26 ou superior**. O APK alpha.1 foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86; suas 24 bibliotecas nativas têm segmentos ELF alinhados a pelo menos 16 KB, e o alinhamento ZIP foi aprovado. A alpha.2 acrescenta bibliotecas nativas de OCR e exige nova inspeção do APK; o resultado anterior não certifica o arquivo novo.
 
 O aplicativo verifica arquitetura, RAM, armazenamento, CPU, câmeras, microfone e GLES. O perfil automático ajusta recomendação de modelo, contexto, threads, resolução e frequência de análise; efeitos visuais são reduzidos em aparelhos modestos. Downloads e envio remoto sempre exigem escolha explícita.
 
@@ -41,7 +45,7 @@ Nem todo aparelho poderá executar todas as funções. A IA local deste runtime 
 
 O runtime llama.cpp é compilado no APK; os pesos são baixados separadamente, com revisão e SHA-256 fixados. Nenhuma conversa é enviada a um serviço de IA no modo local. O modelo menor apresentou erros em provas reais; o maior exige mais recursos e também pode errar. Não há promessa de desempenho ou precisão geral.
 
-Os modelos atuais aceitam **texto**. Imagens e NEXUS Vision exigem provedor multimodal personalizado autorizado. O app analisa fotos capturadas explicitamente; não há compreensão contínua de vídeo.
+Os modelos de linguagem locais atuais aceitam **texto**. Na alpha.2, a leitura de letras em fotos pode ocorrer offline pelo OCR separado, com modelos incluídos no APK. Descrever ambientes, interpretar circuitos ou responder perguntas gerais sobre imagens ainda exige provedor multimodal personalizado autorizado. O app processa imagens escolhidas explicitamente; não há compreensão contínua de vídeo.
 
 O contexto local é limitado às mensagens recentes e ao orçamento de tokens do perfil. Entradas grandes são recusadas com explicação. Memórias são autorizadas manualmente, editáveis e excluíveis; não existe memória ilimitada nem resumo persistente automático.
 
@@ -56,10 +60,11 @@ Instale Android Studio ou JDK 17 e Android SDK. O projeto usa Gradle Wrapper 8.1
 ```bash
 python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
+python3 scripts/fetch_ocr_models.py
 ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 ```
 
-No Windows, use `gradlew.bat`. O APK fica em `app/build/outputs/apk/debug/app-debug.apk`. Os scripts obtêm fontes e modelo de mãos oficiais; pesos GGUF não são incluídos no Git ou APK. [Build offline, checksums e arquiteturas](docs/IA_LOCAL_BUILD.md).
+No Windows, use `gradlew.bat`. O APK fica em `app/build/outputs/apk/debug/app-debug.apk`. Os scripts obtêm fontes, modelo de mãos e dois modelos OCR de fontes oficiais, com revisões e checksums fixados. Os modelos OCR são empacotados no APK; pesos GGUF de linguagem não são incluídos no Git ou APK. [Build offline, checksums e arquiteturas](docs/IA_LOCAL_BUILD.md).
 
 ```bash
 python3 -m unittest discover -s scripts/tests -v
@@ -67,9 +72,13 @@ python3 -m unittest discover -s server/tests -v
 ./gradlew connectedDebugAndroidTest
 ```
 
-O último comando exige aparelho ou emulador conectado. O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [execução Android 10](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992145) passou nos oito testes de interface, dados e inicialização nativa. Ela não certifica câmera, voz ou mãos físicas. O [workflow principal](.github/workflows/android.yml) gera APK e relatórios em alterações na branch `main`.
+O último comando exige aparelho ou emulador conectado. O teste `LocalAiInferenceTest` é ignorado explicitamente quando o GGUF de teste não é fornecido; o [workflow de IA local](.github/workflows/local-ai-smoke.yml) prepara esse arquivo e executa a inferência separadamente. Ele registra respostas reais, tempos e observações de cálculo, contexto e UTF-8; aprovação de transporte não certifica qualidade geral do modelo. Os pesos temporários não são publicados como artefato nem incluídos no APK. A nova execução ainda está pendente na alpha.2.
+
+ O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [execução Android 10](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992145) passou nos oito testes de interface, dados e inicialização nativa. Ela não certifica câmera, voz ou mãos físicas. O [workflow principal](.github/workflows/android.yml) gera APK e relatórios em alterações na branch `main`.
 
 ## Privacidade e limites
+
+O OCR da alpha.2 funciona no aparelho com Tesseract4Android, sem API, conta, download durante a leitura ou envio da imagem a um servidor. Resultados só entram na memória por uma ação explícita de salvar. A síntese e o reconhecimento de fala seguem as condições dos serviços Android instalados.
 
 Câmera e microfone usam permissões sob demanda. Fala pode depender de serviços instalados ou de rede; o app informa essa condição. Não há escuta permanente de “Ei, NEXUS!” em segundo plano.
 
@@ -84,7 +93,9 @@ Room fica no sandbox do Android, sem criptografia adicional do banco; backup aut
 - [Progresso verificável 2.0](PROGRESSO_NEXUS_2.md)
 - [Auditoria anterior às mudanças](AUDITORIA_NEXUS.md)
 - [Compatibilidade e ajuste automático](docs/COMPATIBILIDADE.md)
-- [Relatório de testes 2.0](docs/RELATORIO_NEXUS_2.md)
+- [Relatório de testes alpha.2](docs/RELATORIO_ALPHA_2.md)
+- [OCR local do NEXUS Vision](docs/OCR_LOCAL.md)
+- [Relatório de testes alpha.1](docs/RELATORIO_NEXUS_2.md)
 - [Arquitetura 2.0](docs/ARQUITETURA_NEXUS_2.md)
 - [Controle global e limites](docs/MOUSE_GLOBAL.md)
 - [Alterações](CHANGELOG.md)

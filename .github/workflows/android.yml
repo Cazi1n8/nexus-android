@@ -43,6 +43,8 @@ jobs:
         run: python3 scripts/fetch_llama_cpp.py
       - name: Baixar modelo oficial de mãos
         run: python3 scripts/fetch_hand_model.py
+      - name: Preparar português e inglês para leitura offline
+        run: python3 scripts/fetch_ocr_models.py
       - name: Testar servidor intermediário
         run: python3 -m unittest discover -s server/tests -v
       - name: Testes, lint e APK de depuração

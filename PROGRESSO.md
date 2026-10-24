@@ -1,6 +1,6 @@
 # Progresso histórico do NEXUS 0.1
 
-**Estado atual 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md). As evidências abaixo pertencem à versão 0.1.
+**Estado atual 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md). A etapa alpha.2 está em validação, registrada em [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md); o último APK verificado continua identificado na documentação atual. As evidências abaixo pertencem à versão 0.1.
 
 Atualizado em **23/10/2026**, horário de São Paulo. O APK foi compilado e pode ser instalado para testes. A primeira fase ainda precisa de validação de uso em celular; não há declaração de que todas as funções ou fases estejam concluídas.
 

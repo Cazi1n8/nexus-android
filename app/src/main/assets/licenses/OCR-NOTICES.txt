@@ -1,0 +1,28 @@
+NEXUS offline OCR — third-party components
+
+Tesseract4Android 4.9.0
+https://github.com/adaptech-cz/Tesseract4Android/tree/4.9.0
+Copyright (C) 2019 Adaptech s.r.o., Robert Pösel
+Licensed under the Apache License, Version 2.0.
+See Tesseract4Android-Apache-2.0.txt.
+
+Tesseract OCR 5.5.1
+https://github.com/tesseract-ocr/tesseract/tree/5.5.1
+Licensed under the Apache License, Version 2.0.
+See Tesseract-Apache-2.0.txt.
+
+Language data: tessdata_fast, Portuguese and English
+https://github.com/tesseract-ocr/tessdata_fast/tree/87416418657359cb625c412a48b6e1d6d41c29bd
+Licensed under the Apache License, Version 2.0.
+See tessdata_fast-Apache-2.0.txt.
+These unmodified official language files are bundled with NEXUS after SHA-256 verification.
+
+The Tesseract4Android AAR includes:
+- Leptonica 1.85.0, BSD-style license, see Leptonica-BSD.txt.
+- The Independent JPEG Group's JPEG software, release 9f,
+  Copyright (C) 1991-2024, Thomas G. Lane, Guido Vollbeding.
+  This software is based in part on the work of the Independent JPEG Group.
+  See libjpeg-README.txt for the complete original legal conditions.
+- libpng 1.6.48, PNG Reference Library License, see libpng-LICENSE.txt.
+
+NEXUS uses these independent open-source projects; their authors do not endorse NEXUS.

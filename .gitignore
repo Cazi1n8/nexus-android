@@ -27,3 +27,6 @@ app/src/main/cpp/vendor/
 # User-downloaded LLM weights must never enter Git or the APK.
 *.gguf
 *.gguf.part
+# Verified OCR assets are prepared before compilation and bundled into the APK.
+app/src/main/assets/ocr/*.traineddata
+app/src/main/assets/ocr/.ocr-model-*

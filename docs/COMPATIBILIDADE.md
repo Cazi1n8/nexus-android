@@ -4,7 +4,7 @@ O objetivo é permitir que o NEXUS funcione em mais aparelhos, ajustando o que c
 
 ## Base de instalação
 
-A versão 2.0 tem **Android mínimo 8.0/API 26** e está configurada para um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O APK final 2.0 com MediaPipe 0.10.35 foi compilado e inspecionado com as quatro ABIs, incluindo alinhamento ZIP/ELF de 16 KB. Isso não é uma lista de aparelhos fisicamente testados.
+A versão 2.0 tem **Android mínimo 8.0/API 26** e está configurada para um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O APK alpha.1 com MediaPipe 0.10.35 foi compilado e inspecionado com as quatro ABIs, incluindo alinhamento ZIP/ELF de 16 KB. Na alpha.2, o OCR acrescenta bibliotecas Tesseract4Android: o AAR de 64 bits tem alinhamento ELF de 16 KB; o de 32 bits, 4 KB. A inspeção do APK da alpha.2 é registrada separadamente no relatório da versão. Isso não é uma lista de aparelhos fisicamente testados.
 
 | Arquitetura do processo | App base e chat remoto | IA local | Rastreamento MediaPipe |
 | --- | --- | --- | --- |
@@ -16,6 +16,8 @@ A versão 2.0 tem **Android mínimo 8.0/API 26** e está configurada para um APK
 O AAR oficial MediaPipe 0.10.35 foi inspecionado: `tasks-core` fornece `libmediapipe_tasks_jni.so` para as quatro ABIs, com segmentos ELF alinhados a 16 KB. A atualização substitui a dependência 0.10.21 utilizada na base auditada. O aplicativo continua exigindo API 26, embora a biblioteca declare API mínima 24.
 
 “Biblioteca incluída” não comprova reconhecimento de mãos ou funcionamento da câmera. CameraX, captura de imagens, chat e rastreamento são capacidades separadas. Sem rastreamento, conteúdo educacional e outras funções compatíveis podem continuar disponíveis.
+
+O OCR da alpha.2 pode ler uma foto importada da galeria sem câmera, microfone, modelo de conversa ou provedor remoto. Os modelos português/inglês vêm no APK; a imagem é reduzida a no máximo 2.048 pixels por lado e cerca de 4 megapixels antes do reconhecimento. A execução usa um worker serial compartilhado. Cancelar descarta o resultado; uma chamada nativa já iniciada termina antes de liberar os recursos. [Uso e limites do OCR](OCR_LOCAL.md).
 
 ## O que o aplicativo verifica
 

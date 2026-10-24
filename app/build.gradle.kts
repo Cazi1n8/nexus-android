@@ -14,8 +14,8 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20
-        versionName = "2.0.0-alpha.1"
+        versionCode = 21
+        versionName = "2.0.0-alpha.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         // Universal installation; local LLM inference is packaged only for 64-bit ABIs.
@@ -103,6 +103,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.4.2")
     implementation("com.google.mediapipe:tasks-vision:0.10.35")
+    implementation("com.github.adaptech-cz.Tesseract4Android:tesseract4android:4.9.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

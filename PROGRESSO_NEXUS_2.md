@@ -1,23 +1,42 @@
 # NEXUS 2.0 — progresso verificável
 
-Atualizado em **24/10/2026 (UTC)**. Versão de teste: **2.0.0-alpha.1**, código de versão 20. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
+Atualizado em **24/10/2026 (UTC)**. Código atual: **2.0.0-alpha.2**, código de versão 21, em validação. Último APK publicado e verificado: **2.0.0-alpha.1**, versão 20. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
 
 Esta atualização inclui o pedido de verificar o aparelho e ajustar recursos automaticamente. Compatibilidade do aplicativo, disponibilidade de uma função e teste físico aprovado são resultados diferentes.
 
-## Estado dos sistemas
+
+## Etapa alpha.2 em validação
+
+A etapa atual acrescenta OCR local no NEXUS Vision com Tesseract4Android 4.9.0 e modelos português/inglês incluídos no APK. A interface permite escolher imagem da galeria, ler, copiar, ouvir e salvar uma memória por autorização explícita. O ditado de uma pergunta somente preenche o campo editável; nenhuma imagem é enviada automaticamente.
+
+Também foi preparado um workflow separado para executar um GGUF Qwen 0.5B real dentro de um emulador Android. O arquivo é verificado antes e depois da transferência para o diretório privado do aplicativo. As respostas e tempos são registrados; os pesos não são incluídos no APK ou nos artefatos de evidências.
+
+**Ainda não há resultado de compilação, novo APK ou testes Android aprovados registrado para a alpha.2 neste documento.** Os números e links da alpha.1 abaixo são a base histórica preservada. A execução atual será registrada em [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md), com falhas, ignorados e limites reais.
+
+| Acréscimo alpha.2 | Estado nesta atualização |
+| --- | --- |
+| OCR offline de imagens privadas, português e inglês | Implementação em validação; novo teste Android preparado, sem resultado registrado |
+| Importação da galeria sem exigir permissão de câmera | Interface em validação; fluxo físico pendente |
+| Copiar, ouvir e salvar OCR como memória | Ações explícitas implementadas; teste integrado pendente |
+| Ditado de pergunta no Vision | Interface em validação; reconhecimento depende do serviço de fala do aparelho |
+| Preparação dos modelos OCR e licenças | Scripts com revisões, tamanhos e SHA-256 fixados; execução integrada pendente de registro |
+| Inferência real no Android com GGUF | Teste e workflow preparados; execução pendente |
+| APK alpha.2 | Compilação, inspeção, publicação e download ainda não registrados |
+
+## Estado dos sistemas — base alpha.1
 
 Estados utilizados: **Concluído e testado**; **Implementado aguardando teste em dispositivo**; **Parcialmente implementado**; **Ainda não implementado**; **Bloqueado por limitação técnica**.
 
 | Sistema | Estado | O que existe e o que falta |
 | --- | --- | --- |
 | Auditoria anterior às mudanças | Concluído e testado | Código, dependências e manifesto examinados antes das alterações; evidências em [AUDITORIA_NEXUS.md](AUDITORIA_NEXUS.md). |
-| NEXUS AI local sem URL/chave | Implementado aguardando teste em dispositivo | Runtime llama.cpp real, dois modelos de texto, download explícito e arquivos privados. A ponte JNI foi exercitada no computador; falta inferência dentro do Android e teste físico. |
+| NEXUS AI local sem URL/chave | Implementado aguardando teste em dispositivo | Runtime llama.cpp real, dois modelos de texto, download explícito e arquivos privados. A ponte JNI foi exercitada no computador na alpha.1; a prova dentro do Android está preparada para alpha.2, ainda sem resultado registrado. Falta teste físico. |
 | Download e integridade dos modelos | Implementado aguardando teste em dispositivo | Tamanho e SHA-256 fixados, arquivo temporário, espaço livre, cancelamento e exclusão. O fluxo Android de download ainda precisa de teste. |
 | Perfil automático por aparelho | Implementado aguardando teste em dispositivo | Política considera Android, ABI do processo, RAM, armazenamento e recursos. Ajusta modelo recomendado e limites; não inicia downloads nem envio remoto sozinho. Integração compilada e regras cobertas por testes JVM. |
 | Câmera e análise adaptativas | Implementado aguardando teste em dispositivo | Resolução e frequência são reduzidas conforme recursos; análise acompanha o custo dos quadros. Precisão, latência, bateria e temperatura precisam de medição física. |
 | APK universal | Implementado aguardando teste em dispositivo | APK 2.0 final compilado e inspecionado com quatro ABIs; assinatura v2, ZIP e 24 bibliotecas ELF com alinhamento de 16 KB verificados. Android 8.0 ou superior. |
 | Provedor personalizado opcional | Implementado aguardando teste em dispositivo | HTTPS, modelo, consentimento e token no Keystore separados da IA local. Não há fallback remoto silencioso nem chave privada embutida. |
-| Imagens e NEXUS Vision | Parcialmente implementado | CameraX e captura explícita preservadas; análise exige provedor multimodal personalizado autorizado. Os modelos locais atuais não analisam imagens ou vídeo. |
+| Imagens e NEXUS Vision | Parcialmente implementado | CameraX e captura explícita preservadas; análise geral exige provedor multimodal personalizado autorizado. A alpha.2 acrescenta OCR separado, em validação. Os modelos locais de linguagem atuais não analisam imagens ou vídeo. |
 | Ações estruturadas da IA | Implementado aguardando teste em dispositivo | Lista de ações permitidas, argumentos validados e confirmação explícita de uso único. Texto livre não executa comandos. |
 | Voz em pt-BR | Implementado aguardando teste em dispositivo | Filtro por idioma e país, tom, velocidade, reprodução de teste, interrupção e leitura de respostas novas. Depende das vozes e serviços instalados. |
 | Mouse interno persistente | Implementado aguardando teste em dispositivo | Sessão na raiz da navegação, cursor único e despacho real de toque, duplo toque, arrasto e rolagem. Falta confirmar alvos, coordenadas, perda de mão e navegação no aparelho. |
@@ -32,7 +51,7 @@ Estados utilizados: **Concluído e testado**; **Implementado aguardando teste em
 | Rastreamento MediaPipe nas quatro ABIs | Implementado aguardando teste em dispositivo | Atualização para 0.10.35: AAR oficial contém JNI para ARM64, ARM32, x86_64 e x86, com segmentos ELF alinhados a 16 KB. Rastreamento físico ainda não validado. |
 | Publicação na Google Play | Ainda não implementado | Assinatura de release, política de acessibilidade, privacidade, bibliotecas nativas e requisitos da loja ainda precisam de revisão. |
 
-## Verificações executadas nesta evolução
+## Verificações executadas na alpha.1
 
 | Verificação | Resultado registrado |
 | --- | --- |
@@ -49,9 +68,9 @@ Estados utilizados: **Concluído e testado**; **Implementado aguardando teste em
 
 Detalhes e limites das provas: [RELATORIO_NEXUS_2.md](docs/RELATORIO_NEXUS_2.md). Os resultados antigos da versão 0.1 em [PROGRESSO.md](PROGRESSO.md) são históricos e não substituem a validação da 2.0.
 
-## APK publicado
+## APK alpha.1 publicado
 
-**APK final 2.0 confirmado localmente:** 101.515.753 bytes, assinatura v2 válida, quatro ABIs e alinhamento ZIP/ELF de 16 KB. Não contém pesos GGUF. SHA-256: `b1d2cbf860647fe6fc324b4660fae29deea0d42df24e1813304768dfa7976588`.
+**APK alpha.1 confirmado localmente:** 101.515.753 bytes, assinatura v2 válida, quatro ABIs e alinhamento ZIP/ELF de 16 KB. Não contém pesos GGUF. SHA-256: `b1d2cbf860647fe6fc324b4660fae29deea0d42df24e1813304768dfa7976588`.
 
 **[Baixar o APK publicado no GitHub](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk)**. Release: [v2.0.0-alpha.1-build-5](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.1-build-5), **91.496.785 bytes**, assinatura v2 válida, checksum conferido contra o digest do GitHub e `SHA256SUMS.txt`. SHA-256: `a51ea58489c42139b80aae259ee95c6bc0d6b3fae3d37f06731c91ec9bdb570b`. Quatro ABIs e alinhamento ZIP/ELF de 16 KB inspecionados também no arquivo remoto.
 

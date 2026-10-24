@@ -4,6 +4,8 @@ package br.com.nexus.assistant.ui
 
 import android.Manifest
 import android.content.Intent
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -74,17 +76,22 @@ import br.com.nexus.assistant.gestures.GestureSessionHost
 import br.com.nexus.assistant.gestures.rememberGestureSession
 import br.com.nexus.assistant.gestures.global.GlobalMouseRuntime
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.sin
+import java.io.File
+import br.com.nexus.assistant.device.vision.LocalTextReader
+import br.com.nexus.assistant.device.vision.OcrResult
 
 private data class Destination(val route: String, val title: String, val subtitle: String, val icon: ImageVector)
 private val destinations = listOf(
     Destination("chat", "Chat IA", "Texto, contexto e imagens", Icons.Default.Forum),
     Destination("voice", "Assistente de voz", "Ouvir, conversar e interromper", Icons.Default.Mic),
-    Destination("vision", "NEXUS Vision", "Capturar e perguntar à IA", Icons.Default.CenterFocusStrong),
+    Destination("vision", "NEXUS Vision", "Ler texto offline e analisar capturas", Icons.Default.CenterFocusStrong),
     Destination("mouse", "Mouse virtual", "Cursor por rastreamento da mão", Icons.Default.Mouse),
     Destination("hands", "Mãos livres", "Associar poses a ações internas", Icons.Default.PanTool),
     Destination("cube", "NEXUS 3D", "Cubo controlado pelas mãos", Icons.Default.ViewInAr),
@@ -218,13 +225,8 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
                 }
             }
             composable("vision") {
-                CompatibilityGate(capabilities.hasFrontCamera || capabilities.hasRearCamera, "NEXUS Vision", "O Android não informa uma câmera frontal ou traseira compatível neste aparelho. O chat por texto permanece disponível; você também pode anexar uma imagem da galeria a um provedor multimodal personalizado.", onContinue = { navigate("chat") }) {
-                GlobalCameraGate {
-                PermissionGate(Manifest.permission.CAMERA, "NEXUS Vision", "A câmera mostra a cena no aparelho. Só a imagem capturada será enviada quando você tocar em Analisar, após a autorização de envio.") {
-                    VisionScreen(model, settings, navigate)
-                }
-                }
-                }
+                // Gallery OCR is usable without camera permission or camera hardware.
+                VisionScreen(model, voice, settings, navigate)
             }
             for ((name, mode) in listOf("mouse" to GestureMode.MOUSE, "hands" to GestureMode.HANDS, "cube" to GestureMode.CUBE)) {
                 composable(name) {
@@ -574,49 +576,249 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
 }
 
 @Composable
-private fun VisionScreen(model: NexusViewModel, settings: NexusSettings, navigate: (String) -> Unit) {
+private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings: NexusSettings, navigate: (String) -> Unit) {
+    val context = LocalContext.current
     val capabilities by model.deviceCapabilities.collectAsStateWithLifecycle()
-    // Camera activation is intentionally not restored after recreation or backgrounding.
-    var cameraActive by remember { mutableStateOf(false) }
-    var front by rememberSaveable { mutableStateOf(!capabilities.hasRearCamera && capabilities.hasFrontCamera) }
-    var question by rememberSaveable { mutableStateOf("O que aparece nesta imagem?") }
+    val globalMouse by GlobalMouseRuntime.state.collectAsStateWithLifecycle()
+    val voiceState by voice.state.collectAsStateWithLifecycle()
     val attachment by model.attachment.collectAsStateWithLifecycle()
     val importing by model.importing.collectAsStateWithLifecycle()
     val busy by model.busy.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle) {
+    val scope = rememberCoroutineScope()
+    // Sensors and OCR work never resume merely because this screen is restored.
+    var cameraActive by remember { mutableStateOf(false) }
+    var front by rememberSaveable { mutableStateOf(!capabilities.hasRearCamera && capabilities.hasFrontCamera) }
+    var question by rememberSaveable { mutableStateOf("O que aparece nesta imagem?") }
+    var reader by remember { mutableStateOf<LocalTextReader?>(null) }
+    var reading by remember { mutableStateOf(false) }
+    var readJob by remember { mutableStateOf<Job?>(null) }
+    var readGeneration by remember { mutableLongStateOf(0L) }
+    var recognized by remember { mutableStateOf<OcrResult?>(null) }
+    var recognizedFor by remember { mutableStateOf<String?>(null) }
+    var readError by remember { mutableStateOf<String?>(null) }
+    var memoryDraft by remember { mutableStateOf<String?>(null) }
+    // The document picker may outlive an Activity recreation; retain its snapshot.
+    var exportDraft by rememberSaveable { mutableStateOf<String?>(null) }
+
+    fun stopReading(clearResult: Boolean) {
+        readGeneration++
+        readJob?.cancel()
+        readJob = null
+        reading = false
+        reader?.close()
+        reader = null
+        if (clearResult) {
+            recognized = null
+            recognizedFor = null
+            readError = null
+        }
+    }
+
+    val beginQuestion: () -> Unit = {
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !reading && !busy && !importing) {
+            voice.clearError()
+            voice.stopSpeaking()
+            voice.startListening(settings.language, onResult = { heard ->
+                val text = PhoneCommands.removeWakePhrase(heard).trim()
+                if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@startListening
+                if (text.isNotBlank()) question = text.take(24_000)
+                else model.report("Fale a pergunta depois de Ei, NEXUS.")
+            })
+        }
+    }
+    val latestBeginQuestion by rememberUpdatedState(beginQuestion)
+    val microphonePermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) latestBeginQuestion()
+        else model.report("O microfone foi recusado. Você pode escrever sua pergunta.")
+    }
+    val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !globalMouse.active) cameraActive = true
+        else if (!granted) model.report("A câmera foi recusada. Você pode escolher uma imagem da galeria para ler o texto localmente.")
+    }
+    val chooseImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            cameraActive = false
+            stopReading(clearResult = true)
+            model.importImage(uri)
+        }
+    }
+    val exportText = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        val snapshot = exportDraft
+        exportDraft = null
+        if (uri != null && snapshot != null) scope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val output = context.contentResolver.openOutputStream(uri, "wt")
+                        ?: error("Não foi possível abrir o arquivo de destino.")
+                    output.bufferedWriter(Charsets.UTF_8).use { it.write(snapshot) }
+                }
+                model.report("Texto exportado. O arquivo pode conter informações pessoais; guarde-o em um local seguro.")
+            } catch (cancelled: CancellationException) { throw cancelled
+            } catch (_: Exception) { model.report("Não foi possível exportar o texto. Escolha outro arquivo e tente novamente.") }
+        }
+    }
+    LaunchedEffect(attachment) { stopReading(clearResult = true) }
+    LaunchedEffect(globalMouse.active) { if (globalMouse.active) cameraActive = false }
+    DisposableEffect(lifecycle, voice) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) cameraActive = false
+            if (event == Lifecycle.Event.ON_PAUSE || event == Lifecycle.Event.ON_STOP) {
+                cameraActive = false
+                stopReading(clearResult = false)
+                voice.stopListening()
+                voice.stopSpeaking()
+            }
         }
         lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer); cameraActive = false }
+        onDispose {
+            lifecycle.removeObserver(observer)
+            cameraActive = false
+            stopReading(clearResult = true)
+            voice.stopListening()
+            voice.stopSpeaking()
+        }
     }
+    val visibleResult = recognized.takeIf { recognizedFor == attachment }
     ScrollPage {
-        InfoCard("ANÁLISE POR CAPTURA", "A visualização é ao vivo. A IA recebe apenas a foto selecionada ao tocar em Analisar; não recebe vídeo contínuo.")
+        InfoCard("VISÃO POR CAPTURA", "A câmera mostra uma prévia ao vivo. A leitura de texto acontece no aparelho sobre a foto escolhida. A IA multimodal recebe somente a imagem enviada ao tocar em Analisar; não recebe vídeo contínuo.")
+        if (globalMouse.active) {
+            InfoCard("CÂMERA EM USO PELO MOUSE GLOBAL", "Encerre o mouse global antes de abrir a câmera aqui. A galeria e a leitura de texto continuam disponíveis.")
+            OutlinedButton(onClick = { GlobalMouseRuntime.stop(context) }) { Text("Parar mouse global e liberar câmera") }
+        } else {
+            if (cameraActive) {
+                CameraPanel(Modifier.fillMaxWidth().height(320.dp).clip(RoundedCornerShape(20.dp)), frontCamera = front,
+                    onCapture = { file ->
+                        cameraActive = false
+                        stopReading(clearResult = true)
+                        model.importCapturedImage(file)
+                    },
+                    onError = { message -> cameraActive = false; model.report(message) })
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (capabilities.hasFrontCamera && capabilities.hasRearCamera) OutlinedButton(onClick = { front = !front }) { Text("Alternar câmera") }
+                    TextButton(onClick = { cameraActive = false }) { Text("Encerrar câmera") }
+                }
+            } else {
+                Button(onClick = {
+                    voice.stopListening()
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraActive = true
+                    else cameraPermission.launch(Manifest.permission.CAMERA)
+                }, enabled = capabilities.hasCamera && !busy && !importing && !reading && !voiceState.isListening) {
+                    Icon(Icons.Default.CameraAlt, null); Text(" Abrir câmera")
+                }
+                if (!capabilities.hasCamera) Text("Nenhuma câmera foi informada pelo Android. Escolha uma imagem para continuar.", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        OutlinedButton(onClick = {
+            chooseImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }, enabled = !busy && !importing && !reading) { Icon(Icons.Default.PhotoLibrary, null); Text(" Escolher imagem") }
+        if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
+        attachment?.let { path ->
+            LocalImage(path, Modifier.fillMaxWidth().heightIn(max = 260.dp))
+            TextButton(onClick = { stopReading(clearResult = true); model.removeAttachment() }, enabled = !busy) { Text("Descartar foto") }
+        }
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = NexusPanel)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("LEITURA DE TEXTO NO APARELHO", color = NexusCyan, style = MaterialTheme.typography.labelMedium)
+                Text("Reconhece texto impresso em português e inglês na foto, sem enviar a imagem a um servidor. Não identifica objetos nem interpreta a cena. Confira o texto antes de usar ou salvar.")
+                Button(onClick = {
+                    val path = attachment
+                    if (path != null && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        voice.stopListening()
+                        voice.stopSpeaking()
+                        stopReading(clearResult = true)
+                        val generation = readGeneration
+                        reading = true
+                        readJob = scope.launch {
+                            var localReader: LocalTextReader? = null
+                            try {
+                                val activeReader = LocalTextReader(context).also { localReader = it; reader = it }
+                                val result = activeReader.read(File(path))
+                                if (generation == readGeneration && attachment == path && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    recognizedFor = path
+                                    recognized = result
+                                }
+                            } catch (cancelled: CancellationException) { throw cancelled
+                            } catch (failure: Exception) {
+                                if (generation == readGeneration) readError = failure.message ?: "Não foi possível reconhecer o texto desta foto."
+                            } finally {
+                                localReader?.close()
+                                if (generation == readGeneration) { reading = false; readJob = null; reader = null }
+                            }
+                        }
+                    }
+                }, enabled = attachment != null && !busy && !importing && !reading && !cameraActive) {
+                    Text(if (reading) "Lendo texto no aparelho…" else "Ler texto no aparelho")
+                }
+                if (reading) {
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                    TextButton(onClick = { stopReading(clearResult = false) }) { Text("Cancelar leitura") }
+                }
+                readError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                visibleResult?.let { result ->
+                    if (result.text.isBlank()) Text("Nenhum texto legível foi encontrado. Tente uma foto mais próxima, bem iluminada e sem desfoque.")
+                    else {
+                        Text("Texto reconhecido · confira o resultado", style = MaterialTheme.typography.titleSmall)
+                        SelectionContainer { Text(result.text.take(8_000)) }
+                        if (result.text.length > 8_000) Text("Prévia limitada a 8.000 caracteres. A exportação contém todo o texto reconhecido.", style = MaterialTheme.typography.bodySmall)
+                        if (result.truncated) Text("O texto atingiu o limite desta leitura. Para recuperar outros trechos, recorte a imagem e faça uma nova leitura.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = {
+                                context.getSystemService(ClipboardManager::class.java)
+                                    .setPrimaryClip(ClipData.newPlainText("Texto reconhecido pelo NEXUS", result.text))
+                                model.report("Texto copiado para a área de transferência.")
+                            }) { Text("Copiar texto") }
+                            OutlinedButton(onClick = { exportDraft = result.text; exportText.launch("nexus-texto.txt") }) { Text("Exportar texto") }
+                        }
+                        OutlinedButton(onClick = { memoryDraft = result.text.take(2_000) }) { Text("Salvar trecho como memória") }
+                        OutlinedButton(onClick = {
+                            voice.clearError()
+                            voice.speak(result.text, settings.language, settings.voiceRate, settings.voiceName, settings.voicePitch)
+                        }, enabled = voiceState.ttsReady && voiceState.languageReady && !voiceState.isListening) { Icon(Icons.Default.VolumeUp, null); Text(" Ouvir texto") }
+                        Text("O reconhecimento é local. A voz selecionada no Android pode usar rede para sintetizar o texto.", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                if (voiceState.isSpeaking) TextButton(onClick = voice::stopSpeaking) { Text("Parar reprodução") }
+            }
+        }
+        OutlinedTextField(question, { question = it.take(24_000) }, label = { Text("Pergunta sobre a captura") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedButton(onClick = {
+            if (voiceState.isListening) voice.stopListening()
+            else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) beginQuestion()
+            else microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
+        }, enabled = capabilities.hasMicrophone && voiceState.available && !busy && !importing && !reading) {
+            Icon(if (voiceState.isListening) Icons.Default.MicOff else Icons.Default.Mic, null)
+            Text(if (voiceState.isListening) " Parar escuta" else " Ditar pergunta")
+        }
+        Text("A fala preenche a pergunta. Revise e toque em Analisar para enviar a foto. O reconhecedor Android pode usar rede.", style = MaterialTheme.typography.bodySmall)
+        if (voiceState.isListening) {
+            LinearProgressIndicator(progress = { voiceState.level.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+            if (voiceState.partialText.isNotBlank()) Text(voiceState.partialText, color = NexusCyan)
+        }
+        voiceState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        if (!capabilities.hasMicrophone || !voiceState.available) Text("Ditado indisponível neste aparelho. Escreva sua pergunta para continuar.", style = MaterialTheme.typography.bodySmall)
         if (settings.aiMode == AiMode.NEXUS_LOCAL) {
-            InfoCard("MODELO LOCAL DE TEXTO", "Este modelo não analisa imagens. Para usar Vision, selecione e autorize um provedor multimodal personalizado em Configurações.")
+            InfoCard("MODELO LOCAL DE TEXTO", "A leitura acima funciona localmente. Os modelos de conversa atuais não analisam a foto; para perguntar sobre objetos e cenas, escolha um provedor multimodal personalizado autorizado.")
             OutlinedButton(onClick = { navigate("settings") }) { Text("Configurar IA para imagens") }
         }
-        if (cameraActive) {
-            CameraPanel(Modifier.fillMaxWidth().height(320.dp).clip(RoundedCornerShape(20.dp)), frontCamera = front,
-                onCapture = { file ->
-                    cameraActive = false
-                    // Ownership transfers to the ViewModel, which deletes the raw cache file
-                    // after copying/compressing it, including cancellation or rejected imports.
-                    model.importCapturedImage(file)
-                },
-                onError = { message -> cameraActive = false; model.report(message) })
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (capabilities.hasFrontCamera && capabilities.hasRearCamera) OutlinedButton(onClick = { front = !front }) { Text("Alternar câmera") }
-                TextButton(onClick = { cameraActive = false }) { Text("Encerrar câmera") }
-            }
-        } else Button(onClick = { cameraActive = true }, enabled = !busy && !importing) { Icon(Icons.Default.CameraAlt, null); Text(" Abrir câmera") }
-        if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
-        attachment?.let { LocalImage(it, Modifier.fillMaxWidth().heightIn(max = 260.dp)); TextButton(onClick = model::removeAttachment) { Text("Descartar foto") } }
-        OutlinedTextField(question, { question = it }, label = { Text("Pergunta sobre a captura") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-        Button(onClick = { if (model.send(question)) navigate("chat") }, enabled = settings.aiMode == AiMode.CUSTOM && attachment != null && !busy && !importing && !cameraActive) { Text("Analisar com a IA") }
+        Button(onClick = {
+            voice.stopListening()
+            voice.stopSpeaking()
+            if (model.send(question)) navigate("chat")
+        }, enabled = settings.aiMode == AiMode.CUSTOM && settings.remoteConsent && attachment != null && !busy && !importing && !reading && !cameraActive && !voiceState.isListening) { Text("Analisar com a IA") }
         if (settings.aiMode == AiMode.CUSTOM && !settings.remoteConsent) Text("Autorize o envio para o servidor em Configurações antes de analisar.", color = MaterialTheme.colorScheme.error)
-        Text("O modelo configurado precisa aceitar imagens. Textos pequenos e detalhes desfocados podem não ser reconhecidos.", style = MaterialTheme.typography.bodySmall)
+        Text("A análise da imagem exige modelo com visão. A leitura de texto não equivale à interpretação de circuitos, exercícios ou ambiente.", style = MaterialTheme.typography.bodySmall)
+    }
+    memoryDraft?.let { draft ->
+        AlertDialog(onDismissRequest = { memoryDraft = null },
+            title = { Text("Autorizar nova memória?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Edite o trecho que deseja guardar, limitado a 2.000 caracteres. Essa informação poderá entrar no contexto das conversas futuras. Você pode editar ou excluir em Memória e histórico.")
+                    OutlinedTextField(draft, { memoryDraft = it }, label = { Text("Informação autorizada") }, minLines = 3, maxLines = 6, supportingText = { Text("${draft.length}/2.000 caracteres") })
+                }
+            },
+            confirmButton = { TextButton(onClick = { model.saveMemory(draft); memoryDraft = null }, enabled = draft.isNotBlank() && draft.length <= 2_000) { Text("Salvar memória") } },
+            dismissButton = { TextButton(onClick = { memoryDraft = null }) { Text("Cancelar") } })
     }
 }
 
