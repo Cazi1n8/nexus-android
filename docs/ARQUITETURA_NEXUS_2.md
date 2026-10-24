@@ -14,6 +14,12 @@ Este documento descreve a implementação, sem certificar uso físico. A base au
 
 `VoiceController` usa APIs reais de fala do Android. Seleção de voz considera idioma e país; uma voz estrangeira persistida não pode substituir pt-BR. Leitura automática usa eventos sem replay, em primeiro plano, para não reler histórico ao recompor telas.
 
+## Vision e OCR offline
+
+`VisionScreen` separa captura CameraX, importação da galeria, ditado editável e envio multimodal autorizado. Importar e ler uma imagem não requer câmera. `LocalTextReader` usa Tesseract4Android com `por+eng` em um worker serial, limita arquivo/resolução, aplica EXIF e verifica os modelos copiados ao diretório privado. Não inicia sensores nem acessa a rede. A chamada nativa iniciada termina antes de liberar o bitmap; cancelamento, troca de foto e fechamento descartam resultados tardios.
+
+Copiar, exportar, ouvir e autorizar memória são ações explícitas. O texto pendente de exportação sobrevive à recriação da Activity. O OCR reconhece texto impresso; análise geral de imagens continua dependendo do provedor multimodal configurado. Pesos OCR e AAR são preparados no build com SHA-256 fixado; os pesos de conversa continuam sendo baixados separadamente pelo usuário.
+
 ## Rastreamento e controles
 
 `HandCamera` usa CameraX e Hand Landmarker no modo VIDEO com timestamps crescentes, processamento local e handedness. O rastreador produz observações; interpretações ficam em controladores independentes.

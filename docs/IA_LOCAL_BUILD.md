@@ -6,7 +6,7 @@ O NEXUS 2.0 alpha acrescenta inferência de texto local usando llama.cpp, em vez
 
 - Java 17, Android SDK 35 e Build Tools 35.0.0.
 - Android NDK `28.2.13676358` e CMake `3.22.1`, instaláveis pelo SDK Manager do Android Studio.
-- Python 3.10 ou mais recente para preparar as fontes e o modelo de mãos.
+- Python 3.10 ou mais recente para preparar as fontes, o modelo de mãos e o OCR.
 - Gradle 8.11.1 fornecido pelo wrapper do repositório.
 
 No terminal do computador, a partir da pasta do projeto:
@@ -15,12 +15,16 @@ No terminal do computador, a partir da pasta do projeto:
 sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
 python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
-./gradlew testDebugUnitTest lintDebug assembleDebug
+python3 scripts/fetch_ocr_models.py
+python3 scripts/fetch_ocr_runtime.py
+./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug
 ```
 
 No Windows, use `gradlew.bat` e o comando Python disponível no computador. Não é necessário instalar ferramentas de desenvolvimento no celular. O GitHub Actions executa a preparação, disponibiliza artefatos e está configurado para publicar um APK direto em [Releases](https://github.com/Cazi1n8/nexus-android/releases) após um build aprovado da branch `main`. A existência do arquivo publicado deve ser conferida em cada entrega.
 
 A fonte verificada do llama.cpp é gerada em `app/src/main/cpp/vendor/llama.cpp`, fora do Git. Seu arquivo original tem SHA-256 `b065f8ba1524df021d35078117b050d436c6a88f30c0ceede8614d9aac22713f`. O script aceita `--archive caminho.tar.gz` para usar uma cópia local com a mesma verificação. A preparação falha se o arquivo estiver corrompido ou contiver caminhos inseguros.
+
+O OCR usa dois modelos incluídos no APK e um AAR oficial preparado em `.build-deps/ocr/`, ambos fora do Git. Os scripts verificam tamanho e SHA-256; o Gradle também recusa o AAR incorreto. A variante padrão do Tesseract4Android usa uma thread. [Preparação sem rede e detalhes do OCR](OCR_LOCAL.md).
 
 ## Compatibilidade e tamanho
 
@@ -45,3 +49,7 @@ O workflow **NEXUS Android — teste em emulador** (`.github/workflows/android-d
 A configuração do workflow não comprova execução: confira o resultado e os relatórios da execução antes de declarar os testes aprovados. Os testes existentes verificam fluxos do app, cancelamento e armazenamento; não certificam câmera, voz, gestos ou velocidade no Galaxy S9+. Este workflow mantém as câmeras desativadas, não baixa os modelos de linguagem de 491 MB/1,117 GB e não testa inferência com seus pesos. A preparação nativa obtém apenas o código-fonte do runtime.
 
 A configuração de KVM segue a documentação de https://github.com/ReactiveCircus/android-emulator-runner e só altera o executor Linux descartável. Não exige qualquer mudança no celular.
+
+Uma execução alpha.2 esgotou o heap de 3 GB do Gradle ao empacotar o APK; a repetição passou. Se ocorrer `Java heap space` no computador, feche outros processos e limite os workers. Em uma máquina com RAM disponível suficiente, o heap pode ser aumentado para `-Xmx4g` em `gradle.properties`. Isso altera o ambiente de compilação, não a memória exigida pelo aplicativo instalado.
+
+Na alpha.2, `LocalAiInferenceTest` fica explicitamente ignorado na suíte comum sem a fixture. O workflow separado `local-ai-smoke.yml` baixa o GGUF compacto fixado, transfere-o ao diretório privado do app no emulador e executa inferência real. Respostas e tempos ficam no relatório; os pesos temporários são excluídos e não são publicados. Consulte [os resultados da alpha.2](RELATORIO_ALPHA_2.md).

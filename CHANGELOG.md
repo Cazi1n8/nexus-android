@@ -1,15 +1,16 @@
 # Alterações do NEXUS
 
-## 2.0.0-alpha.2 — em validação, 24/10/2026
+## 2.0.0-alpha.2 — versão de teste publicada, 24/10/2026
 
-Versão Android 21. A implementação preserva a base alpha.1, o identificador do aplicativo e o banco Room. Não há novo APK ou aprovação de testes declarados nesta entrada; os resultados da etapa serão registrados em [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md).
+Versão Android 21. A implementação preserva a base alpha.1, o identificador do aplicativo e o banco Room. Build local aprovado com 76 testes JVM, 44 testes Python dos scripts, 44 do servidor opcional e zero erros de lint. A revisão final passou com 13 testes comuns no Android emulado, um caso opcional ignorado sem fixture e um teste dedicado de IA real aprovado. O APK foi publicado, baixado e verificado; teste físico no S9+ permanece pendente. Resultados detalhados: [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md).
 
 - Leitura de texto local no NEXUS Vision por Tesseract4Android 4.9.0, variante de uma thread, com modelos português/inglês empacotados e integridade fixada. Sem API ou transmissão de imagem para realizar OCR.
 - Importação da galeria independente da permissão de câmera; botões explícitos para copiar, ouvir e salvar texto como memória.
 - Ditado de perguntas no Vision para um campo editável, com envio manual à IA.
 - Recursos de OCR delimitados por tamanho de arquivo e resolução; descarte de resultados quando a imagem ou a sessão muda. Processamento não é apresentado como análise contínua de vídeo.
-- Script de preparação de pesos OCR, testes de integridade e licenças de redistribuição.
-- Teste dedicado de inferência real JNI no Android, com GGUF Qwen 0.5B temporário, workflow separado e relatório das respostas observadas. O teste padrão informa o caso ignorado quando a fixture não está presente.
+- Scripts de preparação dos pesos e do AAR OCR com tamanho e SHA-256 fixados, validação adicional no Gradle e licenças de redistribuição. O AAR fica em `.build-deps`, fora do Git; preparação direta substitui a resolução de metadados JitPack que falhou no CI.
+- Teste dedicado de inferência real JNI aprovado em Android 10 emulado, com GGUF Qwen 0.5B temporário, workflow separado e relatório das quatro respostas observadas. O teste padrão informa o caso ignorado quando a fixture não está presente.
+- Teste da tela Vision usa ação de clique de acessibilidade e aguarda o destino da navegação, preservando as asserções de sensores desligados e pergunta persistida. A correção passou na rodada final de CI; o teste não abre o seletor de imagens do Android nem valida sensores físicos.
 
 
 ## 2.0.0-alpha.1 — versão de teste, 24/10/2026

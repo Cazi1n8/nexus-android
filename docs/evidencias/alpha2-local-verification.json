@@ -228,11 +228,11 @@
     "assets/licenses/llama.cpp-MIT.txt",
     "assets/licenses/tessdata_fast-Apache-2.0.txt"
   ],
-  "sourceCommit": "e8186d24ea521144120de7ef3694f18e81dc5938",
+  "sourceCommit": "b7a5c1b52186fd5ad014c74dafec4649d62c7bb5",
   "workflowCorrectionCommit": "379669afe2d7fa5fd15c544d947a90c0ac262ac8",
   "build": {
     "result": "BUILD SUCCESSFUL",
-    "durationSeconds": 123,
+    "durationSeconds": 130,
     "jvm": {
       "tests": 76,
       "failures": 0,
@@ -245,15 +245,19 @@
       "information": 1
     },
     "scriptPython": {
-      "tests": 30,
+      "tests": 44,
       "failures": 0,
       "skipped": 0
     },
     "serverPython": {
       "tests": 44,
       "failures": 0,
-      "skipped": 0
+      "skipped": 0,
+      "durationSeconds": 17.279
     }
   },
-  "scope": "Local build and package inspection; does not establish physical device behavior."
+  "scope": "Local build and package inspection; does not establish physical device behavior.",
+  "ocrAarSha256": "bce5d6413a1a5ae3d7240033fbbc851ba3217d0a08d9769400e17a077f42cb2a",
+  "ocrAarBytes": 12848454,
+  "ocrDependencyTransport": "Verified upstream AAR prepared before Gradle; not downloaded by the Android application."
 }

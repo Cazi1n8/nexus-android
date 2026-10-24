@@ -2,35 +2,35 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
 
-**Código em desenvolvimento: 2.0.0-alpha.2, versão 21.** A nova etapa adiciona leitura de texto offline no Vision e uma prova de inferência real no Android. A compilação e os novos testes ainda estão em validação; acompanhe [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md).
+**Versão de teste disponível: 2.0.0-alpha.2, versão 21.** APK compilado, publicado e baixado para verificação. Passaram **76 testes JVM**, **13 testes comuns no Android 10 emulado** e **1 teste dedicado de IA com modelo real**; a suíte comum informa separadamente um caso opcional ignorado. Também passaram 44 testes Python dos scripts e 44 do servidor opcional. Lint sem erros. Resultados e limites: [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md).
 
-**APK publicado e verificado: 2.0.0-alpha.1.** Essa versão passou por **76 testes JVM**, lint sem erros e **8 testes no Android 10 emulado**. O download público, a assinatura v2 e o alinhamento de suas bibliotecas foram verificados. As evidências permanecem em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
+**Base anterior preservada: 2.0.0-alpha.1.** Essa versão passou por **76 testes JVM**, lint sem erros e **8 testes no Android 10 emulado**. O download público, a assinatura v2 e o alinhamento de suas bibliotecas foram verificados. As evidências permanecem em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
 ## O que mudou
 
 NEXUS AI pode executar um modelo de texto no próprio aparelho compatível, sem URL, chave ou conta de IA. O perfil personalizado HTTPS continua disponível separadamente. A evolução também adiciona verificação do aparelho, ajustes de processamento, correções de voz pt-BR, mouse persistente, controles independentes de gestos/3D e exercícios preparatórios de Libras.
 
-Na alpha.2, **NEXUS Vision → Ler texto offline** usa Tesseract4Android e modelos português/inglês incluídos no APK. O fluxo recebe foto ou imagem da galeria, sem depender de câmera para importar; oferece copiar, ouvir e salvar o texto como memória por escolha explícita. O ditado preenche uma pergunta editável; o envio para IA continua manual. [Funcionamento e limites do OCR](docs/OCR_LOCAL.md). Esses acréscimos ainda aguardam os resultados da validação alpha.2.
+Na alpha.2, **NEXUS Vision → Ler texto offline** usa Tesseract4Android e modelos português/inglês incluídos no APK. O fluxo recebe foto ou imagem da galeria, sem depender de câmera para importar; oferece copiar, ouvir e salvar o texto como memória por escolha explícita. O ditado preenche uma pergunta editável; o envio para IA continua manual. [Funcionamento e limites do OCR](docs/OCR_LOCAL.md). Os quatro testes do leitor OCR e o teste da tela Vision passaram na rodada final em emulador. O seletor de imagens do Android, as câmeras e a voz ainda precisam de validação física.
 
 A implementação ainda precisa das verificações registradas no progresso. Não houve teste físico pelo ambiente no Samsung Galaxy S9+ informado pelo usuário.
 
 ## Instalar pelo celular
 
-**Alpha.1, última versão publicada verificada:** [Baixar NEXUS 2.0.0-alpha.1.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk) — aproximadamente 87,3 MiB. Download direto, sem ZIP ou login no GitHub.
+**[Baixar NEXUS 2.0.0-alpha.2.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.2-build-9/NEXUS-2.0.0-alpha.2.apk)** — aproximadamente **117,9 MiB**. Download direto, sem ZIP ou login no GitHub.
 
-1. Abra [Releases do NEXUS](https://github.com/Cazi1n8/nexus-android/releases).
-2. Na versão de teste mais recente, em **Assets**, baixe o arquivo `NEXUS-2.0.0-alpha.1.apk`.
-3. Abra o APK no gerenciador de arquivos. Autorize instalar aplicativos pela origem utilizada se o Android solicitar.
-4. Abra **Configurações → NEXUS AI**. Confira a recomendação em **Ajustar ao aparelho** e autorize o download do modelo escolhido. Prefira Wi-Fi e mantenha o app aberto.
-5. Depois da verificação do arquivo, converse por texto. Para voz, permita o microfone e instale uma voz **Português (Brasil)** no mecanismo de fala do Android, se necessário.
+1. Toque no link acima e abra o APK no gerenciador de arquivos. Autorize instalar aplicativos pela origem utilizada se o Android solicitar.
+2. Para ler texto sem baixar IA, abra **NEXUS Vision → Escolher imagem → Ler texto no aparelho**. A leitura OCR funciona offline; câmera e microfone só são ativados por suas ações.
+3. Para conversar com IA local, abra **Configurações → NEXUS AI**, confira **Ajustar ao aparelho** e autorize o download do modelo recomendado. Prefira Wi-Fi e mantenha o app aberto.
+4. Após a verificação do modelo, abra **Chat IA** e envie uma mensagem.
+5. Para voz, permita o microfone quando solicitado e instale uma voz **Português (Brasil)** no mecanismo de fala do Android, se necessário.
 
-O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.1-build-5) foi publicado e verificado. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
+O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.2-build-9) foi publicado e verificado: **123.631.398 bytes**, assinatura v2 válida e SHA-256 `6185c50c7dd75d6c2b160d9933f37e0c23cd3717ae9007a0183faadda663e422`, conferido contra o digest do GitHub e `SHA256SUMS.txt`. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
 
 Builds de ambientes diferentes podem usar certificados de depuração diferentes. Se o Android recusar atualizar por assinatura, exporte dados importantes antes de desinstalar a versão anterior; desinstalar apaga dados locais.
 
 ## Compatibilidade automática
 
-A base requer **Android 8.0/API 26 ou superior**. O APK alpha.1 foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86; suas 24 bibliotecas nativas têm segmentos ELF alinhados a pelo menos 16 KB, e o alinhamento ZIP foi aprovado. A alpha.2 acrescenta bibliotecas nativas de OCR e exige nova inspeção do APK; o resultado anterior não certifica o arquivo novo.
+A base requer **Android 8.0/API 26 ou superior**. O APK alpha.2 publicado foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. São 40 bibliotecas nativas, com alinhamento ELF ≥16 KB nas 22 de 64 bits e ≥4 KB nas 18 de 32 bits; ZIP alinhado a 16 KB. Os modelos OCR estão presentes e verificados, e não há pesos GGUF no APK.
 
 O aplicativo verifica arquitetura, RAM, armazenamento, CPU, câmeras, microfone e GLES. O perfil automático ajusta recomendação de modelo, contexto, threads, resolução e frequência de análise; efeitos visuais são reduzidos em aparelhos modestos. Downloads e envio remoto sempre exigem escolha explícita.
 
@@ -65,7 +65,7 @@ python3 scripts/fetch_ocr_runtime.py
 ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 ```
 
-No Windows, use `gradlew.bat`. O APK fica em `app/build/outputs/apk/debug/app-debug.apk`. Os scripts obtêm fontes, modelo de mãos e dois modelos OCR de fontes oficiais, com revisões e checksums fixados. Os modelos OCR são empacotados no APK; pesos GGUF de linguagem não são incluídos no Git ou APK. [Build offline, checksums e arquiteturas](docs/IA_LOCAL_BUILD.md).
+No Windows, use `gradlew.bat`. O APK fica em `app/build/outputs/apk/debug/app-debug.apk`. Os scripts obtêm fontes, modelo de mãos, dois modelos OCR e o AAR Tesseract4Android de fontes oficiais, com revisões e checksums fixados. `fetch_ocr_runtime.py` salva o AAR em `.build-deps/ocr`, fora do Git; o Gradle confere novamente seu SHA-256. Essa preparação evita depender da resolução de metadados Maven do JitPack, que falhou em duas execuções de CI. Os modelos OCR são empacotados no APK; pesos GGUF de linguagem não são incluídos no Git ou APK. [Build offline, checksums e arquiteturas](docs/IA_LOCAL_BUILD.md).
 
 ```bash
 python3 -m unittest discover -s scripts/tests -v
@@ -73,9 +73,9 @@ python3 -m unittest discover -s server/tests -v
 ./gradlew connectedDebugAndroidTest
 ```
 
-O último comando exige aparelho ou emulador conectado. O teste `LocalAiInferenceTest` é ignorado explicitamente quando o GGUF de teste não é fornecido; o [workflow de IA local](.github/workflows/local-ai-smoke.yml) prepara esse arquivo e executa a inferência separadamente. Ele registra respostas reais, tempos e observações de cálculo, contexto e UTF-8; aprovação de transporte não certifica qualidade geral do modelo. Os pesos temporários não são publicados como artefato nem incluídos no APK. A nova execução ainda está pendente na alpha.2.
+O último comando exige aparelho ou emulador conectado. O teste `LocalAiInferenceTest` é ignorado explicitamente quando o GGUF de teste não é fornecido; o [workflow de IA local](.github/workflows/local-ai-smoke.yml) prepara esse arquivo e executa a inferência separadamente. Ele registra respostas reais, tempos e observações de cálculo, contexto e UTF-8; aprovação de transporte não certifica qualidade geral do modelo. Os pesos temporários não são publicados como artefato nem incluídos no APK. A [prova final de IA real no Android](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216702) passou com quatro respostas geradas; as observações estão [neste JSON](docs/evidencias/alpha2-final-ai-local-ai-observations.json).
 
- O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [execução Android 10](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992145) passou nos oito testes de interface, dados e inicialização nativa. Ela não certifica câmera, voz ou mãos físicas. O [workflow principal](.github/workflows/android.yml) gera APK e relatórios em alterações na branch `main`.
+O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [rodada final, tentativa 2](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216728/attempts/2) passou: **13 testes aprovados, 0 falhas/erros e 1 ignorado** sem fixture, em 53 s de instrumentação comum. A IA real passou separadamente. Esses testes não certificam câmera, voz ou mãos físicas. O [workflow principal aprovado](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216752) gera APK e relatórios em alterações na branch `main`.
 
 ## Privacidade e limites
 

@@ -1,0 +1,235 @@
+{
+  "apk": "NEXUS-2.0.0-alpha.2.apk",
+  "bytes": 123631398,
+  "sha256": "6185c50c7dd75d6c2b160d9933f37e0c23cd3717ae9007a0183faadda663e422",
+  "versionName": "2.0.0-alpha.2",
+  "versionCode": 21,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "signatureV2": true,
+  "zipAligned16Kb": true,
+  "ocrModelsSha256Verified": true,
+  "ggufIncluded": false,
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86",
+    "x86_64"
+  ],
+  "nativeLibraries": [
+    {
+      "path": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libc++_shared.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libdatastore_shared_counter.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libimage_processing_util_jni.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libjpeg.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libleptonica.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libmediapipe_tasks_jni.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libnexus_llama.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libpngx.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libsurface_util_jni.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libtesseract.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libandroidx.graphics.path.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libdatastore_shared_counter.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libimage_processing_util_jni.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libjpeg.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/armeabi-v7a/libleptonica.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/armeabi-v7a/libmediapipe_tasks_jni.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libpngx.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/armeabi-v7a/libsurface_util_jni.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libtesseract.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86/libandroidx.graphics.path.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86/libdatastore_shared_counter.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86/libimage_processing_util_jni.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86/libjpeg.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86/libleptonica.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86/libmediapipe_tasks_jni.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86/libpngx.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86/libsurface_util_jni.so",
+      "bits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86/libtesseract.so",
+      "bits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86_64/libandroidx.graphics.path.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libc++_shared.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libdatastore_shared_counter.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libimage_processing_util_jni.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libjpeg.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libleptonica.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libmediapipe_tasks_jni.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libnexus_llama.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libpngx.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libsurface_util_jni.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libtesseract.so",
+      "bits": 64,
+      "minimumLoadAlignment": 16384
+    }
+  ],
+  "licenses": [
+    "assets/licenses/Leptonica-BSD.txt",
+    "assets/licenses/OCR-NOTICES.txt",
+    "assets/licenses/Tesseract-Apache-2.0.txt",
+    "assets/licenses/Tesseract4Android-Apache-2.0.txt",
+    "assets/licenses/libjpeg-README.txt",
+    "assets/licenses/libpng-LICENSE.txt",
+    "assets/licenses/llama.cpp-MIT.txt",
+    "assets/licenses/tessdata_fast-Apache-2.0.txt"
+  ],
+  "sourceCommit": "b7a5c1b52186fd5ad014c74dafec4649d62c7bb5",
+  "releaseTag": "v2.0.0-alpha.2-build-9",
+  "publicDownloadVerified": true,
+  "releaseDigestAndSha256SumsVerified": true
+}

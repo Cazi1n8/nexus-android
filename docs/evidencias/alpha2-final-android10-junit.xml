@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="br.com.nexus.assistant.ConversationCancellationTest" tests="14" failures="0" errors="0" skipped="1" time="19.502" timestamp="2026-10-24T15:28:47" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5554 - 10" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="deletingDataWaitsForAnExistingMemorySaveAndRejectsEditsDuringDeletion" classname="br.com.nexus.assistant.ConversationCancellationTest" time="0.54" />
+  <testcase name="interruptingTheFirstAnswerKeepsItsMessageAndNextSendInTheSameConversation" classname="br.com.nexus.assistant.ConversationCancellationTest" time="0.064" />
+  <testcase name="sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer" classname="br.com.nexus.assistant.FirstRunFlowsTest" time="5.885" />
+  <testcase name="anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated" classname="br.com.nexus.assistant.FirstRunFlowsTest" time="4.368" />
+  <testcase name="realModelProducesUtf8TextOnAndroidAndRecordsObservations" classname="br.com.nexus.assistant.LocalAiInferenceTest" time="0.052">
+    <skipped />
+  </testcase>
+  <testcase name="boundedDecodeHonorsExifRotationAndBlankImageReturnsNoText" classname="br.com.nexus.assistant.LocalTextReaderTest" time="1.239" />
+  <testcase name="rejectsOutsidePrivateFilesAndOversizedInput" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.027" />
+  <testcase name="closedReaderDoesNotStartRecognition" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.003" />
+  <testcase name="bundledPortugueseAndEnglishModelsReadPrintedText" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.915" />
+  <testcase name="localAiJniLoadsOnlyInSupportedProcessAndRejectsMissingWeights" classname="br.com.nexus.assistant.NativeCapabilitiesSmokeTest" time="0.029" />
+  <testcase name="packagedHandTrackerProcessesABlankVideoFrame" classname="br.com.nexus.assistant.NativeCapabilitiesSmokeTest" time="0.327" />
+  <testcase name="galleryAndQuestionWorkWithoutActivatingSensorsOrSendingAnImage" classname="br.com.nexus.assistant.VisionUiTest" time="3.882" />
+  <testcase name="deletingConversationRemovesMessagesButPreservesAuthorizedMemories" classname="br.com.nexus.assistant.data.LocalDataTest" time="0.167" />
+  <testcase name="exportContainsConversationAndMemoriesButOmitsPrivateImagePaths" classname="br.com.nexus.assistant.data.LocalDataTest" time="0.151" />
+</testsuite>

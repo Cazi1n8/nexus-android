@@ -1,27 +1,33 @@
 # NEXUS 2.0 — progresso verificável
 
-Atualizado em **24/10/2026 (UTC)**. Código atual: **2.0.0-alpha.2**, código de versão 21, em validação. Último APK publicado e verificado: **2.0.0-alpha.1**, versão 20. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
+Atualizado em **24/10/2026 (UTC)**. Código atual: **2.0.0-alpha.2**, código de versão 21, com APK de teste publicado e verificado. A alpha.1, versão 20, permanece documentada como versão anterior. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
 
 Esta atualização inclui o pedido de verificar o aparelho e ajustar recursos automaticamente. Compatibilidade do aplicativo, disponibilidade de uma função e teste físico aprovado são resultados diferentes.
 
 
-## Etapa alpha.2 em validação
+## Etapa alpha.2 entregue para testes
 
 A etapa atual acrescenta OCR local no NEXUS Vision com Tesseract4Android 4.9.0 e modelos português/inglês incluídos no APK. A interface permite escolher imagem da galeria, ler, copiar, ouvir e salvar uma memória por autorização explícita. O ditado de uma pergunta somente preenche o campo editável; nenhuma imagem é enviada automaticamente.
 
-Também foi preparado um workflow separado para executar um GGUF Qwen 0.5B real dentro de um emulador Android. O arquivo é verificado antes e depois da transferência para o diretório privado do aplicativo. As respostas e tempos são registrados; os pesos não são incluídos no APK ou nos artefatos de evidências.
+Um workflow separado executou um GGUF Qwen 0.5B real dentro de um emulador Android 10/API 29 x86_64. A [execução final 40106216702](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216702), revisão `b7a5c1b52186fd5ad014c74dafec4649d62c7bb5`, passou com um teste instrumentado e quatro respostas geradas. O arquivo foi verificado antes e depois da transferência para o diretório privado do aplicativo. As respostas e tempos são registrados; os pesos não são incluídos no APK ou nos artefatos de evidências.
 
-**Ainda não há resultado de compilação, novo APK ou testes Android aprovados registrado para a alpha.2 neste documento.** Os números e links da alpha.1 abaixo são a base histórica preservada. A execução atual será registrada em [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md), com falhas, ignorados e limites reais.
+**Validação final aprovada:** 76 testes JVM, 44 testes Python dos scripts e 44 do servidor opcional, sem falhas ou ignorados. A suíte Android comum passou com **13 aprovados, 0 falhas/erros e 1 ignorado** sem fixture; a prova dedicada de IA passou sem ignorados. Build local em 2m 10s e build GitHub em 4m 2s. Lint: **0 erros**, 37 avisos locais/38 no GitHub e 1 informação; o aviso adicional trata do SDK alvo 35 e de exigências futuras da Play. O APK publicado foi baixado e inspecionado. Evidências: [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md); os números e links alpha.1 abaixo são históricos.
 
 | Acréscimo alpha.2 | Estado nesta atualização |
 | --- | --- |
-| OCR offline de imagens privadas, português e inglês | Implementação em validação; novo teste Android preparado, sem resultado registrado |
-| Importação da galeria sem exigir permissão de câmera | Interface em validação; fluxo físico pendente |
+| OCR offline de imagens privadas, português e inglês | Quatro testes do leitor OCR aprovados na rodada final: texto real, branco/EXIF, limites e leitor encerrado; medição física pendente |
+| Importação da galeria sem exigir permissão de câmera | Teste da tela aprovado na rodada final, sem ativar sensores ou enviar imagem; seletor Android e fluxo físico ainda pendentes |
 | Copiar, ouvir e salvar OCR como memória | Ações explícitas implementadas; teste integrado pendente |
-| Ditado de pergunta no Vision | Interface em validação; reconhecimento depende do serviço de fala do aparelho |
-| Preparação dos modelos OCR e licenças | Scripts com revisões, tamanhos e SHA-256 fixados; execução integrada pendente de registro |
-| Inferência real no Android com GGUF | Teste e workflow preparados; execução pendente |
-| APK alpha.2 | Compilação, inspeção, publicação e download ainda não registrados |
+| Ditado de pergunta no Vision | Implementada e compilada; reconhecimento depende do serviço de fala e de teste físico |
+| Preparação dos modelos OCR e licenças | Modelos incluídos e SHA-256 verificado no APK; AAR fixado por tamanho/hash e conferido pelo Gradle, preparação coberta pela suíte Python |
+| Inferência real no Android com GGUF | Aprovada em emulador API 29 x86_64; respostas `42`, `Ciano.` e `Olá, coração! 🚀` observadas. Rodada final aprovada; não certifica qualidade geral ou S9+ |
+| APK alpha.2 | Publicado, baixado e verificado: 123.631.398 bytes, assinatura v2, ZIP 16 KB, quatro ABIs e 40 ELFs; modelos OCR verificados, sem GGUF |
+
+## APK alpha.2 publicado
+
+**[Baixar NEXUS 2.0.0-alpha.2.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.2-build-9/NEXUS-2.0.0-alpha.2.apk)**. Release: [v2.0.0-alpha.2-build-9](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.2-build-9). **123.631.398 bytes** (~117,9 MiB), SHA-256 `6185c50c7dd75d6c2b160d9933f37e0c23cd3717ae9007a0183faadda663e422`, conferido com o digest do GitHub e `SHA256SUMS.txt`. Assinatura v2, ZIP alinhado a 16 KB e 40 ELFs inspecionados: 22 de 64 bits ≥16 KB e 18 de 32 bits ≥4 KB. Quatro ABIs, modelos OCR íntegros e nenhum GGUF.
+
+Fonte: `b7a5c1b52186fd5ad014c74dafec4649d62c7bb5`. [Build e publicação](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216752), [instrumentação comum, tentativa 2](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216728/attempts/2), [IA real](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216702). A primeira tentativa da suíte comum falhou por falta de heap durante o empacotamento no runner; a repetição completou com sucesso, sem atribuir essa falha ao funcionamento do aplicativo.
 
 ## Estado dos sistemas — base alpha.1
 
@@ -30,13 +36,13 @@ Estados utilizados: **Concluído e testado**; **Implementado aguardando teste em
 | Sistema | Estado | O que existe e o que falta |
 | --- | --- | --- |
 | Auditoria anterior às mudanças | Concluído e testado | Código, dependências e manifesto examinados antes das alterações; evidências em [AUDITORIA_NEXUS.md](AUDITORIA_NEXUS.md). |
-| NEXUS AI local sem URL/chave | Implementado aguardando teste em dispositivo | Runtime llama.cpp real, dois modelos de texto, download explícito e arquivos privados. A ponte JNI foi exercitada no computador na alpha.1; a prova dentro do Android está preparada para alpha.2, ainda sem resultado registrado. Falta teste físico. |
+| NEXUS AI local sem URL/chave | Implementado aguardando teste em dispositivo | Runtime llama.cpp real, dois modelos de texto, download explícito e arquivos privados. A ponte JNI foi exercitada no computador na alpha.1 e em Android emulado na alpha.2, com quatro respostas reais. Regressão final em emulador aprovada; falta teste físico. |
 | Download e integridade dos modelos | Implementado aguardando teste em dispositivo | Tamanho e SHA-256 fixados, arquivo temporário, espaço livre, cancelamento e exclusão. O fluxo Android de download ainda precisa de teste. |
 | Perfil automático por aparelho | Implementado aguardando teste em dispositivo | Política considera Android, ABI do processo, RAM, armazenamento e recursos. Ajusta modelo recomendado e limites; não inicia downloads nem envio remoto sozinho. Integração compilada e regras cobertas por testes JVM. |
 | Câmera e análise adaptativas | Implementado aguardando teste em dispositivo | Resolução e frequência são reduzidas conforme recursos; análise acompanha o custo dos quadros. Precisão, latência, bateria e temperatura precisam de medição física. |
 | APK universal | Implementado aguardando teste em dispositivo | APK 2.0 final compilado e inspecionado com quatro ABIs; assinatura v2, ZIP e 24 bibliotecas ELF com alinhamento de 16 KB verificados. Android 8.0 ou superior. |
 | Provedor personalizado opcional | Implementado aguardando teste em dispositivo | HTTPS, modelo, consentimento e token no Keystore separados da IA local. Não há fallback remoto silencioso nem chave privada embutida. |
-| Imagens e NEXUS Vision | Parcialmente implementado | CameraX e captura explícita preservadas; análise geral exige provedor multimodal personalizado autorizado. A alpha.2 acrescenta OCR separado, em validação. Os modelos locais de linguagem atuais não analisam imagens ou vídeo. |
+| Imagens e NEXUS Vision | Parcialmente implementado | CameraX e captura explícita preservadas; análise geral exige provedor multimodal personalizado autorizado. A alpha.2 acrescenta OCR separado com quatro testes do leitor OCR aprovados em emulador; teste da interface aprovado na rodada final, sem validar o seletor Android ou sensores físicos. Os modelos locais de linguagem atuais não analisam imagens ou vídeo. |
 | Ações estruturadas da IA | Implementado aguardando teste em dispositivo | Lista de ações permitidas, argumentos validados e confirmação explícita de uso único. Texto livre não executa comandos. |
 | Voz em pt-BR | Implementado aguardando teste em dispositivo | Filtro por idioma e país, tom, velocidade, reprodução de teste, interrupção e leitura de respostas novas. Depende das vozes e serviços instalados. |
 | Mouse interno persistente | Implementado aguardando teste em dispositivo | Sessão na raiz da navegação, cursor único e despacho real de toque, duplo toque, arrasto e rolagem. Falta confirmar alvos, coordenadas, perda de mão e navegação no aparelho. |

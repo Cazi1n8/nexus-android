@@ -1,0 +1,69 @@
+{
+  "sourceCommit": "b7a5c1b52186fd5ad014c74dafec4649d62c7bb5",
+  "dateUtc": "2026-10-24",
+  "build": {
+    "runId": 40106216752,
+    "result": "success",
+    "durationSeconds": 242,
+    "jvm": {
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "lint": {
+      "errors": 0,
+      "warnings": 38,
+      "information": 1
+    },
+    "scriptsPython": {
+      "tests": 44,
+      "failures": 0,
+      "skipped": 0
+    },
+    "serverPython": {
+      "tests": 44,
+      "failures": 0,
+      "skipped": 0,
+      "durationSeconds": 17.427
+    }
+  },
+  "commonAndroid": {
+    "runId": 40106216728,
+    "attempt": 2,
+    "result": "success",
+    "api": 29,
+    "abi": "x86_64",
+    "durationSeconds": 53,
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 13,
+    "scope": "Eight regression tests, four OCR reader tests, one Vision UI test. Optional GGUF case skipped only here; executed in dedicated run."
+  },
+  "realLocalAiAndroid": {
+    "runId": 40106216702,
+    "result": "success",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "instrumentationSeconds": 35.648,
+    "wrapperSeconds": 41.121,
+    "observations": "alpha2-final-ai-local-ai-observations.json"
+  },
+  "publishedApk": {
+    "releaseTag": "v2.0.0-alpha.2-build-9",
+    "bytes": 123631398,
+    "sha256": "6185c50c7dd75d6c2b160d9933f37e0c23cd3717ae9007a0183faadda663e422",
+    "inspection": "alpha2-published-apk.json"
+  },
+  "observedFailuresAndCorrections": [
+    "Initial workflow runner.temp context corrected before real inference.",
+    "JitPack POM resolution failures replaced by upstream AAR GET with exact size/SHA-256 validation before Gradle.",
+    "Vision navigation test uses the actual accessible click action and awaits the destination; assertions retained.",
+    "Common Android run attempt 1 exhausted Gradle heap while packaging; attempt 2 compiled and passed."
+  ],
+  "physicalDeviceTests": "Not executed; Samsung Galaxy S9+ still requires hands-on checks."
+}

@@ -4,7 +4,7 @@ O objetivo é permitir que o NEXUS funcione em mais aparelhos, ajustando o que c
 
 ## Base de instalação
 
-A versão 2.0 tem **Android mínimo 8.0/API 26** e está configurada para um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O APK alpha.1 com MediaPipe 0.10.35 foi compilado e inspecionado com as quatro ABIs, incluindo alinhamento ZIP/ELF de 16 KB. Na alpha.2, o OCR acrescenta bibliotecas Tesseract4Android: o AAR de 64 bits tem alinhamento ELF de 16 KB; o de 32 bits, 4 KB. A inspeção do APK da alpha.2 é registrada separadamente no relatório da versão. Isso não é uma lista de aparelhos fisicamente testados.
+A versão 2.0 tem **Android mínimo 8.0/API 26** e oferece um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O APK alpha.2 publicado foi inspecionado: assinatura v2 válida, ZIP alinhado a 16 KB e 40 bibliotecas nativas. As 22 de 64 bits têm alinhamento ELF de pelo menos 16 KB; as 18 de 32 bits, pelo menos 4 KB. [Inspeção e testes da versão](RELATORIO_ALPHA_2.md). Isso não é uma lista de aparelhos fisicamente testados.
 
 | Arquitetura do processo | App base e chat remoto | IA local | Rastreamento MediaPipe |
 | --- | --- | --- | --- |
