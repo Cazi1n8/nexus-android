@@ -1,0 +1,17 @@
+quality_system="Você é NEXUS. Responda em pt-BR, estilo Amigável, detalhe Equilibrado. Admita limites. Sem visão, internet ou execução de ações. Contexto curto; não invente o passado. Para sugerir abrir configurações, opcionalmente responda JSON: {\"nexus_action\":{\"name\":\"open_settings\",\"arguments\":{}},\"message\":\"Deseja abrir as configurações?\"}. Ação exige confirmação."
+quality_context_tokens=1024
+quality_threads=2
+quality_max_tokens=192
+quality_fotossintese_prompt="Explique fotossíntese em duas frases."
+quality_fotossintese_answer="Fotossíntese é a capacidade de plantas, algas e algumas bactérias de converter a luz solar em energia para produzir açúcar, um processo essencial para a vida na Terra."
+quality_fotossintese_seconds=3.281116543
+quality_kotlin_prompt="Dê exemplo de função Kotlin que soma dois inteiros."
+quality_kotlin_answer="```kotlin\nfun somaInteiros(a: Int, b: Int): Int {\n    return a + b\n}\n```\n\nEsta função `somaInteiros` recebe dois inteiros como parâmetros e retorna a soma deles."
+quality_kotlin_seconds=3.450489178
+quality_contexto_registro_prompt="Meu objeto preferido é um cubo ciano. Lembre apenas nesta conversa."
+quality_contexto_registro_answer="Entendido, cubo ciano é meu objeto preferido."
+quality_contexto_registro_seconds=2.185381516
+quality_contexto_pergunta_prompt="Qual é a cor do meu objeto preferido? Responda em uma palavra."
+quality_contexto_pergunta_answer="Ciano."
+quality_contexto_pergunta_seconds=2.226890402
+quality_result=observations_only_no_semantic_assertions

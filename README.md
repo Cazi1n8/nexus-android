@@ -2,7 +2,7 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
 
-**Versão em integração: 2.0.0-alpha.1.** Uma compilação 2.0 passou com **76 testes JVM**, lint sem erros e geração de APK. A revisão atual, com a dependência de visão atualizada, está em nova validação; **o download definitivo ainda precisa ser confirmado**. Consulte [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
+**Versão de teste: 2.0.0-alpha.1.** O APK universal foi compilado com **76 testes JVM aprovados**, lint sem erros, assinatura v2 válida e bibliotecas alinhadas a 16 KB. A compilação no GitHub e **8 testes no Android 10 emulado** também passaram; o download público foi verificado. Consulte [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
 ## O que mudou
 
@@ -12,7 +12,7 @@ A implementação ainda precisa das verificações registradas no progresso. Nã
 
 ## Instalar pelo celular
 
-Quando a nova execução 2.0 estiver aprovada e o APK publicado:
+**[Baixar NEXUS 2.0.0-alpha.1.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk)** — aproximadamente 87,3 MiB. Download direto, sem ZIP ou login no GitHub.
 
 1. Abra [Releases do NEXUS](https://github.com/Cazi1n8/nexus-android/releases).
 2. Na versão de teste mais recente, em **Assets**, baixe o arquivo `NEXUS-2.0.0-alpha.1.apk`.
@@ -20,13 +20,13 @@ Quando a nova execução 2.0 estiver aprovada e o APK publicado:
 4. Abra **Configurações → NEXUS AI**. Confira a recomendação em **Ajustar ao aparelho** e autorize o download do modelo escolhido. Prefira Wi-Fi e mantenha o app aberto.
 5. Depois da verificação do arquivo, converse por texto. Para voz, permita o microfone e instale uma voz **Português (Brasil)** no mecanismo de fala do Android, se necessário.
 
-O workflow está configurado para publicar o APK diretamente nas releases após um build aprovado da branch `main`; a existência da nova release ainda precisa ser confirmada. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
+O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.1-build-5) foi publicado e verificado. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
 
 Builds de ambientes diferentes podem usar certificados de depuração diferentes. Se o Android recusar atualizar por assinatura, exporte dados importantes antes de desinstalar a versão anterior; desinstalar apaga dados locais.
 
 ## Compatibilidade automática
 
-A base requer **Android 8.0/API 26 ou superior** e o primeiro APK 2.0 foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. O pacote definitivo com a dependência de visão atualizada está em nova validação.
+A base requer **Android 8.0/API 26 ou superior** e o APK 2.0 foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. As 24 bibliotecas nativas têm segmentos ELF alinhados a pelo menos 16 KB, e o alinhamento ZIP foi aprovado.
 
 O aplicativo verifica arquitetura, RAM, armazenamento, CPU, câmeras, microfone e GLES. O perfil automático ajusta recomendação de modelo, contexto, threads, resolução e frequência de análise; efeitos visuais são reduzidos em aparelhos modestos. Downloads e envio remoto sempre exigem escolha explícita.
 
@@ -67,7 +67,7 @@ python3 -m unittest discover -s server/tests -v
 ./gradlew connectedDebugAndroidTest
 ```
 
-O último comando exige aparelho ou emulador conectado. O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. Configurar o workflow não significa que seus testes já passaram; confira o resultado no progresso e no Actions. O [workflow principal](.github/workflows/android.yml) gera APK e relatórios em alterações na branch `main`.
+O último comando exige aparelho ou emulador conectado. O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [execução Android 10](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992145) passou nos oito testes de interface, dados e inicialização nativa. Ela não certifica câmera, voz ou mãos físicas. O [workflow principal](.github/workflows/android.yml) gera APK e relatórios em alterações na branch `main`.
 
 ## Privacidade e limites
 

@@ -1,6 +1,6 @@
 # NEXUS 2.0 — progresso verificável
 
-Atualizado em **24/10/2026 (UTC)**. Versão em integração: **2.0.0-alpha.1**, código de versão 20. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
+Atualizado em **24/10/2026 (UTC)**. Versão de teste: **2.0.0-alpha.1**, código de versão 20. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
 
 Esta atualização inclui o pedido de verificar o aparelho e ajustar recursos automaticamente. Compatibilidade do aplicativo, disponibilidade de uma função e teste físico aprovado são resultados diferentes.
 
@@ -13,9 +13,9 @@ Estados utilizados: **Concluído e testado**; **Implementado aguardando teste em
 | Auditoria anterior às mudanças | Concluído e testado | Código, dependências e manifesto examinados antes das alterações; evidências em [AUDITORIA_NEXUS.md](AUDITORIA_NEXUS.md). |
 | NEXUS AI local sem URL/chave | Implementado aguardando teste em dispositivo | Runtime llama.cpp real, dois modelos de texto, download explícito e arquivos privados. A ponte JNI foi exercitada no computador; falta inferência dentro do Android e teste físico. |
 | Download e integridade dos modelos | Implementado aguardando teste em dispositivo | Tamanho e SHA-256 fixados, arquivo temporário, espaço livre, cancelamento e exclusão. O fluxo Android de download ainda precisa de teste. |
-| Perfil automático por aparelho | Implementado aguardando teste em dispositivo | Política considera Android, ABI do processo, RAM, armazenamento e recursos. Ajusta modelo recomendado e limites; não inicia downloads nem envio remoto sozinho. Integração em verificação. |
+| Perfil automático por aparelho | Implementado aguardando teste em dispositivo | Política considera Android, ABI do processo, RAM, armazenamento e recursos. Ajusta modelo recomendado e limites; não inicia downloads nem envio remoto sozinho. Integração compilada e regras cobertas por testes JVM. |
 | Câmera e análise adaptativas | Implementado aguardando teste em dispositivo | Resolução e frequência são reduzidas conforme recursos; análise acompanha o custo dos quadros. Precisão, latência, bateria e temperatura precisam de medição física. |
-| APK universal | Implementado aguardando teste em dispositivo | Primeiro APK 2.0 compilado e inspecionado com quatro ABIs, Android 8.0 ou superior. Revisão atual com MediaPipe 0.10.35 em nova validação. |
+| APK universal | Implementado aguardando teste em dispositivo | APK 2.0 final compilado e inspecionado com quatro ABIs; assinatura v2, ZIP e 24 bibliotecas ELF com alinhamento de 16 KB verificados. Android 8.0 ou superior. |
 | Provedor personalizado opcional | Implementado aguardando teste em dispositivo | HTTPS, modelo, consentimento e token no Keystore separados da IA local. Não há fallback remoto silencioso nem chave privada embutida. |
 | Imagens e NEXUS Vision | Parcialmente implementado | CameraX e captura explícita preservadas; análise exige provedor multimodal personalizado autorizado. Os modelos locais atuais não analisam imagens ou vídeo. |
 | Ações estruturadas da IA | Implementado aguardando teste em dispositivo | Lista de ações permitidas, argumentos validados e confirmação explícita de uso único. Texto livre não executa comandos. |
@@ -43,16 +43,18 @@ Estados utilizados: **Concluído e testado**; **Implementado aguardando teste em
 | Servidor opcional Python | **44 testes aprovados em 17,286 s**, sem ignorados. Usa upstreams controlados para transporte, não para avaliar qualidade de IA. |
 | Preparação das fontes nativas | **5 testes Python aprovados**, incluindo checksum e extração segura. |
 | Primeira validação integrada 2.0 | **BUILD SUCCESSFUL in 2m 5s**; **76 testes JVM aprovados**, zero falhas ou ignorados; lint com **zero erros, 37 avisos e uma informação**; APK e APK de instrumentação gerados. Resultado anterior à atualização MediaPipe 0.10.35. |
-| Revisão com MediaPipe 0.10.35 | AAR oficial inspecionado: biblioteca JNI nas quatro ABIs e alinhamento ELF 16 KB. Novo build integrado e inspeção final do APK em andamento. |
-| Testes instrumentados no Android | Workflow automático em mudanças relevantes da branch `main`, com início manual também disponível; resultado de execução ainda não confirmado nesta atualização. |
+| Revisão com MediaPipe 0.10.35 | **BUILD SUCCESSFUL in 2m 42s**, 76 testes JVM aprovados, 0 falhas/erros/ignorados; lint 0 erros, 37 avisos e 1 informação. APK e APK de testes instrumentados gerados. |
+| Testes instrumentados no Android | **8 aprovados, 0 falhas/erros/ignorados** no emulador Android 10/API 29 x86_64; [execução 40053992145](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992145), `connectedDebugAndroidTest` em 47s. Sem testes físicos. |
 | Testes físicos | **Não executados** pelo ambiente de desenvolvimento. |
 
 Detalhes e limites das provas: [RELATORIO_NEXUS_2.md](docs/RELATORIO_NEXUS_2.md). Os resultados antigos da versão 0.1 em [PROGRESSO.md](PROGRESSO.md) são históricos e não substituem a validação da 2.0.
 
-## APK e próxima confirmação
+## APK publicado
 
-**Um primeiro APK 2.0 foi gerado; a revisão definitiva ainda está em validação.** A atualização MediaPipe 0.10.35 amplia compatibilidade nativa e exige novo build, assinatura e inspeção do pacote final. O tamanho e o hash da revisão anterior não devem ser apresentados como identificação definitiva.
+**APK final 2.0 confirmado localmente:** 101.515.753 bytes, assinatura v2 válida, quatro ABIs e alinhamento ZIP/ELF de 16 KB. Não contém pesos GGUF. SHA-256: `b1d2cbf860647fe6fc324b4660fae29deea0d42df24e1813304768dfa7976588`.
 
-O workflow está configurado para publicar o APK de teste diretamente em [Releases](https://github.com/Cazi1n8/nexus-android/releases) após o build aprovado da branch `main`. A publicação e o link do novo arquivo ainda precisam ser confirmados. O arquivo 0.1 antigo não deve ser apresentado como a entrega 2.0.
+**[Baixar o APK publicado no GitHub](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk)**. Release: [v2.0.0-alpha.1-build-5](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.1-build-5), **91.496.785 bytes**, assinatura v2 válida, checksum conferido contra o digest do GitHub e `SHA256SUMS.txt`. SHA-256: `a51ea58489c42139b80aae259ee95c6bc0d6b3fae3d37f06731c91ec9bdb570b`. Quatro ABIs e alinhamento ZIP/ELF de 16 KB inspecionados também no arquivo remoto.
+
+Revisão do APK: `f95cf02e78b82411ec233d78df51b1344a1a2e69`. [Build e publicação aprovados](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992143). [Oito testes no emulador aprovados](https://github.com/Cazi1n8/nexus-android/actions/runs/40053992145). O APK local e o remoto têm certificados de depuração e hashes diferentes; prefira o arquivo remoto para instalação.
 
 Depois, testar no aparelho: download e inferência offline, voz pt-BR, permissões negadas, botões reais por mouse, navegação persistente, rolagem, emergência do controle global e duas mãos no cubo. Só registrar aprovação dos itens realmente observados.

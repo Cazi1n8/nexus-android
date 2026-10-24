@@ -1,0 +1,192 @@
+{
+  "apk": "NEXUS-2.0.0-alpha.1-local.apk",
+  "libraries": [
+    {
+      "path": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libc++_shared.so",
+      "alignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libdatastore_shared_counter.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libimage_processing_util_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libnexus_llama.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libsurface_util_jni.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/armeabi-v7a/libandroidx.graphics.path.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/armeabi-v7a/libdatastore_shared_counter.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/armeabi-v7a/libimage_processing_util_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/armeabi-v7a/libsurface_util_jni.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86/libandroidx.graphics.path.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86/libdatastore_shared_counter.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86/libimage_processing_util_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86/libsurface_util_jni.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libandroidx.graphics.path.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libc++_shared.so",
+      "alignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libdatastore_shared_counter.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libimage_processing_util_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libmediapipe_tasks_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/armeabi-v7a/libmediapipe_tasks_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86/libmediapipe_tasks_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libmediapipe_tasks_jni.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libnexus_llama.so",
+      "alignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/x86_64/libsurface_util_jni.so",
+      "alignments": [
+        16384,
+        16384
+      ]
+    }
+  ]
+}

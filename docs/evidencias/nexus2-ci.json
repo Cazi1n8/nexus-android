@@ -1,0 +1,27 @@
+{
+  "tag": "v2.0.0-alpha.1-build-5",
+  "releaseUrl": "https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.1-build-5",
+  "apkUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.1-build-5/NEXUS-2.0.0-alpha.1.apk",
+  "bytes": 91496785,
+  "sha256": "a51ea58489c42139b80aae259ee95c6bc0d6b3fae3d37f06731c91ec9bdb570b",
+  "sourceCommit": "f95cf02e78b82411ec233d78df51b1344a1a2e69",
+  "buildRun": 40053992143,
+  "emulatorRun": 40053992145,
+  "instrumented": {
+    "tests": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "androidApi": 29,
+    "abi": "x86_64",
+    "reportArtifact": 12544747177
+  },
+  "signatureV2": true,
+  "zipAlignment16KiB": true,
+  "all24NativeLibrariesAlignedTo16KiB": true,
+  "checksumMatchesGitHubDigestAndChecksumFile": true,
+  "buildStatus": "success",
+  "emulatorStatus": "success",
+  "buildDuration": "2m 38s",
+  "connectedTestDuration": "47s"
+}

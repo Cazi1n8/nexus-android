@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0-alpha.1",
+  "localBuild": "BUILD SUCCESSFUL in 1m 47s",
+  "jvm": [
+    {
+      "class": "br.com.nexus.assistant.commands.ActionProposalTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.commands.PhoneCommandsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.data.AiProviderTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.data.local.LocalModelTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.device.DevicePolicyTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.device.SpeechChunksTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.device.VoiceLanguageTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.GestureControllersTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.HandGeometryTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.TrackingCadenceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0
+    },
+    {
+      "class": "br.com.nexus.assistant.libras.LibrasPracticeTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0
+    }
+  ],
+  "lint": {
+    "errors": 0,
+    "warnings": 37,
+    "information": 1
+  },
+  "apk": {
+    "file": "NEXUS-2.0.0-alpha.1-local.apk",
+    "bytes": 101515753,
+    "sha256": "b1d2cbf860647fe6fc324b4660fae29deea0d42df24e1813304768dfa7976588"
+  },
+  "instrumented": "8 passed in GitHub Android 10 emulator; 0 failures/errors/skips, run 40053992145",
+  "physicalDevice": "Not executed",
+  "sourceCommit": "f95cf02e78b82411ec233d78df51b1344a1a2e69"
+}

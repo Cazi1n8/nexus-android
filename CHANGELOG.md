@@ -1,8 +1,8 @@
 # Alterações do NEXUS
 
-## 2.0.0-alpha.1 — em integração, 24/10/2026
+## 2.0.0-alpha.1 — versão de teste, 24/10/2026
 
-A evolução preserva o aplicativo existente e seu histórico. Funcionalidades implementadas ainda dependem da compilação integrada e dos testes físicos registrados em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
+A evolução preserva o aplicativo existente e seu histórico. A compilação integrada foi aprovada; funcionalidades ainda dependem dos testes físicos registrados em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
 ### IA e voz
 
@@ -28,7 +28,7 @@ A evolução preserva o aplicativo existente e seu histórico. Funcionalidades i
 - Diagnóstico com observações reais e testes explícitos de bibliotecas.
 - Scripts de preparação nativa verificada, workflow de APK e workflow automático de instrumentação em emulador, também iniciável manualmente.
 - Publicação configurada para oferecer APK direto em Releases após build aprovado da branch principal.
-- Primeira compilação integrada 2.0 aprovada com 76 testes JVM e zero erros de lint; nova validação necessária após a atualização da dependência de visão.
+- Compilação integrada final aprovada com 76 testes JVM, oito testes no emulador Android 10, zero erros de lint, assinatura v2 e inspeção de alinhamento ZIP/ELF de 16 KB. Interruptores receberam rótulos individuais para acessibilidade e seleção correta nos testes.
 - Auditoria, compatibilidade e relatório de testes separados dos resultados históricos 0.1.
 
 ### Limites conhecidos

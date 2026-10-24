@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="br.com.nexus.assistant.ConversationCancellationTest" tests="8" failures="0" errors="0" skipped="0" time="14.359" timestamp="2026-10-24T02:30:08" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5554 - 10" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="deletingDataWaitsForAnExistingMemorySaveAndRejectsEditsDuringDeletion" classname="br.com.nexus.assistant.ConversationCancellationTest" time="0.553" />
+  <testcase name="interruptingTheFirstAnswerKeepsItsMessageAndNextSendInTheSameConversation" classname="br.com.nexus.assistant.ConversationCancellationTest" time="0.093" />
+  <testcase name="sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer" classname="br.com.nexus.assistant.FirstRunFlowsTest" time="6.183" />
+  <testcase name="anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated" classname="br.com.nexus.assistant.FirstRunFlowsTest" time="4.47" />
+  <testcase name="localAiJniLoadsOnlyInSupportedProcessAndRejectsMissingWeights" classname="br.com.nexus.assistant.NativeCapabilitiesSmokeTest" time="0.002" />
+  <testcase name="packagedHandTrackerProcessesABlankVideoFrame" classname="br.com.nexus.assistant.NativeCapabilitiesSmokeTest" time="1.319" />
+  <testcase name="deletingConversationRemovesMessagesButPreservesAuthorizedMemories" classname="br.com.nexus.assistant.data.LocalDataTest" time="0.133" />
+  <testcase name="exportContainsConversationAndMemoriesButOmitsPrivateImagePaths" classname="br.com.nexus.assistant.data.LocalDataTest" time="0.15" />
+</testsuite>

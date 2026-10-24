@@ -1,5 +1,7 @@
 # Guardar o projeto no GitHub
 
+**Versão atual 2.0:** o código continua no mesmo repositório. O workflow publica APKs de teste em [Releases](https://github.com/Cazi1n8/nexus-android/releases), com download direto após aprovação. Confira o estado real em [PROGRESSO_NEXUS_2.md](../PROGRESSO_NEXUS_2.md). Os exemplos de build 0.1 abaixo são históricos.
+
 O Git registra versões do código. O GitHub guarda uma cópia remota desse histórico e pode compilar o aplicativo automaticamente. A pasta local do projeto e um repositório publicado no GitHub são entregas diferentes: confira em [PROGRESSO.md](../PROGRESSO.md) se o envio remoto realmente aconteceu.
 
 **Repositório deste projeto:** https://github.com/Cazi1n8/nexus-android. O código já foi enviado e o [build de teste foi aprovado](https://github.com/Cazi1n8/nexus-android/actions/runs/39980316020). Para instalar, baixe o artefato `nexus-debug-3`, extraia o ZIP e abra `app-debug.apk` no Android. As instruções de primeiro envio abaixo servem como referência para outras cópias.

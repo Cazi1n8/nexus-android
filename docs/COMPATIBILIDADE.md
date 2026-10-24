@@ -4,7 +4,7 @@ O objetivo é permitir que o NEXUS funcione em mais aparelhos, ajustando o que c
 
 ## Base de instalação
 
-A versão 2.0 tem **Android mínimo 8.0/API 26** e está configurada para um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O primeiro APK 2.0 foi compilado e inspecionado com as quatro ABIs; a revisão com MediaPipe 0.10.35 está em nova validação. Isso não é uma lista de aparelhos fisicamente testados.
+A versão 2.0 tem **Android mínimo 8.0/API 26** e está configurada para um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O APK final 2.0 com MediaPipe 0.10.35 foi compilado e inspecionado com as quatro ABIs, incluindo alinhamento ZIP/ELF de 16 KB. Isso não é uma lista de aparelhos fisicamente testados.
 
 | Arquitetura do processo | App base e chat remoto | IA local | Rastreamento MediaPipe |
 | --- | --- | --- | --- |
