@@ -26,10 +26,10 @@ jobs:
   real-local-inference:
     runs-on: ubuntu-24.04
     timeout-minutes: 55
-    env:
-      NEXUS_FIXTURE_FILE: ${{ runner.temp }}/nexus-ai-fixture/qwen2.5-0.5b-instruct-q4_k_m.gguf
     steps:
       - uses: actions/checkout@v4
+      - name: Definir arquivo temporário do modelo
+        run: echo "NEXUS_FIXTURE_FILE=$RUNNER_TEMP/nexus-ai-fixture/qwen2.5-0.5b-instruct-q4_k_m.gguf" >> "$GITHUB_ENV"
       - name: Java 17
         uses: actions/setup-java@v4
         with:
