@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import br.com.nexus.assistant.data.local.LocalModelProfile
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -32,6 +33,9 @@ class SettingsRepository(context: Context) {
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
         .map { preferences ->
             NexusSettings(
+                aiMode = preferences[Keys.aiMode]?.let { stored -> AiMode.entries.firstOrNull { it.name == stored } } ?: AiMode.NEXUS_LOCAL,
+                localModelProfile = preferences[Keys.localModelProfile]?.let { stored -> LocalModelProfile.entries.firstOrNull { it.name == stored } } ?: LocalModelProfile.COMPACT,
+                automaticProfile = preferences[Keys.automaticProfile] ?: true,
                 endpoint = preferences[Keys.endpoint].orEmpty(),
                 model = preferences[Keys.model].orEmpty(),
                 userName = preferences[Keys.userName].orEmpty(),
@@ -39,6 +43,7 @@ class SettingsRepository(context: Context) {
                 detail = preferences[Keys.detail] ?: "Equilibrado",
                 language = preferences[Keys.language] ?: "pt-BR",
                 voiceRate = preferences[Keys.voiceRate] ?: 1f,
+                voicePitch = preferences[Keys.voicePitch] ?: 1f,
                 voiceName = preferences[Keys.voiceName].orEmpty(),
                 autoSpeak = preferences[Keys.autoSpeak] ?: false,
                 remoteConsent = preferences[Keys.remoteConsent] ?: false,
@@ -47,6 +52,9 @@ class SettingsRepository(context: Context) {
 
     suspend fun save(settings: NexusSettings) {
         appContext.nexusPreferences.edit { preferences ->
+            preferences[Keys.aiMode] = settings.aiMode.name
+            preferences[Keys.localModelProfile] = settings.localModelProfile.name
+            preferences[Keys.automaticProfile] = settings.automaticProfile
             preferences[Keys.endpoint] = settings.endpoint.trim()
             preferences[Keys.model] = settings.model.trim()
             preferences[Keys.userName] = settings.userName.take(100).trim()
@@ -54,6 +62,7 @@ class SettingsRepository(context: Context) {
             preferences[Keys.detail] = settings.detail.take(100)
             preferences[Keys.language] = settings.language.take(50)
             preferences[Keys.voiceRate] = settings.voiceRate.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f
+            preferences[Keys.voicePitch] = settings.voicePitch.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f
             preferences[Keys.voiceName] = settings.voiceName.take(200)
             preferences[Keys.autoSpeak] = settings.autoSpeak
             preferences[Keys.remoteConsent] = settings.remoteConsent
@@ -112,6 +121,9 @@ class SettingsRepository(context: Context) {
     }
 
     private object Keys {
+        val aiMode = stringPreferencesKey("ai_mode")
+        val localModelProfile = stringPreferencesKey("local_model_profile")
+        val automaticProfile = booleanPreferencesKey("automatic_profile")
         val endpoint = stringPreferencesKey("endpoint")
         val model = stringPreferencesKey("model")
         val userName = stringPreferencesKey("user_name")
@@ -119,6 +131,7 @@ class SettingsRepository(context: Context) {
         val detail = stringPreferencesKey("detail")
         val language = stringPreferencesKey("language")
         val voiceRate = floatPreferencesKey("voice_rate")
+        val voicePitch = floatPreferencesKey("voice_pitch")
         val voiceName = stringPreferencesKey("voice_name")
         val autoSpeak = booleanPreferencesKey("auto_speak")
         val remoteConsent = booleanPreferencesKey("remote_consent")

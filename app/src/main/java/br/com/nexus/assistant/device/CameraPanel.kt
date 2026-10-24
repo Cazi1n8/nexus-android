@@ -90,9 +90,15 @@ fun CameraPanel(
                     try {
                         val cameraProvider = future.get()
                         provider = cameraProvider
-                        val selector = if (frontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
-                        if (!cameraProvider.hasCamera(selector)) {
-                            onErrorCurrent(if (frontCamera) "Este aparelho não possui câmera frontal disponível." else "Este aparelho não possui câmera traseira disponível.")
+                        val preferred = if (frontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
+                        val alternative = if (frontCamera) CameraSelector.DEFAULT_BACK_CAMERA else CameraSelector.DEFAULT_FRONT_CAMERA
+                        val selector = when {
+                            cameraProvider.hasCamera(preferred) -> preferred
+                            cameraProvider.hasCamera(alternative) -> alternative
+                            else -> null
+                        }
+                        if (selector == null) {
+                            onErrorCurrent("Nenhuma câmera está disponível neste aparelho.")
                         } else {
                             preview = Preview.Builder().build().also { it.setSurfaceProvider(previewView.surfaceProvider) }
                             imageCapture = ImageCapture.Builder()

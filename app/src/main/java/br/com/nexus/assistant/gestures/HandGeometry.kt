@@ -7,7 +7,12 @@ import kotlin.math.sin
 /** Screen-normalized coordinates. No Android dependencies so recognition rules are testable. */
 data class HandPoint(val x: Float, val y: Float, val z: Float = 0f)
 
-data class TrackedHand(val points: List<HandPoint>) {
+data class TrackedHand(
+    val points: List<HandPoint>,
+    /** MediaPipe handedness is retained to avoid swapping the controlling hand each frame. */
+    val handedness: String = "Unknown",
+    val confidence: Float = 0f
+) {
     val index: HandPoint get() = points[8]
     val palmSize: Float get() = distance(points[0], points[9]).coerceAtLeast(.025f)
     val pinchRatio: Float get() = distance(points[4], points[8]) / palmSize

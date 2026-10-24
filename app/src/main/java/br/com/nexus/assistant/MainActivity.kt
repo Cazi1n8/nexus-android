@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.nexus.assistant.device.VoiceController
 import br.com.nexus.assistant.ui.NexusApp
 import br.com.nexus.assistant.ui.NexusTheme
@@ -16,10 +18,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         voice = VoiceController(this)
-        setContent { NexusTheme { NexusApp(model, voice) } }
+        setContent {
+            val capabilities by model.deviceCapabilities.collectAsStateWithLifecycle()
+            val reducedEffects = capabilities.lowRam || capabilities.totalRamBytes < 4L * 1024 * 1024 * 1024 || capabilities.cpuCores <= 2
+            NexusTheme(reducedEffects = reducedEffects) { NexusApp(model, voice) }
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        if (::voice.isInitialized) voice.refreshLanguageVoices()
     }
     override fun onStop() {
         if (::voice.isInitialized) { voice.stopListening(); voice.stopSpeaking() }
+        model.onAppBackgrounded()
         super.onStop()
     }
     override fun onDestroy() {

@@ -43,6 +43,7 @@ class VoiceController(context: Context) : AutoCloseable {
     private var finalUtterance: String? = null
     private var activeSpeechPrefix: String? = null
     private var selectedVoice: String? = null
+    private var selectedLanguage = "pt-BR"
     private var recognitionTimeout: Runnable? = null
 
     init {
@@ -83,6 +84,7 @@ class VoiceController(context: Context) : AutoCloseable {
             })
             refreshVoices()
             mutableState.value = mutableState.value.copy(ttsReady = true)
+            updateLanguageAvailability()
         } catch (_: Exception) {
             mutableState.value = mutableState.value.copy(ttsReady = false,
                 error = "O mecanismo de voz não respondeu durante a inicialização. Confira as configurações de texto para fala do Android.")
@@ -91,6 +93,27 @@ class VoiceController(context: Context) : AutoCloseable {
 
     /** A selected network voice may use its engine's network service; prefer installed local voices. */
     fun selectVoice(name: String?) = onMain { selectedVoice = name }
+
+    /** Changing the assistant language also changes the eligible voices, never the reverse. */
+    fun setLanguage(language: String) = onMain {
+        selectedLanguage = language
+        refreshVoices()
+        updateLanguageAvailability()
+    }
+
+    fun refreshLanguageVoices() = onMain {
+        if (!closed) {
+            refreshVoices()
+            updateLanguageAvailability()
+        }
+    }
+
+    private fun updateLanguageAvailability() {
+        val available = mutableVoices.value.isNotEmpty() && runCatching {
+            tts?.isLanguageAvailable(Locale.forLanguageTag(selectedLanguage))?.let { it >= TextToSpeech.LANG_AVAILABLE } == true
+        }.getOrDefault(false)
+        mutableState.value = mutableState.value.copy(languageReady = available, language = selectedLanguage)
+    }
 
     fun startListening(
         language: String = "pt-BR",
@@ -242,6 +265,7 @@ class VoiceController(context: Context) : AutoCloseable {
         language: String = "pt-BR",
         rate: Float = 1f,
         voiceName: String = "",
+        pitch: Float = 1f,
         onDone: (() -> Unit)? = null
     ) = onMain {
         if (closed || text.isBlank()) return@onMain
@@ -253,18 +277,20 @@ class VoiceController(context: Context) : AutoCloseable {
         stopListeningInternal()
         stopSpeakingInternal()
         try {
-            if (engine.setLanguage(Locale.forLanguageTag(language)) < TextToSpeech.LANG_AVAILABLE) {
+            selectedLanguage = language
+            refreshVoices()
+            updateLanguageAvailability()
+            if (!mutableState.value.languageReady || engine.setLanguage(Locale.forLanguageTag(language)) < TextToSpeech.LANG_AVAILABLE) {
                 mutableState.value = mutableState.value.copy(error = "O idioma selecionado não está instalado no mecanismo de voz do Android.")
                 return@onMain
             }
-            val locale = Locale.forLanguageTag(language)
             val requestedVoice = voiceName.takeIf { it.isNotBlank() } ?: selectedVoice
-            val chosenVoice = if (requestedVoice != null) engine.voices?.find { it.name == requestedVoice } else {
-                engine.voices.orEmpty().filter { !it.isNetworkConnectionRequired && it.locale.language == locale.language }
-                    .sortedByDescending { it.locale.country == locale.country }.firstOrNull()
-            }
-            if (requestedVoice != null && chosenVoice == null) {
-                mutableState.value = mutableState.value.copy(error = "A voz selecionada não está mais disponível. Escolha outra voz nas configurações do NEXUS.")
+            val eligible = engine.voices.orEmpty().filter { voiceMatchesLanguage(it.locale.toLanguageTag(), language) }
+                .sortedWith(compareBy({ it.isNetworkConnectionRequired }, { it.name }))
+            // A persisted foreign/missing voice is ignored. setVoice must never override pt-BR.
+            val chosenVoice = eligible.find { it.name == requestedVoice } ?: eligible.firstOrNull { !it.isNetworkConnectionRequired }
+            if (chosenVoice == null) {
+                mutableState.value = mutableState.value.copy(error = "Nenhuma voz local foi encontrada neste idioma. Instale os dados de voz ou selecione explicitamente uma voz de rede nas configurações do NEXUS.")
                 return@onMain
             }
             if (chosenVoice != null && engine.setVoice(chosenVoice) == TextToSpeech.ERROR) {
@@ -273,6 +299,7 @@ class VoiceController(context: Context) : AutoCloseable {
             }
             mutableState.value = mutableState.value.copy(speechUsesNetwork = engine.voice?.isNetworkConnectionRequired == true)
             engine.setSpeechRate(if (rate.isFinite()) rate.coerceIn(0.5f, 2f) else 1f)
+            engine.setPitch(if (pitch.isFinite()) pitch.coerceIn(0.5f, 2f) else 1f)
             val chunks = speechChunks(text)
             val id = UUID.randomUUID().toString()
             activeSpeechPrefix = id
@@ -321,6 +348,7 @@ class VoiceController(context: Context) : AutoCloseable {
 
     private fun refreshVoices() {
         mutableVoices.value = runCatching { tts?.voices }.getOrNull().orEmpty().sortedWith(compareBy({ it.isNetworkConnectionRequired }, { it.locale.toLanguageTag() }, { it.name }))
+            .filter { voiceMatchesLanguage(it.locale.toLanguageTag(), selectedLanguage) }
             .map { VoiceOption(it.name, "${it.locale.displayName} · ${it.name}", it.locale.toLanguageTag(), it.isNetworkConnectionRequired) }
     }
 
@@ -349,10 +377,20 @@ data class VoiceState(
     val ttsReady: Boolean = false,
     val level: Float = 0f,
     val partialText: String = "",
-    val speechUsesNetwork: Boolean = false
+    val speechUsesNetwork: Boolean = false,
+    val languageReady: Boolean = false,
+    val language: String = "pt-BR"
 )
 
 data class VoiceOption(val name: String, val label: String, val language: String, val requiresNetwork: Boolean)
+
+/** Country is significant: a Brazilian Portuguese request cannot silently select pt-PT. */
+internal fun voiceMatchesLanguage(voiceTag: String, requestedTag: String): Boolean {
+    val voice = Locale.forLanguageTag(voiceTag)
+    val requested = Locale.forLanguageTag(requestedTag)
+    return requested.language.isNotBlank() && requested.language == voice.language &&
+        (requested.country.isBlank() || requested.country == voice.country)
+}
 
 internal fun speechChunks(text: String, limit: Int = TextToSpeech.getMaxSpeechInputLength() - 1): List<String> {
     require(limit >= 2)

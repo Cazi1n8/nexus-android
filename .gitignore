@@ -20,3 +20,10 @@ __pycache__/
 # MediaPipe model is downloaded from the official versioned URL by setup/CI.
 app/src/main/assets/hand_landmarker.task
 app/src/main/assets/.hand_model_*
+
+# Generated CMake outputs and verified third-party runtime sources.
+**/.cxx/
+app/src/main/cpp/vendor/
+# User-downloaded LLM weights must never enter Git or the APK.
+*.gguf
+*.gguf.part

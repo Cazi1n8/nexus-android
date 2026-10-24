@@ -5,7 +5,16 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.nexus.assistant.data.*
+import br.com.nexus.assistant.data.local.LocalAiProvider
+import br.com.nexus.assistant.data.local.LocalModelManager
+import br.com.nexus.assistant.data.local.LocalModelCatalog
+import br.com.nexus.assistant.data.local.LocalModelProfile
+import br.com.nexus.assistant.data.local.LocalModelState
+import br.com.nexus.assistant.data.local.LocalModelStatus
+import br.com.nexus.assistant.commands.ActionProposal
 import br.com.nexus.assistant.device.ImageAttachments
+import br.com.nexus.assistant.device.DeviceCapabilities
+import br.com.nexus.assistant.device.DevicePolicy
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -21,11 +30,38 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class NexusViewModel(application: Application) : AndroidViewModel(application) {
+    // Keep a stable startup budget. A download or retained model must not switch
+    // profiles halfway through a conversation as the amount of free RAM changes.
+    val deviceCapabilities = MutableStateFlow(DeviceCapabilities.read(application)).asStateFlow()
+    val devicePolicy = MutableStateFlow(DevicePolicy.evaluate(deviceCapabilities.value)).asStateFlow()
     private val preferences = SettingsRepository(application)
     private val imageDirectory = File(application.filesDir, "chat-images").apply { mkdirs() }
     private val repository = NexusRepository(NexusDatabase.getInstance(application), imageDirectory)
-    private val provider: AiProvider = OpenAiCompatibleProvider()
+    private val localModels = LocalModelProfile.entries.associateWith { profile ->
+        LocalModelManager(File(application.filesDir, "models"), LocalModelCatalog.forProfile(profile))
+    }
+    private val localProviders = localModels.mapValues { (_, manager) -> LocalAiProvider(manager) { devicePolicy.value } }
+    private val provider: AiProvider = AiCoordinator(object : AiProvider {
+        override suspend fun complete(settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>): String {
+            val profile = effectiveProfile(settings)
+            return localProviders.getValue(profile).complete(settings.copy(localModelProfile = profile), token, messages, memories)
+        }
+    })
+    private var modelDownloadJob: Job? = null
+    private var modifyingLocalModel = false
+    private val _assistantReplies = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val assistantReplies = _assistantReplies.asSharedFlow()
+    private val _pendingAction = MutableStateFlow<ActionProposal?>(null)
+    val pendingAction = _pendingAction.asStateFlow()
     val settings = preferences.settings.stateIn(viewModelScope, SharingStarted.Eagerly, NexusSettings())
+    val effectiveLocalProfile = settings.map(::effectiveProfile).distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, effectiveProfile(NexusSettings()))
+    val localModelSpec = effectiveLocalProfile.map(LocalModelCatalog::forProfile)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LocalModelCatalog.forProfile(effectiveProfile(NexusSettings())))
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val localModelState = effectiveLocalProfile
+        .flatMapLatest { localModels.getValue(it).state }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LocalModelState())
     val conversations = repository.conversations.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val memories = repository.memories.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val _selected = MutableStateFlow<String?>(null)
@@ -55,11 +91,20 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     private val _importing = MutableStateFlow(false)
     val importing = _importing.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            settings.map(::effectiveProfile).distinctUntilChanged().collectLatest { profile ->
+                localModels.getValue(profile).refresh()
+            }
+        }
+    }
+
     fun report(message: String) { _error.value = message }
     fun clearError() { _error.value = null }
     fun newConversation() { conversationGeneration++; cancelResponse(); _selected.value = null; removeAttachment() }
     fun openConversation(id: String) { conversationGeneration++; cancelResponse(); _selected.value = id; removeAttachment() }
     fun cancelResponse() {
+        _pendingAction.value = null
         responseJob?.cancel()
         // Keep the send barrier until the cancelled job has finished its short,
         // non-cancellable Room save. Otherwise a second send can create a second
@@ -69,16 +114,17 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
 
     /** True means this send was accepted; validation failures preserve the UI draft. */
     fun send(raw: String): Boolean {
-        if (deletingData || _busy.value || _importing.value) return false
+        if (deletingData || modifyingLocalModel || _busy.value || _importing.value) return false
         val text = raw.trim()
         val image = _attachment.value
         if (text.isEmpty() && image == null) return false
         if (text.length > 24_000) { report("Divida a mensagem em partes de até 24.000 caracteres."); return false }
         val config = settings.value
-        if (!canUseAi(config)) return false
+        if (!canUseAi(config, image != null)) return false
         val selectedAtSend = _selected.value
         val conversationAtSend = conversationGeneration
         val generation = ++responseGeneration
+        _pendingAction.value = null
         _error.value = null
         _busy.value = true
         responseJob = viewModelScope.launch {
@@ -98,9 +144,14 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     conversationId
                 }
                 val history = repository.conversationMessages(id).map { AiMessage(it.role, it.content, it.imagePath) }
-                val token = withContext(Dispatchers.IO) { preferences.sessionToken }
+                val token = if (config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
                 val answer = provider.complete(config, token, history, memories.value.map { it.content })
-                repository.addMessage(id, "assistant", answer)
+                val completion = AiCompletion.fromText(answer)
+                repository.addMessage(id, "assistant", completion.text)
+                if (generation == responseGeneration && conversationAtSend == conversationGeneration) {
+                    _pendingAction.value = completion.proposal
+                    _assistantReplies.emit(completion.text)
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Exception) {
@@ -130,7 +181,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
 
     fun retry(): Boolean {
         val id = _selected.value ?: return false
-        if (deletingData || _busy.value || _importing.value) return false
+        if (deletingData || modifyingLocalModel || _busy.value || _importing.value) return false
         val config = settings.value
         if (!canUseAi(config)) return false
         val generation = ++responseGeneration
@@ -143,10 +194,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     if (generation == responseGeneration) report("Não há mensagem pendente para tentar novamente.")
                     return@launch
                 }
-                val token = withContext(Dispatchers.IO) { preferences.sessionToken }
+                val token = if (config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
                 val answer = provider.complete(config, token,
                     history.map { AiMessage(it.role, it.content, it.imagePath) }, memories.value.map { it.content })
-                repository.addMessage(id, "assistant", answer)
+                val completion = AiCompletion.fromText(answer)
+                repository.addMessage(id, "assistant", completion.text)
+                if (generation == responseGeneration && _selected.value == id) {
+                    _pendingAction.value = completion.proposal
+                    _assistantReplies.emit(completion.text)
+                }
             } catch (cancelled: CancellationException) { throw cancelled
             } catch (failure: Exception) {
                 if (generation == responseGeneration) report(failure.message ?: "Falha ao tentar novamente.")
@@ -242,32 +298,112 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-    private fun canUseAi(value: NexusSettings): Boolean {
+    private fun effectiveProfile(value: NexusSettings): LocalModelProfile =
+        if (value.automaticProfile) devicePolicy.value.recommendedProfile ?: LocalModelProfile.COMPACT else value.localModelProfile
+
+    private fun canUseAi(value: NexusSettings, hasImage: Boolean = false): Boolean {
+        if (value.aiMode == AiMode.NEXUS_LOCAL) {
+            if (modifyingLocalModel) {
+                report("Aguarde a alteração do modelo local terminar.")
+                return false
+            }
+            val profile = effectiveProfile(value)
+            if (!DevicePolicy.canRunProfile(deviceCapabilities.value, profile)) {
+                report(if (!devicePolicy.value.localAiSupported) devicePolicy.value.reason
+                    else "O modelo equilibrado exige mais RAM disponível. Ative o ajuste automático, escolha o compacto ou use um provedor personalizado.")
+                return false
+            }
+            if (hasImage) {
+                report("O modelo local aceita somente texto. Para imagens, escolha um provedor multimodal personalizado com sua autorização.")
+                return false
+            }
+            if (localModels.getValue(profile).state.value.status != LocalModelStatus.READY) {
+                report("Baixe o modelo selecionado em NEXUS AI. Depois do download verificado, a conversa funciona sem servidor, chave ou internet.")
+                return false
+            }
+            return true
+        }
         if (!value.remoteConsent || value.endpoint.isBlank() || value.model.isBlank()) {
             report("Configure o endereço, o modelo e a autorização de envio em Configurações para conversar com uma IA real.")
             return false
         }
         return true
     }
+
+    fun downloadLocalModel() {
+        if (deletingData || modifyingLocalModel || modelDownloadJob?.isActive == true) return
+        val profile = effectiveProfile(settings.value)
+        if (!DevicePolicy.canRunProfile(deviceCapabilities.value, profile)) {
+            report(if (!devicePolicy.value.localAiSupported) devicePolicy.value.reason
+                else "Este aparelho não tem a margem de RAM exigida para o modelo equilibrado. Escolha o perfil compacto.")
+            return
+        }
+        val manager = localModels.getValue(profile)
+        modelDownloadJob = guarded { manager.download() }
+    }
+
+    fun cancelLocalModelDownload() { modelDownloadJob?.cancel() }
+
+    fun deleteLocalModel() = mutate {
+        modifyingLocalModel = true
+        val profile = effectiveProfile(settings.value)
+        try {
+            modelDownloadJob?.cancel()
+            modelDownloadJob?.join()
+            cancelResponse()
+            runningResponses.toList().forEach { it.join() }
+            localProviders.getValue(profile).releaseAndAwait()
+            localModels.getValue(profile).delete()
+            report("Modelo selecionado removido. As conversas e o outro perfil foram preservados.")
+        } finally { modifyingLocalModel = false }
+    }
+
+    fun dismissPendingAction() { _pendingAction.value = null }
+
+    /** One-shot claim used only by the explicit confirmation button. */
+    fun takePendingAction(id: String): ActionProposal? {
+        val current = _pendingAction.value ?: return null
+        return current.takeIf { it.id == id && _pendingAction.compareAndSet(current, null) }
+    }
+
+    fun onAppBackgrounded() {
+        if (settings.value.aiMode == AiMode.NEXUS_LOCAL) cancelResponse()
+        localProviders.values.forEach { it.release() }
+    }
     fun saveSettings(value: NexusSettings, sessionToken: String? = null, onSaved: (() -> Unit)? = null) = mutate {
         val normalized = value.copy(endpoint = value.endpoint.trim(), model = value.model.trim())
-        if (normalized.endpoint.isNotEmpty()) OpenAiCompatibleProvider.endpoint(normalized.endpoint, BuildConfig.DEBUG)
+        if (normalized.aiMode == AiMode.CUSTOM && normalized.endpoint.isNotEmpty()) {
+            OpenAiCompatibleProvider.endpoint(normalized.endpoint, BuildConfig.DEBUG)
+        }
         if (sessionToken != null && sessionToken.any { it.code !in 33..126 } && sessionToken.isNotBlank()) {
             throw IllegalArgumentException("O token de sessão contém caracteres inválidos.")
         }
         val previous = preferences.settings.first()
-        val changedServer = normalized.endpoint != previous.endpoint.trim()
-        if (changedServer) {
-            // Disable sending before touching credentials: DataStore and Keystore are
-            // different stores, so a partial write must leave the connection inactive.
-            preferences.save(previous.copy(remoteConsent = false))
+        val changingAi = normalized.aiMode != previous.aiMode || effectiveProfile(normalized) != effectiveProfile(previous)
+        if (changingAi) modifyingLocalModel = true
+        try {
+            if (changingAi) {
+                cancelResponse()
+                modelDownloadJob?.cancel()
+                modelDownloadJob?.join()
+                runningResponses.toList().forEach { it.join() }
+                localProviders.values.forEach { it.releaseAndAwait() }
+            }
+            val changedServer = normalized.endpoint != previous.endpoint.trim()
+            if (changedServer) {
+                // DataStore and Keystore are separate stores: partial writes must
+                // leave remote sending inactive until new settings are saved.
+                preferences.save(previous.copy(remoteConsent = false))
+            }
+            if (sessionToken != null || changedServer) withContext(Dispatchers.IO) {
+                preferences.sessionToken = sessionToken?.trim().orEmpty()
+            }
+            preferences.save(normalized.copy(remoteConsent = normalized.remoteConsent && normalized.endpoint.isNotBlank()))
+            onSaved?.invoke()
+            report("Configurações salvas neste aparelho.")
+        } finally {
+            if (changingAi) modifyingLocalModel = false
         }
-        if (sessionToken != null || changedServer) withContext(Dispatchers.IO) {
-            preferences.sessionToken = sessionToken?.trim().orEmpty()
-        }
-        preferences.save(normalized.copy(remoteConsent = normalized.remoteConsent && normalized.endpoint.isNotBlank()))
-        onSaved?.invoke()
-        report("Configurações salvas neste aparelho.")
     }
     fun saveMemory(content: String, id: String? = null) = mutate { repository.saveMemory(content, id) }
     fun deleteMemory(id: String) = mutate { repository.deleteMemory(id) }
@@ -290,24 +426,32 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             // Wait for the small local persistence/cleanup sections before deleting their data.
             pendingResponses.forEach { it.join() }
             pendingImports.forEach { it.join() }
+            modelDownloadJob?.cancel()
+            modelDownloadJob?.join()
+            localProviders.values.forEach { it.releaseAndAwait() }
             // Existing saves finish before this section; new edits are refused until
             // it ends. No delayed preference/memory write can restore erased data.
             dataMutationMutex.withLock {
                 repository.clearConversations()
                 repository.clearMemories()
                 preferences.save(NexusSettings())
+                localModels.values.forEach { it.delete() }
                 br.com.nexus.assistant.commands.CommandStore(getApplication()).clear()
+                br.com.nexus.assistant.libras.LibrasProgressRepository(getApplication()).clear()
                 withContext(Dispatchers.IO) {
                     preferences.sessionToken = ""
                     check(getApplication<Application>().getSharedPreferences("nexus_gestures", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {
                         "Não foi possível apagar as preferências de gestos. Tente novamente."
+                    }
+                    check(getApplication<Application>().getSharedPreferences("nexus_hands_free", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {
+                        "Não foi possível apagar as preferências de mãos livres. Tente novamente."
                     }
                     imageDirectory.listFiles()?.filter { it.isFile }?.forEach { file ->
                         check(file.delete() || !file.exists()) { "Não foi possível remover uma imagem local. Tente novamente." }
                     }
                 }
             }
-            report("Conversas, memórias e preferências removidas.")
+            report("Conversas, memórias, preferências e modelo local removidos.")
         } finally {
             deletingData = false
             if (generation == responseGeneration) _busy.value = false
@@ -337,6 +481,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         cancelResponse()
         cancelImageImport()
+        modelDownloadJob?.cancel()
+        localProviders.values.forEach { it.close() }
         // The viewModelScope has already been cancelled here; a queued coroutine would not run.
         _attachment.value?.let { runCatching { File(it).delete() } }
         _attachment.value = null

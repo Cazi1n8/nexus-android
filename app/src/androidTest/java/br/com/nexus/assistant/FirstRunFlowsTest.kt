@@ -23,7 +23,7 @@ class FirstRunFlowsTest {
         compose.waitUntil(10_000) { compose.onAllNodesWithText("EXPLORE O NEXUS").fetchSemanticsNodes().isNotEmpty() }
     }
 
-    @Test fun sendingWithoutAnAiConnectionKeepsTheDraftAndDoesNotInventAnAnswer() {
+    @Test fun sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer() {
         compose.onNodeWithText("Chat IA").performScrollTo().performClick()
         compose.onNode(hasSetTextAction()).performTextInput("Quanto é 2 + 2?")
         compose.onNodeWithContentDescription("Enviar mensagem").performClick()
@@ -31,11 +31,13 @@ class FirstRunFlowsTest {
         compose.onNodeWithText("0 mensagens • contexto limitado").assertIsDisplayed()
         compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
         compose.onNodeWithContentDescription("Voltar").performClick()
-        compose.onNodeWithText("Conectar uma IA").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Preparar NEXUS AI").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated() {
         compose.onNodeWithContentDescription("Configurações").performClick()
+        compose.onNodeWithText("NEXUS AI · local", useUnmergedTree = true).performScrollTo().performClick()
+        compose.onNodeWithText("Provedor personalizado").performClick()
         compose.onNodeWithText("Atualizar token de sessão").performScrollTo()
         compose.onNode(isToggleable() and hasAnySibling(hasText("Atualizar token de sessão"))).performClick()
         compose.onNode(hasSetTextAction() and hasText("Token do seu servidor NEXUS")).performTextInput("unsaved-token-for-ui-test")

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import br.com.nexus.assistant.data.AiMode
 import br.com.nexus.assistant.data.NexusDatabase
 import br.com.nexus.assistant.data.NexusRepository
 import br.com.nexus.assistant.data.NexusSettings
@@ -32,7 +33,7 @@ class ConversationCancellationTest {
             repository.clearConversations()
             repository.clearMemories()
             SettingsRepository(application).save(NexusSettings(
-                endpoint = "https://nexus-instrumentation.invalid/v1", model = "test-model", remoteConsent = true,
+                aiMode = AiMode.CUSTOM, endpoint = "https://nexus-instrumentation.invalid/v1", model = "test-model", remoteConsent = true,
             ))
         }
         instrumentation.runOnMainSync {

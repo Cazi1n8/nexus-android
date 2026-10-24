@@ -1,0 +1,315 @@
+#include "nexus_runtime.hpp"
+
+#include "llama.h"
+#include "nlohmann/json.hpp"
+
+#include <algorithm>
+#include <atomic>
+#include <climits>
+#include <fstream>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+namespace nexus {
+namespace {
+
+constexpr std::size_t maximum_json_bytes = 1024 * 1024;
+constexpr std::size_t maximum_answer_bytes = 128 * 1024;
+
+struct Engine {
+    llama_model * model = nullptr;
+    llama_context * context = nullptr;
+    const llama_vocab * vocabulary = nullptr;
+    std::mutex generation_mutex;
+    std::atomic<bool> cancel_requested{false};
+    std::atomic<bool> closed{false};
+    std::atomic<std::uint64_t> cancellation_epoch{0};
+    int context_tokens = 1024;
+
+    ~Engine() {
+        if (context != nullptr) llama_free(context);
+        if (model != nullptr) llama_model_free(model);
+    }
+};
+
+std::mutex registry_mutex;
+std::unordered_map<std::uint64_t, std::shared_ptr<Engine>> registry;
+std::atomic<std::uint64_t> next_handle{1};
+std::once_flag backend_initialized;
+
+bool abort_generation(void * user_data) {
+    const auto * engine = static_cast<const Engine *>(user_data);
+    return engine->cancel_requested.load(std::memory_order_relaxed) || engine->closed.load(std::memory_order_relaxed);
+}
+
+void check_cancelled(const Engine & engine) {
+    if (abort_generation(const_cast<Engine *>(&engine))) throw Cancelled();
+}
+
+std::shared_ptr<Engine> lookup(std::uint64_t handle) {
+    std::lock_guard<std::mutex> lock(registry_mutex);
+    auto found = registry.find(handle);
+    return found == registry.end() ? nullptr : found->second;
+}
+
+struct Message {
+    std::string role;
+    std::string content;
+};
+
+std::vector<Message> parse_messages(const std::string & payload) {
+    if (payload.empty() || payload.size() > maximum_json_bytes) {
+        throw std::invalid_argument("O histórico ultrapassa o limite de entrada da IA local.");
+    }
+    nlohmann::json document;
+    try {
+        document = nlohmann::json::parse(payload);
+    } catch (const nlohmann::json::exception &) {
+        // JSON parser messages can contain user text: never forward them.
+        throw std::invalid_argument("O histórico local está em um formato inválido.");
+    }
+    if (!document.is_array() || document.empty() || document.size() > 64) {
+        throw std::invalid_argument("Envie entre uma e 64 mensagens para a IA local.");
+    }
+    std::vector<Message> messages;
+    messages.reserve(document.size());
+    bool has_user = false;
+    for (const auto & item : document) {
+        if (!item.is_object() || !item.contains("role") || !item["role"].is_string() ||
+            !item.contains("content") || !item["content"].is_string()) {
+            throw std::invalid_argument("A IA local aceita somente mensagens de texto com papel e conteúdo.");
+        }
+        auto role = item["role"].get<std::string>();
+        auto content = item["content"].get<std::string>();
+        if (role != "system" && role != "user" && role != "assistant") {
+            throw std::invalid_argument("O histórico contém um papel não suportado pela IA local.");
+        }
+        if (content.find('\0') != std::string::npos) {
+            throw std::invalid_argument("O histórico contém um caractere de controle inválido.");
+        }
+        if (role == "system" && !messages.empty()) {
+            throw std::invalid_argument("A instrução de sistema deve aparecer somente no início da conversa.");
+        }
+        has_user = has_user || role == "user";
+        messages.push_back({std::move(role), std::move(content)});
+    }
+    if (!has_user || messages.back().role != "user") {
+        throw std::invalid_argument("A conversa local deve terminar com uma mensagem do usuário.");
+    }
+    return messages;
+}
+
+std::string format_prompt(const Engine & engine, const std::vector<Message> & messages) {
+    const char * chat_template = llama_model_chat_template(engine.model, nullptr);
+    if (chat_template == nullptr) {
+        throw std::runtime_error("O modelo local não possui um template de conversa compatível.");
+    }
+    std::vector<llama_chat_message> chat;
+    chat.reserve(messages.size());
+    for (const auto & message : messages) chat.push_back({message.role.c_str(), message.content.c_str()});
+    std::vector<char> output(4096);
+    auto required = llama_chat_apply_template(chat_template, chat.data(), chat.size(), true,
+                                              output.data(), static_cast<int32_t>(output.size()));
+    if (required < 0 || required > static_cast<int32_t>(maximum_json_bytes * 2)) {
+        throw std::runtime_error("O formato de conversa deste modelo local não é suportado.");
+    }
+    if (required > static_cast<int32_t>(output.size())) {
+        output.resize(static_cast<std::size_t>(required));
+        auto written = llama_chat_apply_template(chat_template, chat.data(), chat.size(), true,
+                                                 output.data(), static_cast<int32_t>(output.size()));
+        if (written < 0 || written > static_cast<int32_t>(output.size())) {
+            throw std::runtime_error("Não foi possível preparar o contexto da IA local.");
+        }
+        required = written;
+    }
+    return std::string(output.data(), static_cast<std::size_t>(required));
+}
+
+std::vector<llama_token> tokenize(const Engine & engine, const std::string & prompt) {
+    if (prompt.size() > static_cast<std::size_t>(INT32_MAX)) throw std::invalid_argument("Texto local longo demais.");
+    int32_t required = llama_tokenize(engine.vocabulary, prompt.data(), static_cast<int32_t>(prompt.size()),
+                                      nullptr, 0, true, true);
+    if (required == INT32_MIN) throw std::invalid_argument("Texto local longo demais.");
+    if (required >= 0) throw std::runtime_error("O modelo não conseguiu preparar a mensagem.");
+    std::vector<llama_token> tokens(static_cast<std::size_t>(-required));
+    const auto written = llama_tokenize(engine.vocabulary, prompt.data(), static_cast<int32_t>(prompt.size()),
+                                        tokens.data(), static_cast<int32_t>(tokens.size()), true, true);
+    if (written <= 0) throw std::runtime_error("O modelo não conseguiu preparar a mensagem.");
+    tokens.resize(static_cast<std::size_t>(written));
+    return tokens;
+}
+
+std::vector<llama_token> fit_context(const Engine & engine, std::vector<Message> messages, int output_tokens) {
+    const auto maximum_prompt = static_cast<std::size_t>(engine.context_tokens - output_tokens);
+    for (;;) {
+        check_cancelled(engine);
+        auto tokens = tokenize(engine, format_prompt(engine, messages));
+        if (tokens.size() <= maximum_prompt) return tokens;
+        const std::size_t first_turn = messages.front().role == "system" ? 1 : 0;
+        if (messages.size() <= first_turn + 1) {
+            throw std::invalid_argument("A mensagem e as memórias excedem o contexto da IA local. Divida o texto ou reduza as memórias.");
+        }
+        // Keep the system and most recent user request. Drop complete old turns
+        // rather than silently removing bytes from the current user message.
+        auto end = first_turn + 1;
+        if (end < messages.size() - 1 && messages[end].role == "assistant") ++end;
+        messages.erase(messages.begin() + static_cast<std::ptrdiff_t>(first_turn),
+                       messages.begin() + static_cast<std::ptrdiff_t>(end));
+    }
+}
+
+void decode(Engine & engine, std::vector<llama_token> & tokens, std::size_t start, std::size_t count) {
+    check_cancelled(engine);
+    auto batch = llama_batch_get_one(tokens.data() + start, static_cast<int32_t>(count));
+    const auto status = llama_decode(engine.context, batch);
+    check_cancelled(engine);
+    if (status != 0) throw std::runtime_error("A IA local não conseguiu processar o contexto. Feche outros aplicativos e tente novamente.");
+}
+
+std::string token_piece(const Engine & engine, llama_token token) {
+    std::vector<char> output(256);
+    auto count = llama_token_to_piece(engine.vocabulary, token, output.data(), static_cast<int32_t>(output.size()), 0, false);
+    if (count < 0 && count != INT32_MIN && -count <= 32768) {
+        output.resize(static_cast<std::size_t>(-count));
+        count = llama_token_to_piece(engine.vocabulary, token, output.data(), static_cast<int32_t>(output.size()), 0, false);
+    }
+    if (count < 0) throw std::runtime_error("A IA local não conseguiu converter a resposta em texto.");
+    return std::string(output.data(), static_cast<std::size_t>(count));
+}
+
+struct ClearContextOnExit {
+    Engine & engine;
+    ~ClearContextOnExit() { llama_memory_clear(llama_get_memory(engine.context), true); }
+};
+
+void trim_incomplete_utf8_tail(std::string & text) {
+    if (text.empty()) return;
+    std::size_t lead = text.size() - 1;
+    while (lead > 0 && (static_cast<unsigned char>(text[lead]) & 0xc0U) == 0x80U) --lead;
+    const auto byte = static_cast<unsigned char>(text[lead]);
+    const std::size_t width = byte < 0x80U ? 1 : byte < 0xe0U ? 2 : byte < 0xf0U ? 3 : 4;
+    if (text.size() - lead < width) text.resize(lead);
+}
+
+} // namespace
+
+std::uint64_t load(const std::string & path, int context_tokens, int threads) {
+    if (path.empty() || path.find('\0') != std::string::npos) throw std::invalid_argument("O caminho do modelo local é inválido.");
+    if (context_tokens < 512 || context_tokens > 2048 || threads < 1 || threads > 4) {
+        throw std::invalid_argument("Use contexto entre 512 e 2048 tokens e uma a quatro threads.");
+    }
+    std::ifstream file(path, std::ios::binary);
+    char magic[4]{};
+    if (!file.read(magic, sizeof(magic)) || std::string(magic, sizeof(magic)) != "GGUF") {
+        throw std::invalid_argument("O arquivo local não é um modelo GGUF válido. Baixe o modelo novamente.");
+    }
+    std::call_once(backend_initialized, [] {
+        // Model internals and file paths are not sent to Android logcat. User
+        // prompts and output are never logged by this bridge.
+        llama_log_set([](ggml_log_level, const char *, void *) {}, nullptr);
+        llama_backend_init();
+    });
+    auto engine = std::make_shared<Engine>();
+    auto model_parameters = llama_model_default_params();
+    model_parameters.n_gpu_layers = 0;
+    model_parameters.load_mode = LLAMA_LOAD_MODE_MMAP;
+    engine->model = llama_model_load_from_file(path.c_str(), model_parameters);
+    if (engine->model == nullptr) throw std::runtime_error("Não foi possível carregar a IA local. Verifique o modelo e a memória livre do aparelho.");
+    if (!llama_model_has_decoder(engine->model) || llama_model_has_encoder(engine->model)) {
+        throw std::invalid_argument("Esta versão local aceita modelos GGUF de conversa com decoder de texto.");
+    }
+    engine->vocabulary = llama_model_get_vocab(engine->model);
+    if (engine->vocabulary == nullptr) throw std::runtime_error("O modelo não possui vocabulário compatível.");
+    auto parameters = llama_context_default_params();
+    parameters.n_ctx = static_cast<std::uint32_t>(context_tokens);
+    parameters.n_batch = 128;
+    parameters.n_ubatch = 64;
+    // Only the final token's logits are requested for one conversation. Avoid
+    // reserving a vocabulary-sized output buffer for every prompt batch token.
+    parameters.n_outputs_max = 1;
+    parameters.n_outputs_max_per_seq = 1;
+    parameters.n_threads = threads;
+    parameters.n_threads_batch = threads;
+    parameters.n_seq_max = 1;
+    parameters.offload_kqv = false;
+    parameters.op_offload = false;
+    parameters.no_perf = true;
+    parameters.abort_callback = abort_generation;
+    parameters.abort_callback_data = engine.get();
+    engine->context = llama_init_from_model(engine->model, parameters);
+    if (engine->context == nullptr) throw std::runtime_error("Não foi possível reservar memória para a IA local. Feche outros aplicativos e tente novamente.");
+    if (llama_get_memory(engine->context) == nullptr) throw std::runtime_error("O modelo local não possui contexto de texto compatível.");
+    engine->context_tokens = static_cast<int>(llama_n_ctx(engine->context));
+    const auto id = next_handle.fetch_add(1, std::memory_order_relaxed);
+    std::lock_guard<std::mutex> lock(registry_mutex);
+    registry.emplace(id, engine);
+    return id;
+}
+
+std::string generate(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
+    auto engine = lookup(handle);
+    if (!engine) throw std::runtime_error("A sessão da IA local foi encerrada. Inicie uma nova conversa.");
+    if (maximum_tokens < 1 || maximum_tokens > 512 || maximum_tokens >= engine->context_tokens - 64) {
+        throw std::invalid_argument("O limite de resposta local deve ficar entre um e 512 tokens e caber no contexto.");
+    }
+    const auto epoch = engine->cancellation_epoch.load(std::memory_order_relaxed);
+    std::unique_lock<std::mutex> lock(engine->generation_mutex);
+    engine->cancel_requested.store(false, std::memory_order_relaxed);
+    if (engine->closed.load(std::memory_order_relaxed) || engine->cancellation_epoch.load(std::memory_order_relaxed) != epoch) throw Cancelled();
+    ClearContextOnExit cleanup{*engine};
+    llama_memory_clear(llama_get_memory(engine->context), true);
+    auto tokens = fit_context(*engine, parse_messages(chat_json), maximum_tokens);
+    for (std::size_t start = 0; start < tokens.size(); start += 128) {
+        decode(*engine, tokens, start, std::min<std::size_t>(128, tokens.size() - start));
+    }
+    using Sampler = std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)>;
+    Sampler sampler(llama_sampler_init_greedy(), llama_sampler_free);
+    if (!sampler) throw std::runtime_error("Não foi possível iniciar a geração local.");
+    std::string answer;
+    for (int generated = 0; generated < maximum_tokens; ++generated) {
+        check_cancelled(*engine);
+        const auto token = llama_sampler_sample(sampler.get(), engine->context, -1);
+        if (llama_vocab_is_eog(engine->vocabulary, token)) break;
+        answer.append(token_piece(*engine, token));
+        if (answer.size() > maximum_answer_bytes) throw std::runtime_error("A resposta local ultrapassou o limite de segurança.");
+        if (generated + 1 < maximum_tokens) {
+            std::vector<llama_token> next{token};
+            decode(*engine, next, 0, 1);
+        }
+    }
+    check_cancelled(*engine);
+    // BPE tokens can end in the middle of a multibyte character at the output
+    // limit. Return only complete UTF-8 characters, never JNI modified UTF-8.
+    trim_incomplete_utf8_tail(answer);
+    if (answer.empty()) throw std::runtime_error("O modelo local não produziu texto. Tente uma pergunta mais curta.");
+    return answer;
+}
+
+void cancel(std::uint64_t handle) noexcept {
+    auto engine = lookup(handle);
+    if (engine) {
+        engine->cancellation_epoch.fetch_add(1, std::memory_order_relaxed);
+        engine->cancel_requested.store(true, std::memory_order_relaxed);
+    }
+}
+
+void close(std::uint64_t handle) noexcept {
+    std::shared_ptr<Engine> engine;
+    {
+        std::lock_guard<std::mutex> lock(registry_mutex);
+        auto found = registry.find(handle);
+        if (found == registry.end()) return;
+        engine = found->second;
+        registry.erase(found);
+    }
+    engine->closed.store(true, std::memory_order_relaxed);
+    engine->cancel_requested.store(true, std::memory_order_relaxed);
+    engine->cancellation_epoch.fetch_add(1, std::memory_order_relaxed);
+    // No generation mutex here: cancellation cannot wait behind inference.
+    // The final shared_ptr frees context and model after active calls exit.
+}
+
+} // namespace nexus

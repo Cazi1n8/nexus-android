@@ -1,134 +1,93 @@
 # NEXUS para Android
 
-Assistente Android nativo em Kotlin e Jetpack Compose, com interface escura em azul e ciano. O projeto prioriza uma primeira versão de chat por texto e imagem, voz e dados locais; as funções de mãos e 3D estão em validação.
+Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
 
-**Estado real em 23/10/2026:** APK 0.1.0 gerado e assinado, compilação local aprovada, **27 testes Kotlin e 44 testes Python aprovados**, lint com zero erros. O [código está publicado](https://github.com/Cazi1n8/nexus-android) e o [GitHub Actions também compilou e publicou o APK](https://github.com/Cazi1n8/nexus-android/actions/runs/39980316020). Instalação e uso em celular físico ainda precisam de validação. Veja [PROGRESSO.md](PROGRESSO.md).
+**Versão em integração: 2.0.0-alpha.1.** Uma compilação 2.0 passou com **76 testes JVM**, lint sem erros e geração de APK. A revisão atual, com a dependência de visão atualizada, está em nova validação; **o download definitivo ainda precisa ser confirmado**. Consulte [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
-## Instalar e experimentar agora
+## O que mudou
 
-1. Baixe o [APK de teste no GitHub Actions — artefato nexus-debug-3](https://github.com/Cazi1n8/nexus-android/actions/runs/39980316020/artifacts/12513442249). É necessário entrar no GitHub para baixar artefatos.
-2. Extraia o ZIP e abra `app-debug.apk` em um Android 8.0 ou superior. Autorize a instalação por essa origem quando o Android solicitar.
-3. Abra o NEXUS e explore as telas. Câmera e microfone serão solicitados somente ao abrir suas funções.
-4. Para conversar com a IA, configure URL, modelo, token de sessão e consentimento conforme a seção de Ollama abaixo. O APK não inclui uma chave nem um servidor de IA pronto.
+NEXUS AI pode executar um modelo de texto no próprio aparelho compatível, sem URL, chave ou conta de IA. O perfil personalizado HTTPS continua disponível separadamente. A evolução também adiciona verificação do aparelho, ajustes de processamento, correções de voz pt-BR, mouse persistente, controles independentes de gestos/3D e exercícios preparatórios de Libras.
 
-O artefato fica disponível por 30 dias; depois você pode recompilar pelo workflow. Detalhes: [relatório do APK](docs/RELATORIO_APK.md). Builds de depuração de ambientes diferentes podem ter assinaturas diferentes; exporte dados importantes antes de desinstalar uma versão para trocar de origem.
+A implementação ainda precisa das verificações registradas no progresso. Não houve teste físico pelo ambiente no Samsung Galaxy S9+ informado pelo usuário.
 
-## O que está no projeto
+## Instalar pelo celular
 
-- Camadas separadas de interface, ViewModel, dados e integração real com modelos de IA.
-- Cliente OpenAI-compatible com contexto limitado, imagens, personalidade e memórias autorizadas. Sem modelo configurado, apresenta erro; não inventa uma resposta de IA.
-- Room para conversas e memórias, DataStore para preferências e Android Keystore para proteger o token da sessão.
-- SpeechRecognizer e TextToSpeech do Android, com tratamento de disponibilidade, silêncio e interrupção.
-- CameraX para captura explícita de imagem; código MediaPipe para rastreamento local de mãos e exercícios de interação dentro do NEXUS.
-- Servidor opcional em Python, sem dependências externas, que mantém credenciais de provedores fora do APK e pode usar Ollama gratuitamente no seu computador.
-- Workflow para testar, executar lint e produzir APK de depuração no GitHub Actions, quando o repositório for publicado.
+Quando a nova execução 2.0 estiver aprovada e o APK publicado:
 
-A presença do código não comprova funcionamento em um celular. Compilação Android, teste com modelo real e testes em aparelho continuam pendentes. A primeira fase só estará concluída depois dessas verificações.
+1. Abra [Releases do NEXUS](https://github.com/Cazi1n8/nexus-android/releases).
+2. Na versão de teste mais recente, em **Assets**, baixe o arquivo `NEXUS-2.0.0-alpha.1.apk`.
+3. Abra o APK no gerenciador de arquivos. Autorize instalar aplicativos pela origem utilizada se o Android solicitar.
+4. Abra **Configurações → NEXUS AI**. Confira a recomendação em **Ajustar ao aparelho** e autorize o download do modelo escolhido. Prefira Wi-Fi e mantenha o app aberto.
+5. Depois da verificação do arquivo, converse por texto. Para voz, permita o microfone e instale uma voz **Português (Brasil)** no mecanismo de fala do Android, se necessário.
 
-## Começando pelo celular
+O workflow está configurado para publicar o APK diretamente nas releases após um build aprovado da branch `main`; a existência da nova release ainda precisa ser confirmada. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
 
-Você não precisa instalar ferramentas de desenvolvimento no celular. Preserve o projeto completo e consulte [como guardar no GitHub e baixar um APK pelo Actions](docs/GITHUB.md). Para a compilação automática funcionar, os arquivos precisam estar extraídos na raiz do repositório, incluindo a pasta oculta `.github`.
+Builds de ambientes diferentes podem usar certificados de depuração diferentes. Se o Android recusar atualizar por assinatura, exporte dados importantes antes de desinstalar a versão anterior; desinstalar apaga dados locais.
 
-Não envie senhas, tokens, `.env.local`, `local.properties` ou chaves de assinatura ao GitHub. O build de teste não precisa de uma chave de IA.
+## Compatibilidade automática
 
-## Compilar depois no computador
+A base requer **Android 8.0/API 26 ou superior** e o primeiro APK 2.0 foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. O pacote definitivo com a dependência de visão atualizada está em nova validação.
 
-Requisitos:
+O aplicativo verifica arquitetura, RAM, armazenamento, CPU, câmeras, microfone e GLES. O perfil automático ajusta recomendação de modelo, contexto, threads, resolução e frequência de análise; efeitos visuais são reduzidos em aparelhos modestos. Downloads e envio remoto sempre exigem escolha explícita.
 
-| Ferramenta | Versão desta base |
-| --- | --- |
-| Android mínimo no celular | Android 8.0 / API 26 |
-| Java | JDK 17 recomendado; Java 21 disponível neste ambiente |
-| Android SDK | Platform 35 e Build Tools 35.0.0 |
-| Android Gradle Plugin | 8.9.2 |
-| Gradle | 8.11.1 |
-| Kotlin | 2.1.20 |
-| Python | 3.10 ou superior para scripts e servidor opcional |
+Nem todo aparelho poderá executar todas as funções. A IA local deste runtime exige processo de 64 bits e margem de RAM. O MediaPipe 0.10.35 fornece a biblioteca nativa de tarefas para as quatro arquiteturas, incluindo x86_64, com alinhamento ELF de 16 KB verificado no AAR oficial. Isso não substitui teste de câmera ou de mãos no aparelho; funções independentes do rastreamento permanecem separadas. Sem suporte, o aplicativo informa a razão e oferece alternativas compatíveis. [Matriz e critérios](docs/COMPATIBILIDADE.md).
 
-Abra a pasta no Android Studio e instale o SDK solicitado. Para apontar um SDK já instalado, crie `local.properties` na raiz com `sdk.dir=/caminho/do/seu/Android/Sdk`. Esse arquivo é local e está ignorado pelo Git. Você também pode configurar `ANDROID_HOME` no seu computador.
+## Modelos locais e provedor opcional
 
-Antes de compilar as funções de mãos, baixe o modelo oficial versionado do MediaPipe:
+| Perfil | Modelo público de terceiros | Download |
+| --- | --- | --- |
+| Compacto | Qwen2.5 0.5B Instruct Q4_K_M | 491.400.032 bytes, aproximadamente 469 MiB |
+| Equilibrado | Qwen2.5 1.5B Instruct Q4_K_M | 1.117.320.736 bytes, aproximadamente 1,04 GiB |
+
+O runtime llama.cpp é compilado no APK; os pesos são baixados separadamente, com revisão e SHA-256 fixados. Nenhuma conversa é enviada a um serviço de IA no modo local. O modelo menor apresentou erros em provas reais; o maior exige mais recursos e também pode errar. Não há promessa de desempenho ou precisão geral.
+
+Os modelos atuais aceitam **texto**. Imagens e NEXUS Vision exigem provedor multimodal personalizado autorizado. O app analisa fotos capturadas explicitamente; não há compreensão contínua de vídeo.
+
+O contexto local é limitado às mensagens recentes e ao orçamento de tokens do perfil. Entradas grandes são recusadas com explicação. Memórias são autorizadas manualmente, editáveis e excluíveis; não existe memória ilimitada nem resumo persistente automático.
+
+O perfil **Personalizado** usa endpoint HTTPS compatível com OpenAI, modelo e token protegido no Android Keystore. Exige autorização de envio de mensagens, memórias e imagens. Trocar servidor remove o token anterior. Não há credenciais privadas no repositório nem fallback remoto silencioso. Para servidor próprio gratuito em computador, veja [server/README.md](server/README.md); ele é uma opção avançada e não é necessário para IA local em aparelho compatível.
+
+A IA pode propor ações de uma lista restrita. Argumentos são validados e a interface pede confirmação de uso único. Texto livre da resposta nunca é executado como comando. Chamadas de ferramentas no perfil remoto dependem da compatibilidade do endpoint.
+
+## Compilar no computador
+
+Instale Android Studio ou JDK 17 e Android SDK. O projeto usa Gradle Wrapper 8.11.1, SDK 35, build-tools 35.0.0, NDK 28.2.13676358 e CMake 3.22.1. Instale os componentes no SDK Manager e defina `ANDROID_HOME` ou o caminho do SDK em `local.properties`, que não é versionado.
 
 ```bash
+python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
+./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 ```
 
-O script verifica o tamanho, a estrutura do pacote e informa o SHA-256; também aceita `--sha256` com um valor esperado obtido por um canal confiável. O modelo oficial foi baixado e incluído nos APKs verificados. Em um checkout novo, execute esse comando antes do build; o CI já faz isso. Sem o arquivo, o app informa a limitação e não inicia o rastreamento.
-
-Em Linux/macOS:
+No Windows, use `gradlew.bat`. O APK fica em `app/build/outputs/apk/debug/app-debug.apk`. Os scripts obtêm fontes e modelo de mãos oficiais; pesos GGUF não são incluídos no Git ou APK. [Build offline, checksums e arquiteturas](docs/IA_LOCAL_BUILD.md).
 
 ```bash
-chmod +x gradlew
-./gradlew testDebugUnitTest lintDebug assembleDebug
-```
-
-Para a verificação completa de build, incluindo outras variantes:
-
-```bash
-./gradlew build
-```
-
-No Windows, use `gradlew.bat` no lugar de `./gradlew`.
-
-**Gradle Wrapper oficial incluído:** `gradlew`, `gradlew.bat` e `gradle-wrapper.jar` foram gerados pelo Gradle 8.11.1 obtido da distribuição oficial com SHA-256 verificado. O checksum da distribuição está fixado em `gradle-wrapper.properties`; você não precisa instalar Gradle separadamente. O primeiro uso requer rede para baixar a distribuição e as dependências.
-
-Se o build for aprovado, o APK estará em `app/build/outputs/apk/debug/app-debug.apk`. [Instruções de instalação e testes no celular](docs/TESTES_E_DISTRIBUICAO.md).
-
-## Configurar a IA gratuitamente com Ollama
-
-O app ainda não embute um modelo de linguagem no Android. Você escolhe o servidor e o modelo. Uma opção sem cobrança de API é executar [Ollama](https://ollama.com/) no seu próprio computador. O consumo de memória e o tempo de resposta dependem do computador e do modelo; modelos visuais exigem mais recursos.
-
-1. Instale o Ollama pelas instruções oficiais.
-2. Baixe um modelo com visão, por exemplo:
-
-```bash
-ollama pull gemma3:4b
-```
-
-3. Mantenha o Ollama em execução. Se não estiver iniciado pelo aplicativo do sistema, execute `ollama serve` em outro terminal.
-4. Na raiz do NEXUS, gere a configuração privada do servidor:
-
-```bash
-python3 server/setup_local.py
-python3 server/nexus_gateway.py --env-file server/.env.local
-```
-
-O primeiro comando cria `server/.env.local` com um token aleatório e permissão de arquivo restrita. Não imprime o token nem sobrescreve um arquivo existente. Abra esse arquivo apenas em seu computador para copiar o token para o NEXUS; não o compartilhe no chat ou em capturas de tela. A sessão expira após oito horas de execução do servidor. Gere outro token e reinicie o servidor para revogar o anterior.
-
-5. Nas configurações do app, informe:
-
-| Campo | Exemplo de desenvolvimento |
-| --- | --- |
-| URL da API em emulador Android | `http://10.0.2.2:8787/v1` |
-| Modelo | `gemma3:4b`, igual a `NEXUS_MODEL` no servidor |
-| Token da sessão | Valor de `NEXUS_ACCESS_TOKEN` no seu arquivo privado |
-| Autorização de envio | Leia e autorize o envio ao servidor escolhido |
-
-Para testar em celular por USB, uma alternativa local é `adb reverse tcp:8787 tcp:8787` e URL `http://localhost:8787/v1` em um build de depuração. Sem esse encaminhamento, `localhost` no celular é o próprio celular, não seu computador.
-
-Para uso remoto, publique o servidor atrás de um proxy com certificado HTTPS válido e configure, por exemplo, `https://seu-dominio.example/v1`. HTTP só é aceito pelo app em endereços locais específicos e em builds de depuração. Não exponha o servidor Python diretamente à internet. Veja [server/README.md](server/README.md).
-
-Você também pode usar uma API OpenAI-compatible externa: defina `UPSTREAM_BASE_URL`, `UPSTREAM_API_KEY` e `NEXUS_MODEL` **no servidor**. Custos e política de dados dependem do provedor. A chave do provedor não é um campo do aplicativo e nunca deve ser incluída no APK.
-
-## Dados, voz e permissões
-
-Conversas e memórias ficam no armazenamento privado do app; o banco Room não tem criptografia adicional nesta versão. O backup automático está desativado. O usuário cria suas memórias manualmente e pode editá-las e excluí-las. A exportação JSON contém textos e memórias, sem credenciais e sem os arquivos de imagem; proteja o arquivo exportado.
-
-Mensagens, memórias autorizadas e imagens anexadas são enviadas ao servidor escolhido apenas após autorização. O rastreamento de mãos é local. Câmera e microfone têm controles visíveis e permissões solicitadas conforme o uso. O serviço de reconhecimento de fala do Android pode precisar de rede quando não houver reconhecimento local disponível; algumas vozes de síntese também podem utilizar o serviço do fabricante.
-
-Não há escuta permanente, serviço oculto ou controle global de outros aplicativos por acessibilidade nesta base. A frase “Ei, NEXUS!” em segundo plano, o bloqueio do celular e uma avaliação completa de Libras permanecem fora da primeira entrega validada.
-
-## Testes e documentação
-
-```bash
+python3 -m unittest discover -s scripts/tests -v
 python3 -m unittest discover -s server/tests -v
+./gradlew connectedDebugAndroidTest
 ```
 
-Resultado mais recente: **44 testes Python aprovados, sem ignorados**, incluindo HTTP local, e **27 testes Kotlin aprovados**. O APK e o APK de testes instrumentados foram compilados; os 6 testes instrumentados não puderam ser executados neste ambiente. A suíte de servidor usa upstreams controlados. Separadamente, um modelo Qwen real respondeu às verificações sintéticas de cálculo e contexto, fora do APK; isso não comprova qualidade geral nem análise de imagens. [Relatório do servidor](docs/RELATORIO_TESTES_SERVIDOR.md) e [teste com IA real](docs/RELATORIO_IA_REAL.md).
+O último comando exige aparelho ou emulador conectado. O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. Configurar o workflow não significa que seus testes já passaram; confira o resultado no progresso e no Actions. O [workflow principal](.github/workflows/android.yml) gera APK e relatórios em alterações na branch `main`.
 
-- [Estado de cada função e fases](PROGRESSO.md)
-- [Arquitetura e decisões técnicas](docs/ARQUITETURA.md)
-- [GitHub, Actions e continuidade no computador](docs/GITHUB.md)
-- [Testes em aparelho, instalação e preparação para a Google Play](docs/TESTES_E_DISTRIBUICAO.md)
+## Privacidade e limites
 
-SDK de destino, política de privacidade, Data Safety, assinatura de release e requisitos de acessibilidade precisam ser revistos antes da publicação na Google Play. O workflow gera somente um APK de teste.
+Câmera e microfone usam permissões sob demanda. Fala pode depender de serviços instalados ou de rede; o app informa essa condição. Não há escuta permanente de “Ei, NEXUS!” em segundo plano.
+
+Rastreamento de mãos acontece no aparelho. O mouse global exige consentimento, acessibilidade e sessão de câmera em primeiro plano, com notificação e parada de emergência. O serviço não recebe eventos de acessibilidade nem recupera conteúdo das telas. Android, fabricante e aplicativos protegidos podem recusar gestos. O funcionamento global no S9+ ainda precisa de teste físico.
+
+NEXUS Libras oferece exercícios geométricos preparatórios, progresso e referências educacionais. Não reconhece Libras completa nem certifica sinais, gramática ou proficiência. Validação pedagógica permanece pendente. O cubo usa OpenGL ES 2, sem ancoragem espacial de realidade aumentada.
+
+Room fica no sandbox do Android, sem criptografia adicional do banco; backup automático está desativado. Exportações contêm dados pessoais. A assinatura atual é de depuração. Google Play exige assinatura de release, revisão de permissões, acessibilidade, privacidade, dependências nativas e requisitos atuais da loja.
+
+## Documentação
+
+- [Progresso verificável 2.0](PROGRESSO_NEXUS_2.md)
+- [Auditoria anterior às mudanças](AUDITORIA_NEXUS.md)
+- [Compatibilidade e ajuste automático](docs/COMPATIBILIDADE.md)
+- [Relatório de testes 2.0](docs/RELATORIO_NEXUS_2.md)
+- [Arquitetura 2.0](docs/ARQUITETURA_NEXUS_2.md)
+- [Controle global e limites](docs/MOUSE_GLOBAL.md)
+- [Alterações](CHANGELOG.md)
+- [Licenças e componentes](THIRD_PARTY_NOTICES.md)
+- [Progresso histórico 0.1](PROGRESSO.md)
+- [GitHub e continuidade no computador](docs/GITHUB.md)

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NEXUS</string>
+    <string name="nexus_accessibility_label">NEXUS — controle por gestos</string>
+    <string name="nexus_accessibility_description">Permite executar toques e arrastos autorizados por gestos da mão. Não lê o conteúdo das telas e não recebe eventos de outros aplicativos. A câmera só inicia ao tocar em Iniciar mouse global no NEXUS, com notificação e botão PARAR.</string>
 </resources>
