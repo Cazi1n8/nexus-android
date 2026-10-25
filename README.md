@@ -1,115 +1,68 @@
 # NEXUS para Android
 
-Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
+Assistente Android nativo em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Versão de teste disponível: 2.0.0-alpha.3, versão 22.** Corrige a conclusão do download que permanecia em “Baixando” com o tamanho completo. Passaram **90 testes JVM**, **15 testes comuns no Android emulado** e uma prova em que o próprio aplicativo baixou os dois modelos reais, verificou os arquivos e executou o compacto. A suíte comum informou dois casos opcionais ignorados, ambos cobertos em execuções dedicadas. O APK foi publicado, baixado e inspecionado. [Relatório da alpha.3](docs/RELATORIO_ALPHA_3.md).
+**Etapa atual: 2.0.0-alpha.4, versão 23, em verificação.** A versão completa inclui a IA compacta no APK. O novo APK e os resultados de emulador serão registrados após a execução. A alpha.3 e suas evidências continuam no [relatório histórico](docs/RELATORIO_ALPHA_3.md).
 
-**Base anterior preservada: 2.0.0-alpha.2, versão 21.** Passou por 76 testes JVM, 13 testes comuns no Android emulado e uma prova dedicada de IA real; essa prova colocava o modelo no emulador por ADB e não validava o downloader do aplicativo. O usuário relatou o bloqueio em 100% nessa versão. Seus resultados anteriores permanecem no [relatório alpha.2](docs/RELATORIO_ALPHA_2.md).
+## Mudanças desta etapa
 
-**Base anterior preservada: 2.0.0-alpha.1.** Essa versão passou por **76 testes JVM**, lint sem erros e **8 testes no Android 10 emulado**. O download público, a assinatura v2 e o alinhamento de suas bibliotecas foram verificados. As evidências permanecem em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
+- IA de texto Qwen2.5 0.5B incluída no APK, sem download separado no celular. Ao abrir o Chat, o app prepara uma cópia privada, confere tamanho e SHA-256 e mostra progresso real, pausa e retomada. O processamento se ajusta à memória/CPU, mantendo a mesma base compacta.
+- Calculadora local real para expressões: `10+10÷10×10 = 20`. Não depende de o modelo adivinhar operações. Respostas de outros assuntos continuam podendo conter erros.
+- Chat permite anexar imagem no modo local: extrai texto por OCR e pode explicar esse texto. **Não reconhece objetos, pessoas ou cenas.** A descrição geral de fotos requer provedor multimodal opcional autorizado.
+- Mouse global experimental permanece ativo fora do NEXUS e ao remover a tarefa da lista de recentes, com notificação e **PARAR**. A prévia do vídeo é opcional e vem oculta nos modos de mãos; os indicadores de privacidade permanecem.
+- Libras mantém o treino após o acerto, mostra o alvo no canto e oferece modo livre para configurações de mão efetivamente suportadas. **Não reconhece o alfabeto completo nem certifica sinais de Libras.** Conteúdo validado e classificador de letras continuam pendentes.
+- Diagnóstico exibe compatibilidade/permissões/versão; detalhes locais do hardware aparecem somente por escolha explícita. Não coleta identificadores pessoais nem envia o diagnóstico.
 
-## O que mudou
-
-A alpha.3 separa “arquivo recebido” de “modelo pronto”, oferece pausa/retomada, progresso da verificação e descarte apenas do download parcial. Os testes HTTPS e a prova real de download passaram no Android emulado; falta confirmar o comportamento no S9+ físico. Os modelos de conversa continuam exigindo um primeiro download autorizado; não há conta ou chave obrigatória.
-
-NEXUS AI pode executar um modelo de texto no próprio aparelho compatível, sem URL, chave ou conta de IA. O perfil personalizado HTTPS continua disponível separadamente. A evolução também adiciona verificação do aparelho, ajustes de processamento, correções de voz pt-BR, mouse persistente, controles independentes de gestos/3D e exercícios preparatórios de Libras.
-
-Na alpha.2, **NEXUS Vision → Ler texto offline** usa Tesseract4Android e modelos português/inglês incluídos no APK. O fluxo recebe foto ou imagem da galeria, sem depender de câmera para importar; oferece copiar, ouvir e salvar o texto como memória por escolha explícita. O ditado preenche uma pergunta editável; o envio para IA continua manual. [Funcionamento e limites do OCR](docs/OCR_LOCAL.md). Os quatro testes do leitor OCR e o teste da tela Vision passaram na rodada final em emulador. O seletor de imagens do Android, as câmeras e a voz ainda precisam de validação física.
-
-Ainda há pedidos do texto grande pendentes: Libras completa, compreensão local geral de imagens, resumo persistente de conversas e validação física de voz, mouse e gestos. A [matriz de pedidos e estado real](docs/PEDIDOS_E_STATUS.md) detalha cada ponto. Não houve teste físico pelo ambiente no Samsung Galaxy S9+ informado pelo usuário.
+Voz, Libras, mãos livres e 3D **ainda não operam fora do app**. Preservar uma sessão para retomá-la ao voltar não equivale a processamento em segundo plano. O mouse global possui serviço próprio; os demais modos precisam de uma etapa de implementação e testes. O Android pode interromper qualquer sessão por memória, bateria, permissões ou câmera ocupada. [Permissões, Play Protect e segundo plano](docs/PERMISSOES_E_SEGUNDO_PLANO.md).
 
 ## Instalar pelo celular
 
-**[Baixar NEXUS 2.0.0-alpha.3.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.3-build-10/NEXUS-2.0.0-alpha.3.apk)** — aproximadamente **117,9 MiB**. Download direto, sem ZIP ou login no GitHub.
+O usuário relatou que o **Play Protect bloqueou a instalação**. O aviso não identifica a causa exata. A acessibilidade usada no controle global é uma capacidade sensível; revisar o código não equivale à aprovação pelo Google. Não há garantia de liberação desta versão. Antes de distribuição pública, faltam assinatura de lançamento estável e revisão das capacidades/políticas. Não desative as proteções do aparelho para testar.
 
-**Se já instalou a alpha.2 publicada:** os certificados dos dois APKs são diferentes, e o Android não permite atualizar essa instalação diretamente. Antes de remover a versão antiga, abra **Memória e histórico → Exportar conversas e memórias (JSON)** e guarde os dados importantes. A exportação contém textos; imagens e token não são incluídos. Depois desinstale a alpha.2 e instale a alpha.3. **Desinstalar apaga modelos e downloads parciais privados**, então esse arquivo do modelo precisará ser baixado novamente. A retomada nova preserva arquivos que continuam na mesma instalação; não recupera dados apagados por desinstalação.
+Quando o APK aprovado pelo build for publicado, o link direto ficará neste arquivo e nas [Releases](https://github.com/Cazi1n8/nexus-android/releases). A versão completa terá aproximadamente 590 MiB por incluir o modelo. Instalar e preparar a IA exige espaço adicional; reserve pelo menos 1,5 GB livres e espaço temporário para o download do APK.
 
-1. Baixe o APK e abra-o no gerenciador de arquivos. Autorize instalar aplicativos pela origem utilizada se o Android solicitar.
-2. Abra **Configurações → NEXUS AI**, confira **Ajustar ao aparelho** e autorize baixar o modelo recomendado. Prefira Wi-Fi e mantenha o app aberto.
-3. Acompanhe as fases de conexão, transferência e verificação. Abra **Chat IA** quando aparecer **“Modelo pronto para conversar. Abra o Chat IA.”**
-4. Para OCR sem baixar IA de conversa: **NEXUS Vision → Escolher imagem → Ler texto no aparelho**.
-5. Para voz, permita o microfone quando solicitado e instale uma voz **Português (Brasil)** no mecanismo de fala do Android, se necessário.
+1. Abra o APK somente se a verificação do Android permitir a instalação.
+2. Abra **Chat IA** e aguarde **IA local pronta para conversar**. A preparação copia dados do APK; não baixa outro modelo.
+3. Para imagem com texto, use o anexo no Chat e peça **“Leia esse texto”**. Para OCR sem carregar o modelo de conversa: **NEXUS Vision → Escolher imagem → Ler texto no aparelho**.
+4. Voz usa os serviços reais de reconhecimento/síntese do Android; permita o microfone e instale uma voz Português (Brasil), se necessário. O serviço Android pode precisar de rede.
+5. Controle fora do app: **Mouse Virtual → Mouse em outros aplicativos**, com consentimento e acessibilidade ativada nas configurações oficiais. **PARAR** encerra câmera e controle.
 
-O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.3-build-10) foi publicado e verificado: **123.631.398 bytes**, assinatura v2 válida e SHA-256 `779b42cd94980a6eea489d20db4d51be5f65829a6241c54e793ae9de8d7eecd1`, conferido contra o digest do GitHub e `SHA256SUMS.txt`. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. O [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) também oferece o artefato em ZIP, com retenção limitada. Um caminho local `/workspace/...` não é um endereço público de download.
+APKs de depuração gerados em execuções diferentes podem ter certificados diferentes. Exporte conversas em **Memória e histórico** antes de remover uma instalação incompatível. Desinstalar apaga dados privados, imagens e modelos; o JSON exporta textos, sem token ou imagens. Os pesos incluídos poderão ser preparados novamente sem internet.
 
-## Compatibilidade automática
+## Compatibilidade e privacidade
 
-A base requer **Android 8.0/API 26 ou superior**. O APK alpha.3 publicado foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. São 40 bibliotecas nativas, com alinhamento ELF ≥16 KB nas 22 de 64 bits e ≥4 KB nas 18 de 32 bits; ZIP alinhado a 16 KB. Os modelos OCR estão presentes e verificados, e não há pesos GGUF no APK.
+Android **8.0/API 26 ou superior**. Interface e bibliotecas de câmera/OCR são empacotadas para ARM64, ARM32, x86_64 e x86. IA local requer processo de **64 bits**, pelo menos 3 GB de RAM total utilizável e 1 GB disponível, sem classificação Android de pouca memória. Esses limites não garantem velocidade em todos os aparelhos. Sem recursos suficientes, o app explica a limitação e permite um provedor opcional.
 
-O aplicativo verifica arquitetura, RAM, armazenamento, CPU, câmeras, microfone e GLES. O perfil automático ajusta recomendação de modelo, contexto, threads, resolução e frequência de análise; efeitos visuais são reduzidos em aparelhos modestos. Downloads e envio remoto sempre exigem escolha explícita.
+Câmera, microfone, memória disponível, CPU e gráficos são consultados no próprio aparelho para ajustar resolução, frequência, contexto e threads. Não são usados IMEI, número de série, contatos, localização ou conteúdo de outros aplicativos. Câmera e microfone exigem ações explícitas. A acessibilidade executa gestos autorizados; não lê janelas nem coleta eventos. Não há escuta permanente, reinício oculto ou compreensão contínua de vídeo.
 
-Nem todo aparelho poderá executar todas as funções. A IA local deste runtime exige processo de 64 bits e margem de RAM. O MediaPipe 0.10.35 fornece a biblioteca nativa de tarefas para as quatro arquiteturas, incluindo x86_64, com alinhamento ELF de 16 KB verificado no AAR oficial. Isso não substitui teste de câmera ou de mãos no aparelho; funções independentes do rastreamento permanecem separadas. Sem suporte, o aplicativo informa a razão e oferece alternativas compatíveis. [Matriz e critérios](docs/COMPATIBILIDADE.md).
-
-## Modelos locais e provedor opcional
-
-| Perfil | Modelo público de terceiros | Download |
-| --- | --- | --- |
-| Compacto | Qwen2.5 0.5B Instruct Q4_K_M | 491.400.032 bytes, aproximadamente 469 MiB |
-| Equilibrado | Qwen2.5 1.5B Instruct Q4_K_M | 1.117.320.736 bytes, aproximadamente 1,04 GiB |
-
-O runtime llama.cpp é compilado no APK; os pesos são baixados separadamente, com revisão e SHA-256 fixados. Nenhuma conversa é enviada a um serviço de IA no modo local. O modelo menor apresentou erros em provas reais; o maior exige mais recursos e também pode errar. Não há promessa de desempenho ou precisão geral.
-
-Os modelos de linguagem locais atuais aceitam **texto**. Na alpha.2, a leitura de letras em fotos pode ocorrer offline pelo OCR separado, com modelos incluídos no APK. Descrever ambientes, interpretar circuitos ou responder perguntas gerais sobre imagens ainda exige provedor multimodal personalizado autorizado. O app processa imagens escolhidas explicitamente; não há compreensão contínua de vídeo.
-
-O contexto local é limitado às mensagens recentes e ao orçamento de tokens do perfil. Entradas grandes são recusadas com explicação. Memórias são autorizadas manualmente, editáveis e excluíveis; não existe memória ilimitada nem resumo persistente automático.
-
-O perfil **Personalizado** usa endpoint HTTPS compatível com OpenAI, modelo e token protegido no Android Keystore. Exige autorização de envio de mensagens, memórias e imagens. Trocar servidor remove o token anterior. Não há credenciais privadas no repositório nem fallback remoto silencioso. Para servidor próprio gratuito em computador, veja [server/README.md](server/README.md); ele é uma opção avançada e não é necessário para IA local em aparelho compatível.
-
-A IA pode propor ações de uma lista restrita. Argumentos são validados e a interface pede confirmação de uso único. Texto livre da resposta nunca é executado como comando. Chamadas de ferramentas no perfil remoto dependem da compatibilidade do endpoint.
+Conversas e memórias autorizadas ficam em Room; preferências em DataStore. Token opcional fica protegido por Android Keystore. É possível exportar e apagar dados. Nenhuma conversa ou imagem é enviada a um servidor no modo local. O provedor HTTPS personalizado exige autorização separada, sem fallback remoto silencioso. [Servidor próprio opcional](server/README.md).
 
 ## Compilar no computador
 
-Instale Android Studio ou JDK 17 e Android SDK. O projeto usa Gradle Wrapper 8.11.1, SDK 35, build-tools 35.0.0, NDK 28.2.13676358 e CMake 3.22.1. Instale os componentes no SDK Manager e defina `ANDROID_HOME` ou o caminho do SDK em `local.properties`, que não é versionado. O heap do Gradle foi ajustado para 4 GB para a compilação no computador/CI, após uma falha de empacotamento observada com 3 GB. Esse valor não é a memória exigida pelo aplicativo no celular.
+Use Android Studio ou JDK 17, Android SDK 35, build-tools 35.0.0, NDK 28.2.13676358 e CMake 3.22.1. Defina `ANDROID_HOME` ou `sdk.dir` em `local.properties` (fora do Git). Gradle Wrapper 8.11.1; heap de compilação de 4 GB no computador/CI.
 
 ```bash
 python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
 python3 scripts/fetch_ocr_models.py
 python3 scripts/fetch_ocr_runtime.py
+python3 scripts/fetch_bundled_model.py
 ./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 ```
 
-No Windows, use `gradlew.bat`. O APK fica em `app/build/outputs/apk/debug/app-debug.apk`. Os scripts obtêm fontes, modelo de mãos, dois modelos OCR e o AAR Tesseract4Android de fontes oficiais, com revisões e checksums fixados. `fetch_ocr_runtime.py` salva o AAR em `.build-deps/ocr`, fora do Git; o Gradle confere novamente seu SHA-256. Essa preparação evita depender da resolução de metadados Maven do JitPack, que falhou em duas execuções de CI. Os modelos OCR são empacotados no APK; pesos GGUF de linguagem não são incluídos no Git ou APK. [Build offline, checksums e arquiteturas](docs/IA_LOCAL_BUILD.md).
+No Windows, use `gradlew.bat`. APK: `app/build/outputs/apk/debug/app-debug.apk`. Os scripts usam fontes oficiais e tamanho/SHA-256 fixados. O modelo compacto fica em `.build-deps/bundled-assets`, fora do Git, e o Gradle verifica sua integridade antes de empacotar. Licenças incluídas no APK; veja [avisos de terceiros](THIRD_PARTY_NOTICES.md).
 
-```bash
-python3 -m unittest discover -s scripts/tests -v
-python3 -m unittest discover -s server/tests -v
-./gradlew connectedDebugAndroidTest
-```
+Para regressão do downloader antigo, `-PnexusBundleModel=false` compila uma variante de desenvolvimento sem os pesos. Ela não é o APK completo recomendado ao usuário. Os workflows de regressão usam essa opção; o workflow principal publica a versão completa. [Actions](https://github.com/Cazi1n8/nexus-android/actions) executa testes, lint e build. Um workflow dedicado verifica Chat → preparação do APK → resposta real → histórico, com Wi-Fi e dados do emulador desligados.
 
-O último comando exige aparelho ou emulador conectado. Sem autorização/fixture, os casos `LocalAiInferenceTest` e `ProductionModelDownloadTest` são explicitamente ignorados na suíte comum. A [rodada Android alpha.3](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770843) passou com **15 aprovados, 0 falhas/erros e 2 ignorados**, em 55 s. Os dois casos opcionais passaram separadamente: [inferência com fixture](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770987) e [download real pelo aplicativo](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770826). O [build e publicação](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770859) também passaram, com 90 testes JVM e zero erros de lint. Essas provas não certificam câmera, voz, mãos físicas ou desempenho no S9+.
+## Estado e testes
 
-## Validação nova do download
+Compilação local aprovada; 129 testes JVM e 66 testes Python dos scripts passaram. Lint: 0 erros, 42 avisos e 1 informação. APK local gerado e inspecionado; testes Android e publicação aguardam conclusão. Não houve teste físico no Samsung Galaxy S9+ pelo ambiente. Não foi comprovada correção de todos os travamentos.
 
-Na alpha.3, testes HTTPS controlados exercitam o próprio `LocalModelManager`: tamanho completo sem fechamento da conexão, verificação, cancelamento, retomada por `Range` e respostas inválidas. Eles usam arquivos sintéticos pequenos para testar transporte; não avaliam a qualidade de um modelo de linguagem.
+- [Relatório alpha.4](docs/RELATORIO_ALPHA_4.md)
+- [Progresso por funcionalidade](PROGRESSO_NEXUS_2.md)
+- [Todos os pedidos e pendências](docs/PEDIDOS_E_STATUS.md)
+- [Permissões e segundo plano](docs/PERMISSOES_E_SEGUNDO_PLANO.md)
+- [OCR local](docs/OCR_LOCAL.md)
+- [Compatibilidade](docs/COMPATIBILIDADE.md)
 
-O [workflow de download real no Android](.github/workflows/model-download-smoke.yml) passou: o próprio aplicativo baixou os dois modelos públicos, retornou de `download()`, chegou a `READY` e revalidou seus hashes. Depois, o compacto gerou `42` para 17 + 25. Nenhum GGUF foi instalado por ADB nessa prova. O compacto baixou em 37,789 s e o equilibrado em 82,455 s; esses tempos pertencem ao emulador/runner e não estimam a velocidade no celular. [Relatório e evidências alpha.3](docs/RELATORIO_ALPHA_3.md). Sem o argumento de autorização do teste, `ProductionModelDownloadTest` é explicitamente ignorado na suíte comum; isso se soma ao caso de inferência que exige sua própria fixture.
-
-## Privacidade e limites
-
-O OCR da alpha.2 funciona no aparelho com Tesseract4Android, sem API, conta, download durante a leitura ou envio da imagem a um servidor. Resultados só entram na memória por uma ação explícita de salvar. A síntese e o reconhecimento de fala seguem as condições dos serviços Android instalados.
-
-Câmera e microfone usam permissões sob demanda. Fala pode depender de serviços instalados ou de rede; o app informa essa condição. Não há escuta permanente de “Ei, NEXUS!” em segundo plano.
-
-Rastreamento de mãos acontece no aparelho. O mouse global exige consentimento, acessibilidade e sessão de câmera em primeiro plano, com notificação e parada de emergência. O serviço não recebe eventos de acessibilidade nem recupera conteúdo das telas. Android, fabricante e aplicativos protegidos podem recusar gestos. O funcionamento global no S9+ ainda precisa de teste físico.
-
-NEXUS Libras oferece exercícios geométricos preparatórios, progresso e referências educacionais. Não reconhece Libras completa nem certifica sinais, gramática ou proficiência. Validação pedagógica permanece pendente. O cubo usa OpenGL ES 2, sem ancoragem espacial de realidade aumentada.
-
-Room fica no sandbox do Android, sem criptografia adicional do banco; backup automático está desativado. Exportações contêm dados pessoais. A assinatura atual é de depuração. Google Play exige assinatura de release, revisão de permissões, acessibilidade, privacidade, dependências nativas e requisitos atuais da loja.
-
-## Documentação
-
-- [Progresso verificável 2.0](PROGRESSO_NEXUS_2.md)
-- [Auditoria anterior às mudanças](AUDITORIA_NEXUS.md)
-- [Compatibilidade e ajuste automático](docs/COMPATIBILIDADE.md)
-- [Pedidos do texto grande e estado real](docs/PEDIDOS_E_STATUS.md)
-- [Relatório de testes alpha.3](docs/RELATORIO_ALPHA_3.md)
-- [Relatório histórico alpha.2](docs/RELATORIO_ALPHA_2.md)
-- [OCR local do NEXUS Vision](docs/OCR_LOCAL.md)
-- [Relatório de testes alpha.1](docs/RELATORIO_NEXUS_2.md)
-- [Arquitetura 2.0](docs/ARQUITETURA_NEXUS_2.md)
-- [Controle global e limites](docs/MOUSE_GLOBAL.md)
-- [Alterações](CHANGELOG.md)
-- [Licenças e componentes](THIRD_PARTY_NOTICES.md)
-- [Progresso histórico 0.1](PROGRESSO.md)
-- [GitHub e continuidade no computador](docs/GITHUB.md)
+Ainda faltam execução em segundo plano dos demais módulos, reconhecimento validado de letras/sinais de Libras, visão multimodal local geral, modelo de conversa mais capaz, resumo persistente de conversas, testes físicos, assinatura estável e preparação final para a Play Store. Esta é uma versão de teste em evolução.

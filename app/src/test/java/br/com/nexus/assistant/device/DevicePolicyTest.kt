@@ -14,10 +14,10 @@ class DevicePolicyTest {
         hasFrontCamera = true, hasRearCamera = true, hasMicrophone = true, glesVersion = 0x30000,
     )
 
-    @Test fun sixGbClassGetsBalancedWithoutAssumingPhoneModel() {
+    @Test fun sixGbClassUsesTheSameBaseAndAdaptsRuntimeWithoutAssumingPhoneModel() {
         val policy = DevicePolicy.evaluate(device())
         assertTrue(policy.localAiSupported)
-        assertEquals(LocalModelProfile.BALANCED, policy.recommendedProfile)
+        assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
         assertEquals(1024, policy.contextTokens)
         assertEquals(3, policy.inferenceThreads)
         assertEquals(128, policy.maxOutputTokens)
@@ -60,6 +60,7 @@ class DevicePolicyTest {
 
     @Test fun strongestProfileStillCapsNativeMemoryAndCpuBudgets() {
         val policy = DevicePolicy.evaluate(device().copy(totalRamBytes = 12 * gb, availableRamBytes = 5 * gb, cpuCores = 16))
+        assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
         assertEquals(1536, policy.contextTokens)
         assertEquals(3, policy.inferenceThreads)
         assertEquals(192, policy.maxOutputTokens)
@@ -83,17 +84,67 @@ class DevicePolicyTest {
         assertFalse(hardware.hasMicrophone)
     }
 
-    @Test fun lowStorageOnlyChangesDownloadRecommendationNotNativeAbiCapability() {
+    @Test fun lowStorageChangesPreparationAvailabilityWithoutChangingTheBase() {
         val policy = DevicePolicy.evaluate(device().copy(freeDiskBytes = LocalModelCatalog.compact.bytes + 64L * 1024 * 1024))
         assertTrue(policy.localAiSupported)
         assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
         assertTrue(DevicePolicy.evaluate(device().copy(freeDiskBytes = 1)).reason.contains("armazenamento"))
     }
 
-    @Test fun installedBalancedModelDoesNotRequireDuplicateDownloadSpaceAtNextStartup() {
-        val hardware = device().copy(freeDiskBytes = 100_000_000, installedModelProfiles = setOf(LocalModelProfile.BALANCED))
-        assertEquals(LocalModelProfile.BALANCED, DevicePolicy.evaluate(hardware).recommendedProfile)
+    @Test fun anInstalledBaseModelDoesNotRequireDuplicateStorageAtNextStartup() {
+        val hardware = device().copy(freeDiskBytes = 0, installedModelProfiles = setOf(LocalModelProfile.COMPACT))
+        assertEquals(LocalModelProfile.COMPACT, DevicePolicy.evaluate(hardware).recommendedProfile)
+        assertEquals(0L, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.COMPACT))
         assertFalse(DevicePolicy.evaluate(hardware).reason.contains("falta armazenamento"))
+    }
+
+    @Test fun aCompletedBasePartialCanFinishVerificationEvenWithoutExtraFreeSpace() {
+        val hardware = device().copy(freeDiskBytes = 0,
+            downloadedModelBytes = mapOf(LocalModelProfile.COMPACT to LocalModelCatalog.compact.bytes))
+        val policy = DevicePolicy.evaluate(hardware)
+        assertTrue(policy.localAiSupported)
+        assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
+        assertEquals(0L, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.COMPACT))
+        assertFalse(policy.reason.contains("falta armazenamento"))
+    }
+
+    @Test fun anInterruptedTransferRequiresOnlyItsMissingBytesAndSafetyMargin() {
+        val missing = 1_048_576L
+        val margin = 64L * 1024 * 1024
+        val hardware = device().copy(freeDiskBytes = missing + margin,
+            downloadedModelBytes = mapOf(LocalModelProfile.COMPACT to LocalModelCatalog.compact.bytes - missing))
+        assertEquals(missing + margin, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.COMPACT))
+        assertFalse(DevicePolicy.evaluate(hardware).reason.contains("falta armazenamento"))
+        assertTrue(DevicePolicy.evaluate(hardware.copy(freeDiskBytes = missing + margin - 1)).reason.contains("falta armazenamento"))
+    }
+
+    @Test fun aCompleteLegacyBalancedPartialNeedsNoSecondDownloadButCannotSelectAnotherBase() {
+        val hardware = device().copy(freeDiskBytes = 400_000_000,
+            downloadedModelBytes = mapOf(LocalModelProfile.BALANCED to LocalModelCatalog.balanced.bytes))
+        assertEquals(0L, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.BALANCED))
+        assertTrue(DevicePolicy.canRunProfile(hardware, LocalModelProfile.BALANCED))
+        assertEquals(LocalModelProfile.COMPACT, DevicePolicy.evaluate(hardware).recommendedProfile)
+        assertEquals(LocalModelProfile.COMPACT,
+            DevicePolicy.evaluate(hardware.copy(availableRamBytes = 1_100_000_000)).recommendedProfile)
+    }
+
+    @Test fun installedOrDownloadedLegacyBalancedDataNeverOverridesRamRequirements() {
+        val hardware = device().copy(totalRamBytes = 3 * gb, availableRamBytes = gb, freeDiskBytes = 0,
+            installedModelProfiles = setOf(LocalModelProfile.BALANCED),
+            downloadedModelBytes = mapOf(LocalModelProfile.BALANCED to LocalModelCatalog.balanced.bytes))
+        assertEquals(0L, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.BALANCED))
+        assertFalse(DevicePolicy.canRunProfile(hardware, LocalModelProfile.BALANCED))
+        assertTrue(DevicePolicy.canRunProfile(hardware, LocalModelProfile.COMPACT))
+    }
+
+    @Test fun malformedPartialMetadataCannotPretendTheModelHasAlreadyArrived() {
+        val required = LocalModelCatalog.compact.bytes + 64L * 1024 * 1024
+        for (invalid in listOf(-1L, LocalModelCatalog.compact.bytes + 1)) {
+            val hardware = device().copy(freeDiskBytes = 1,
+                downloadedModelBytes = mapOf(LocalModelProfile.COMPACT to invalid))
+            assertEquals(required, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.COMPACT))
+            assertTrue(DevicePolicy.evaluate(hardware).reason.contains("falta armazenamento"))
+        }
     }
 
     @Test fun unsupportedAndroidAndUnknownAbiNeverEnableLocalInference() {

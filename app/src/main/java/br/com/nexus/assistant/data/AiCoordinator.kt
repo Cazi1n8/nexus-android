@@ -10,8 +10,14 @@ class AiCoordinator(
         token: String,
         messages: List<AiMessage>,
         memories: List<String>,
-    ): String = when (settings.aiMode) {
-        AiMode.NEXUS_LOCAL -> local.complete(settings, "", messages, memories)
-        AiMode.CUSTOM -> custom.complete(settings, token, messages, memories)
+    ): String {
+        val latest = messages.lastOrNull()
+        if (latest?.role == "user" && latest.imagePath == null) {
+            ArithmeticTool.answerFor(latest.content)?.let { return it }
+        }
+        return when (settings.aiMode) {
+            AiMode.NEXUS_LOCAL -> local.complete(settings, "", messages, memories)
+            AiMode.CUSTOM -> custom.complete(settings, token, messages, memories)
+        }
     }
 }

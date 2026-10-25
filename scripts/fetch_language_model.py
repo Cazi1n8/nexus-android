@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Explicitly fetch a verified public GGUF for Android CI; never bundle it in an APK."""
+"""Explicitly prepare a pinned and verified public GGUF for Android development/CI."""
 
 from __future__ import annotations
 

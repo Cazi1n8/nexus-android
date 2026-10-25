@@ -23,12 +23,12 @@ O OCR da alpha.2 pode ler uma foto importada da galeria sem câmera, microfone, 
 
 `DeviceCapabilities` coleta um retrato do aparelho sem ligar câmera ou microfone: versão Android, arquiteturas, processo de 64 bits, RAM total e disponível, indicação de pouca memória do Android, núcleos de CPU, espaço privado livre, câmeras frontal/traseira, microfone e versão GLES.
 
-`DevicePolicy` transforma essas observações em uma recomendação conservadora. O modo **Ajustar ao aparelho** recomenda um modelo e limites de processamento; a opção manual permite escolher um perfil permitido. Trocar de perfil não baixa pesos automaticamente e não autoriza servidor externo.
+Na alpha.4 completa, `DevicePolicy` mantém a mesma base compacta incluída no APK e ajusta os limites de processamento. Não há escolha de modelo recomendado no telefone. A variante de desenvolvimento sem pesos preserva a seleção manual para regressão; não autoriza servidor externo.
 
 Os critérios atuais usam RAM total e livre, não apenas o nome comercial do celular:
 
 - IA local requer processo ARM64 ou x86_64, Android compatível, ausência da indicação Android de pouca memória e margem mínima de RAM. O perfil compacto usa como referência pelo menos 3 GB totais e 1 GB disponível.
-- O perfil equilibrado considera pelo menos 6 GB totais e 2 GB disponíveis, além do armazenamento necessário. Um modelo já instalado ainda passa pela verificação de integridade antes de ser usado.
+- O perfil equilibrado permanece somente no modo avançado/variante sem pesos para regressão; não é a base do APK completo. Exige pelo menos 6 GB totais e 2 GB disponíveis. Os arquivos finais/parciais já presentes entram no cálculo do espaço adicional, mas tamanho não substitui SHA-256.
 - Contexto, threads e limite de resposta são reduzidos em aparelhos mais modestos. O contexto varia entre 512 e 1.536 tokens, compartilhados por instruções, memórias, conversa e saída.
 - Câmera e rastreamento usam resolução menor e intervalos maiores em aparelhos com menos recursos. A análise também observa o custo dos quadros para evitar sobrecarregar a interface.
 - Rastreamento de duas mãos e ambiente 3D dependem dos recursos disponíveis. O renderer exige OpenGL ES 2.

@@ -13,7 +13,12 @@ enum class PreparationExercise(val title: String, val instruction: String) {
 
 enum class PracticeObservation { NO_HAND, MULTIPLE_HANDS, UNUSABLE, ADJUST, MATCH }
 
-data class PracticeAssessment(val observation: PracticeObservation, val message: String)
+data class PracticeAssessment(
+    val observation: PracticeObservation,
+    val message: String,
+    /** Geometric preparation configuration only; never an inferred letter or sign. */
+    val configuration: PreparationExercise? = null
+)
 
 /**
  * Conservative 3D landmark geometry, not a trained Libras classifier. It deliberately
@@ -23,6 +28,17 @@ data class PracticeAssessment(val observation: PracticeObservation, val message:
 object LibrasPracticeEvaluator {
     private val fingers = listOf(intArrayOf(5, 6, 7, 8), intArrayOf(9, 10, 11, 12),
         intArrayOf(13, 14, 15, 16), intArrayOf(17, 18, 19, 20))
+
+    /** Free exploration retains the same conservative visibility and ambiguity checks. */
+    fun observe(hands: List<TrackedHand>): PracticeAssessment {
+        val extended = evaluate(hands, PreparationExercise.EXTENDED)
+        if (extended.observation != PracticeObservation.ADJUST) return extended
+        val flexed = evaluate(hands, PreparationExercise.FLEXED)
+        return if (flexed.observation == PracticeObservation.MATCH) flexed else PracticeAssessment(
+            PracticeObservation.ADJUST,
+            "Configuração não reconhecida. Neste modo avalio somente os quatro dedos estendidos ou flexionados; não identifico letras de Libras."
+        )
+    }
 
     fun evaluate(hands: List<TrackedHand>, exercise: PreparationExercise): PracticeAssessment {
         if (hands.isEmpty()) return PracticeAssessment(PracticeObservation.NO_HAND, "Nenhuma mão detectada. Mostre uma mão inteira e bem iluminada.")
@@ -50,7 +66,7 @@ object LibrasPracticeEvaluator {
                 PreparationExercise.FLEXED -> proximalAngle <= 125f && tipFromWrist < jointFromWrist * 1.07f
             }
         }
-        return if (matches) PracticeAssessment(PracticeObservation.MATCH, "A geometria dos quatro dedos corresponde ao exercício. Mantenha a posição sem forçar.")
+        return if (matches) PracticeAssessment(PracticeObservation.MATCH, "Configuração observada: ${exercise.title.lowercase()}. Mantenha a posição sem forçar.", exercise)
         else PracticeAssessment(PracticeObservation.ADJUST, "A posição ainda está ambígua ou diferente da referência. Ajuste os quatro dedos e mantenha a palma de frente.")
     }
 

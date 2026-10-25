@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,11 +77,14 @@ fun NexusLibrasScreen() {
     val canSwitchCamera = capabilities.hasFrontCamera && capabilities.hasRearCamera
     val repository = remember(context) { LibrasProgressRepository(context) }
     val progress by repository.progress.collectAsStateWithLifecycle(initialValue = LibrasProgress())
-    var selected by remember { mutableStateOf(PreparationExercise.EXTENDED) }
-    var running by remember { mutableStateOf(false) }
+    var selected by rememberSaveable { mutableStateOf(PreparationExercise.EXTENDED) }
+    var running by rememberSaveable { mutableStateOf(false) }
+    var freeMode by rememberSaveable { mutableStateOf(false) }
+    var showPreview by rememberSaveable { mutableStateOf(true) }
     var frontCamera by remember { mutableStateOf(capabilities.hasFrontCamera) }
     var frame by remember { mutableStateOf(HandFrame()) }
     var completedThisSession by remember { mutableStateOf(false) }
+    var observedConfiguration by remember { mutableStateOf<PreparationExercise?>(null) }
     var feedback by remember { mutableStateOf("Escolha um exercício e leia a orientação antes de ligar a câmera.") }
     var deleteDialog by remember { mutableStateOf(false) }
     val gate = remember { PracticeHoldGate() }
@@ -87,7 +92,7 @@ fun NexusLibrasScreen() {
         runCatching { context.assets.open("hand_landmarker.task").use { it.read() >= 0 } }.getOrDefault(false)
     }
 
-    fun stopCamera() { running = false; frame = HandFrame(); gate.reset() }
+    fun stopCamera() { running = false; frame = HandFrame(); observedConfiguration = null; gate.reset() }
 
     fun startCamera() {
         gate.reset(); completedThisSession = false; frame = HandFrame(); running = true
@@ -116,7 +121,14 @@ fun NexusLibrasScreen() {
         }
     }
     DisposableEffect(owner) {
-        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_STOP) stopCamera() }
+        // CameraX pauses its lifecycle-bound camera while this activity is stopped. Keep the
+        // requested session so a temporary app switch does not silently finish the activity.
+        // Continuous background tracking requires the separate foreground-service architecture.
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                frame = HandFrame(); observedConfiguration = null; gate.reset()
+            }
+        }
         owner.lifecycle.addObserver(observer)
         onDispose { owner.lifecycle.removeObserver(observer); gate.reset() }
     }
@@ -124,6 +136,15 @@ fun NexusLibrasScreen() {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("NEXUS Libras · preparação", style = MaterialTheme.typography.titleLarge)
         Text("Comece pela percepção e pelo controle dos dedos. São dois exercícios geométricos de nível inicial; não são sinais completos de Libras.")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { freeMode = false; gate.reset(); completedThisSession = false; observedConfiguration = null }) {
+                Text(if (!freeMode) "✓ Atividade" else "Atividade")
+            }
+            OutlinedButton(onClick = { freeMode = true; gate.reset(); observedConfiguration = null }) {
+                Text(if (freeMode) "✓ Modo livre" else "Modo livre")
+            }
+        }
+        if (freeMode) Text("No modo livre, a configuração reconhecida aparece ao vivo. Letras e sinais completos ainda não são avaliados: falta um classificador validado do alfabeto de Libras.")
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Antes de praticar", style = MaterialTheme.typography.titleMedium)
@@ -133,7 +154,7 @@ fun NexusLibrasScreen() {
         }
         PreparationExercise.entries.forEach { exercise ->
             OutlinedButton(onClick = {
-                stopCamera(); selected = exercise; completedThisSession = false
+                gate.reset(); selected = exercise; completedThisSession = false; observedConfiguration = null
                 feedback = "Referência selecionada: ${exercise.title.lowercase()}."
             }, modifier = Modifier.fillMaxWidth()) {
                 val learned = if (exercise.name in progress.completed) " · já praticado" else ""
@@ -156,30 +177,47 @@ fun NexusLibrasScreen() {
                 else permission.launch(Manifest.permission.CAMERA)
             }, enabled = modelAvailable && hasCamera && policy.handTrackingSupported) { Text(if (running) "Parar câmera" else "Praticar com câmera") }
         }
-        if (canSwitchCamera) OutlinedButton(onClick = { stopCamera(); frontCamera = !frontCamera; completedThisSession = false }) {
+        if (canSwitchCamera) OutlinedButton(onClick = { gate.reset(); frame = HandFrame(); frontCamera = !frontCamera; observedConfiguration = null }) {
             Text(if (frontCamera) "Usar câmera traseira" else "Usar câmera frontal")
         }
+        OutlinedButton(onClick = { showPreview = !showPreview }) { Text(if (showPreview) "Ocultar imagem da câmera" else "Mostrar imagem da câmera") }
         Text("Ao iniciar, a câmera será usada para detectar pontos das mãos neste aparelho. Não gravamos nem enviamos imagens. Salvo apenas contagens de treino e exercícios praticados.", style = MaterialTheme.typography.bodySmall)
+        Text("A sessão continua depois de registrar um acerto, até você tocar em Parar câmera. Ao sair do aplicativo, o Android pausa esta câmera; ao voltar a esta tela, o treino pode continuar. Os indicadores de privacidade permanecem visíveis mesmo com a imagem oculta.", style = MaterialTheme.typography.bodySmall)
         if (running) {
             Box(Modifier.fillMaxWidth().height(340.dp).background(Color.Black)
                 .border(1.dp, NexusCyan, RoundedCornerShape(10.dp))
                 .semantics { contentDescription = "Prévia da câmera ativa para treino preparatório. Os pontos detectados são sobrepostos e o resultado aparece em texto abaixo." }) {
-                HandCamera(frontCamera = frontCamera, modifier = Modifier.fillMaxSize(), onFrame = { detected ->
+                HandCamera(frontCamera = frontCamera, showPreview = showPreview, modifier = Modifier.fillMaxSize(), onFrame = { detected ->
                     frame = detected
-                    if (!completedThisSession) {
-                        val result = LibrasPracticeEvaluator.evaluate(detected.hands, selected)
-                        feedback = result.message
-                        if (gate.update(result.observation, detected.timestampMs)) {
+                    val result = if (freeMode) LibrasPracticeEvaluator.observe(detected.hands)
+                        else LibrasPracticeEvaluator.evaluate(detected.hands, selected)
+                    observedConfiguration = result.configuration
+                    feedback = result.message
+                    if (!freeMode) {
+                        if (!completedThisSession && gate.update(result.observation, detected.timestampMs)) {
                             completedThisSession = true
                             val completedExercise = selected
-                            stopCamera()
-                            feedback = "Treino registrado: posição estável por pelo menos 1,2 segundo. Isso confirma apenas a correspondência geométrica deste exercício, não um sinal de Libras."
                             scope.launch { runCatching { repository.recordCompletion(completedExercise) }.onFailure { feedback = "A posição foi mantida, mas não consegui salvar o progresso. Tente novamente." } }
                         }
+                        if (completedThisSession) feedback += " Treino registrado; continue praticando ou escolha outra atividade."
                     }
                 }, onError = { message -> stopCamera(); feedback = message })
                 DetectedHandsOverlay(frame)
                 Text("CÂMERA ATIVA • processamento local", Modifier.align(Alignment.TopCenter).background(Color.Black.copy(alpha = .7f)).padding(8.dp), color = NexusCyan)
+                Card(Modifier.align(Alignment.BottomEnd).padding(8.dp).width(155.dp)) {
+                    Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (freeMode) {
+                            Text("Observação ao vivo", style = MaterialTheme.typography.labelMedium, color = NexusCyan)
+                            Text(observedConfiguration?.title ?: "Sem configuração reconhecida", style = MaterialTheme.typography.bodySmall)
+                            Text("Letra: não avaliada", style = MaterialTheme.typography.labelSmall)
+                        } else {
+                            Text("Faça esta configuração", style = MaterialTheme.typography.labelMedium, color = NexusCyan)
+                            Text(selected.title, style = MaterialTheme.typography.bodySmall)
+                            ReferenceIllustration(selected, Modifier.fillMaxWidth().height(105.dp))
+                            if (completedThisSession) Text("✓ Registrado • treino continua", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
             }
         }
         Text(feedback, color = if (completedThisSession) NexusCyan else MaterialTheme.colorScheme.onSurface)
@@ -222,7 +260,7 @@ private val handEdges = listOf(0 to 1, 1 to 2, 2 to 3, 3 to 4, 0 to 5, 5 to 6, 6
     13 to 17, 0 to 17, 17 to 18, 18 to 19, 19 to 20)
 
 @Composable
-private fun ReferenceIllustration(exercise: PreparationExercise) {
+private fun ReferenceIllustration(exercise: PreparationExercise, modifier: Modifier = Modifier.fillMaxWidth().height(230.dp)) {
     val points = if (exercise == PreparationExercise.EXTENDED) listOf(
         HandPoint(.5f,.84f), HandPoint(.36f,.76f), HandPoint(.26f,.67f), HandPoint(.18f,.59f), HandPoint(.12f,.51f),
         HandPoint(.36f,.60f), HandPoint(.32f,.42f), HandPoint(.30f,.29f), HandPoint(.29f,.18f),
@@ -236,7 +274,7 @@ private fun ReferenceIllustration(exercise: PreparationExercise) {
         HandPoint(.56f,.60f), HandPoint(.58f,.46f), HandPoint(.58f,.56f), HandPoint(.56f,.65f),
         HandPoint(.66f,.63f), HandPoint(.69f,.52f), HandPoint(.68f,.61f), HandPoint(.64f,.68f)
     )
-    Canvas(Modifier.fillMaxWidth().height(230.dp).background(Color(0xFF071521), RoundedCornerShape(12.dp))
+    Canvas(modifier.background(Color(0xFF071521), RoundedCornerShape(12.dp))
         .semantics { contentDescription = "Esquema original: ${exercise.title}. ${exercise.instruction}" }) {
         val side = min(size.width, size.height)
         fun at(point: HandPoint) = Offset((size.width - side) / 2f + point.x * side, point.y * side)

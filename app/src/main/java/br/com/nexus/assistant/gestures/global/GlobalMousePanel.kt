@@ -84,7 +84,7 @@ fun GlobalMousePanel(onBeforeStart: () -> Unit) {
             Text("Usa a câmera ${if (capabilities.hasFrontCamera) "frontal" else "traseira disponível"} para mover o cursor e o serviço de acessibilidade para executar toques e arrastos em outros apps. Não lê o conteúdo das telas, não grava imagens e não envia quadros para servidores.")
             if (!policy.handTrackingSupported) Text(if (!capabilities.hasCamera) "Mouse global indisponível: este aparelho não informa uma câmera."
                 else "Mouse global indisponível: o rastreador de mãos não é compatível com esta arquitetura.", color = MaterialTheme.colorScheme.error)
-            Text("Uma notificação e o botão PARAR ficam visíveis durante a sessão. Recursos protegidos do Android podem recusar gestos. Câmera e desempenho precisam de teste neste aparelho.", style = MaterialTheme.typography.bodySmall)
+            Text("A prévia da câmera não aparece sobre os outros apps. A notificação, o botão PARAR e os indicadores de privacidade do Android continuam visíveis. A sessão continua ao sair do NEXUS; o sistema pode interrompê-la por bateria, memória ou uso da câmera por outro app. Recursos protegidos podem recusar gestos.", style = MaterialTheme.typography.bodySmall)
             Row {
                 Checkbox(checked = consent, onCheckedChange = { consent = it }, enabled = !state.active && !starting && policy.handTrackingSupported)
                 Text("Autorizo esta sessão de câmera e controle por gestos em outros aplicativos.", modifier = Modifier.padding(top = 8.dp))

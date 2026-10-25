@@ -28,17 +28,11 @@ data class DevicePolicy(
         fun evaluate(device: DeviceCapabilities): DevicePolicy {
             val abiSupported = device.process64Bit && device.processAbi in setOf("arm64-v8a", "x86_64")
             val compactRam = device.totalRamBytes >= 3 * GB && device.availableRamBytes >= GB
-            val balancedRam = device.totalRamBytes >= 6 * GB && device.availableRamBytes >= 2 * GB
-            val compactFits = LocalModelProfile.COMPACT in device.installedModelProfiles ||
-                device.freeDiskBytes >= LocalModelCatalog.compact.bytes + DOWNLOAD_MARGIN
-            val balancedFits = LocalModelProfile.BALANCED in device.installedModelProfiles ||
-                device.freeDiskBytes >= LocalModelCatalog.balanced.bytes + DOWNLOAD_MARGIN
+            val compactFits = device.freeDiskBytes >= requiredModelPreparationBytes(device, LocalModelProfile.COMPACT)
             val localSupported = device.sdkInt >= 26 && abiSupported && !device.lowRam && compactRam
-            val selected = when {
-                !localSupported -> null
-                balancedRam && balancedFits -> LocalModelProfile.BALANCED
-                else -> LocalModelProfile.COMPACT
-            }
+            // One base model remains stable across launches. Extra resources
+            // increase its runtime budget instead of selecting another download.
+            val selected = if (localSupported) LocalModelProfile.COMPACT else null
             val strong = device.totalRamBytes >= 8 * GB && device.availableRamBytes >= 3 * GB && !device.lowRam
             val medium = device.totalRamBytes >= 4 * GB && device.availableRamBytes >= 1_500_000_000 && !device.lowRam
             val reason = when {
@@ -46,9 +40,8 @@ data class DevicePolicy(
                 !abiSupported -> "O app funciona neste processador; a IA local deste APK exige um processo Android de 64 bits (ARM64 ou x86_64). Use texto, voz e um provedor opcional."
                 device.lowRam -> "Android identificou um aparelho de pouca memória. A IA local foi desativada para preservar o funcionamento do app."
                 !compactRam -> "Não há RAM suficiente disponível para carregar a IA local com a margem de segurança. Feche outros apps e reabra o NEXUS, ou use um provedor opcional."
-                !compactFits && selected != LocalModelProfile.BALANCED -> "IA local compatível, mas falta armazenamento livre para o download. Libere espaço antes de baixar."
-                selected == LocalModelProfile.BALANCED -> "RAM e armazenamento permitem recomendar o modelo equilibrado. O download depende da sua escolha; a velocidade varia conforme o aparelho."
-                else -> "Perfil compacto recomendado para reduzir uso de RAM e processamento. O modelo pequeno pode errar respostas; confira os resultados."
+                !compactFits -> "IA local compatível, mas falta armazenamento livre para preparar os dados da IA neste aparelho. Libere espaço e tente novamente."
+                else -> "O NEXUS usa a mesma IA base compacta e ajusta o processamento à memória e à CPU deste aparelho. O modelo pode errar respostas; confira os resultados."
             }
             return DevicePolicy(
                 localAiSupported = localSupported,
@@ -65,6 +58,15 @@ data class DevicePolicy(
                 // MediaPipe Tasks 0.10.35 supplies the native core on all four packaged ABIs.
                 handTrackingSupported = device.hasCamera && device.processAbi in setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"),
             )
+        }
+
+        /** Full private files need verification, not a second copy's worth of disk space. */
+        fun requiredModelPreparationBytes(device: DeviceCapabilities, profile: LocalModelProfile): Long {
+            if (profile in device.installedModelProfiles) return 0
+            val expected = LocalModelCatalog.forProfile(profile).bytes
+            val existing = device.downloadedModelBytes[profile]?.takeIf { it in 0..expected } ?: 0L
+            if (existing == expected) return 0
+            return expected - existing + DOWNLOAD_MARGIN
         }
 
         /** A manual model selection never overrides native ABI or minimum RAM requirements. */

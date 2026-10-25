@@ -336,6 +336,7 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
     val local = settings.aiMode == AiMode.NEXUS_LOCAL
     val compatibleLocal = policy.localAiSupported && DevicePolicy.canRunProfile(capabilities, effectiveProfile)
     val configured = if (local) compatibleLocal && localState.status == LocalModelStatus.READY else settings.endpoint.isNotBlank() && settings.model.isNotBlank() && settings.remoteConsent
+    val bundledChat = local && BuildConfig.BUNDLED_MODEL && compatibleLocal
     ScrollPage {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
@@ -344,16 +345,20 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
         }
         NexusOrb(Modifier.size(76.dp), animated = true)
     }
+    Text((if (BuildConfig.BUNDLED_MODEL) "IA incluída no APK" else "IA local por download") +
+        " · versão ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", color = NexusCyan,
+        style = MaterialTheme.typography.labelSmall)
     InfoCard(if (local) "NEXUS AI · NO APARELHO" else "PROVEDOR PERSONALIZADO",
         if (local && !compatibleLocal) {
             if (!policy.localAiSupported) policy.reason else "O modelo escolhido exige mais memória do que o perfil deste aparelho permite. Ative o ajuste automático ou selecione o modelo compacto em Configurações."
         }
         else if (local && configured) "Modelo local pronto. Suas conversas são processadas neste aparelho, sem servidor ou chave."
+        else if (bundledChat) "A IA de texto já está incluída neste APK. Abra o Chat: a cópia local e a verificação são feitas no aparelho, sem baixar outro modelo."
         else if (local) "Baixe uma vez o modelo de texto gratuito para conversar sem servidor, conta ou chave. O download precisa de internet e espaço livre."
         else if (configured) "Modelo: ${settings.model}. A disponibilidade será verificada ao enviar uma mensagem."
         else "Configure seu provedor opcional ou selecione NEXUS AI local nas configurações.")
-    Button(onClick = { navigate(if (configured) "chat" else "settings") }, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(8.dp)); Text(if (configured) "Iniciar conversa" else if (local) "Preparar NEXUS AI" else "Configurar provedor")
+    Button(onClick = { navigate(if (configured || bundledChat) "chat" else "settings") }, modifier = Modifier.fillMaxWidth()) {
+        Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(8.dp)); Text(if (bundledChat) "Conversar com NEXUS" else if (configured) "Iniciar conversa" else if (local) "Preparar NEXUS AI" else "Configurar provedor")
     }
     Text("EXPLORE O NEXUS", color = NexusCyan, style = MaterialTheme.typography.labelLarge)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -392,15 +397,23 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
     var draft by rememberSaveable(selected) { mutableStateOf("") }
     val listState = rememberLazyListState()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { it?.let(model::importImage) }
+    val pendingDraft by model.chatDraft.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingDraft) { pendingDraft?.let { draft = it; model.consumeChatDraft() } }
     LaunchedEffect(messages.size, busy) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex) }
+    LaunchedEffect(settings.aiMode) {
+        if (settings.aiMode == AiMode.NEXUS_LOCAL && BuildConfig.BUNDLED_MODEL) model.prepareLocalAi()
+    }
+    val local = settings.aiMode == AiMode.NEXUS_LOCAL
+    val localState by model.localModelState.collectAsStateWithLifecycle()
+    val bundledReady = !local || !BuildConfig.BUNDLED_MODEL || localState.status == LocalModelStatus.READY
     Column(Modifier.fillMaxSize().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("${messages.size} mensagens • contexto limitado", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TextButton(onClick = { model.newConversation() }) { Icon(Icons.Default.Add, null); Text("Nova") }
         }
-        val local = settings.aiMode == AiMode.NEXUS_LOCAL
-        val localState by model.localModelState.collectAsStateWithLifecycle()
-        if (local && localState.status != LocalModelStatus.READY) {
+        if (local && BuildConfig.BUNDLED_MODEL && localState.status != LocalModelStatus.READY) {
+            BundledModelPanel(model, onUseCustom = { navigate("settings") }, showDetails = false)
+        } else if (local && localState.status != LocalModelStatus.READY) {
             TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Preparar modelo local em Configurações") }
         } else if (!local && (settings.endpoint.isBlank() || !settings.remoteConsent)) {
             TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Configurar provedor personalizado") }
@@ -409,7 +422,7 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
             Column(Modifier.weight(1f).fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 NexusOrb(Modifier.size(108.dp), animated = busy)
                 Spacer(Modifier.height(20.dp)); Text("O que vamos explorar?", fontSize = 23.sp)
-                Text("Envie sua pergunta. O modelo local aceita texto; imagens exigem um provedor multimodal personalizado.", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Envie sua pergunta ou uma imagem com texto. A leitura de texto é local; objetos e cenas exigem um provedor multimodal opcional.", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else LazyColumn(Modifier.weight(1f), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(messages, key = { it.id }) { message ->
@@ -434,14 +447,14 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
         } else if (messages.lastOrNull()?.role == "user") TextButton(onClick = { model.retry() }, modifier = Modifier.align(Alignment.End)) { Text("Tentar novamente") }
         if (attachment != null) Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             LocalImage(attachment!!, Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)))
-            Text("Imagem pronta para envio", Modifier.weight(1f).padding(8.dp))
+            Text("Imagem pronta · ${if (local) "leitura de texto local" else "envio ao provedor"}", Modifier.weight(1f).padding(8.dp))
             IconButton(onClick = model::removeAttachment) { Icon(Icons.Default.Close, "Remover imagem") }
         }
         if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.Bottom) {
-            IconButton(onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !busy && !importing && settings.aiMode == AiMode.CUSTOM) { Icon(Icons.Default.AddPhotoAlternate, "Anexar imagem") }
+            IconButton(onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !busy && !importing) { Icon(Icons.Default.AddPhotoAlternate, "Anexar imagem") }
             OutlinedTextField(draft, { draft = it }, modifier = Modifier.weight(1f), placeholder = { Text("Pergunte ao NEXUS…") }, maxLines = 5, enabled = !busy, shape = RoundedCornerShape(22.dp))
-            IconButton(onClick = { if (model.send(draft)) draft = "" }, enabled = !busy && !importing && (draft.isNotBlank() || attachment != null)) {
+            IconButton(onClick = { if (model.send(draft)) draft = "" }, enabled = !busy && !importing && bundledReady && (draft.isNotBlank() || attachment != null)) {
                 Icon(Icons.AutoMirrored.Filled.Send, "Enviar mensagem", tint = NexusCyan)
             }
         }
@@ -457,6 +470,10 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
     val importing by model.importing.collectAsStateWithLifecycle()
     val attachment by model.attachment.collectAsStateWithLifecycle()
     val responseError by model.error.collectAsStateWithLifecycle()
+    val localState by model.localModelState.collectAsStateWithLifecycle()
+    LaunchedEffect(settings.aiMode) {
+        if (settings.aiMode == AiMode.NEXUS_LOCAL && BuildConfig.BUNDLED_MODEL) model.prepareLocalAi()
+    }
     // A restored screen must never reopen its microphone without a new user action.
     var continuous by remember { mutableStateOf(false) }
     var lastHeard by rememberSaveable { mutableStateOf("") }
@@ -538,6 +555,9 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
     }
     ScrollPage {
         Box(Modifier.fillMaxWidth().padding(vertical = 12.dp), contentAlignment = Alignment.Center) { NexusOrb(Modifier.size(160.dp), state.isListening || state.isSpeaking || busy) }
+        if (settings.aiMode == AiMode.NEXUS_LOCAL && BuildConfig.BUNDLED_MODEL && localState.status != LocalModelStatus.READY) {
+            BundledModelPanel(model, onUseCustom = { model.prepareLocalAi() }, showDetails = false)
+        }
         Text(when { state.isListening -> "Ouvindo você"; state.isSpeaking -> "NEXUS falando"; busy -> "Pensando com a IA"; else -> "Vamos conversar" }, fontSize = 26.sp)
         Text(if (state.onDevice) "Reconhecimento local disponível" else "Reconhecimento pelo serviço Android; pode usar a rede", color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (state.speechUsesNetwork) Text("A voz selecionada exige rede e pode enviar texto ao mecanismo de fala do Android.", style = MaterialTheme.typography.bodySmall)
@@ -565,7 +585,7 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
         if (state.ttsReady && !state.languageReady) VoiceLanguageHelp(settings.language)
         if (!state.available) InfoCard("RECONHECEDOR AUSENTE", "Instale ou habilite um serviço de reconhecimento de fala do Android para usar o microfone.")
         if (attachment != null) {
-            InfoCard("IMAGEM ANEXADA", "A próxima pergunta também enviará a imagem selecionada anteriormente ao servidor configurado.")
+            InfoCard("IMAGEM ANEXADA", if (settings.aiMode == AiMode.NEXUS_LOCAL) "A próxima pergunta usará leitura local do texto da imagem anexada. Não descreve objetos ou cenas." else "A próxima pergunta também enviará a imagem selecionada anteriormente ao servidor configurado.")
             TextButton(onClick = model::removeAttachment) { Text("Remover imagem antes de falar") }
         }
         if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -803,8 +823,11 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
         Button(onClick = {
             voice.stopListening()
             voice.stopSpeaking()
-            if (model.send(question)) navigate("chat")
-        }, enabled = settings.aiMode == AiMode.CUSTOM && settings.remoteConsent && attachment != null && !busy && !importing && !reading && !cameraActive && !voiceState.isListening) { Text("Analisar com a IA") }
+            if (settings.aiMode == AiMode.NEXUS_LOCAL) {
+                model.stageChatDraft(question)
+                navigate("chat")
+            } else if (model.send(question)) navigate("chat")
+        }, enabled = (settings.aiMode == AiMode.NEXUS_LOCAL || settings.remoteConsent) && attachment != null && !busy && !importing && !reading && !cameraActive && !voiceState.isListening) { Text(if (settings.aiMode == AiMode.NEXUS_LOCAL) "Levar imagem e pergunta ao Chat" else "Analisar com a IA") }
         if (settings.aiMode == AiMode.CUSTOM && !settings.remoteConsent) Text("Autorize o envio para o servidor em Configurações antes de analisar.", color = MaterialTheme.colorScheme.error)
         Text("A análise da imagem exige modelo com visão. A leitura de texto não equivale à interpretação de circuitos, exercícios ou ambiente.", style = MaterialTheme.typography.bodySmall)
     }
@@ -861,6 +884,8 @@ private fun SettingsScreen(model: NexusViewModel, voice: VoiceController, settin
         ChoiceField("Modo de IA", if (mode == AiMode.NEXUS_LOCAL) "NEXUS AI · local" else "Provedor personalizado",
             listOf("NEXUS AI · local", "Provedor personalizado")) {
             mode = if (it == "NEXUS AI · local") AiMode.NEXUS_LOCAL else AiMode.CUSTOM
+            // The visible mode and the actual Chat provider must change together.
+            model.saveSettings(settings.copy(aiMode = mode))
         }
         if (mode == AiMode.NEXUS_LOCAL) {
             LocalModelCard(model, settings, onUseCustom = {
@@ -929,6 +954,10 @@ private fun SettingsScreen(model: NexusViewModel, voice: VoiceController, settin
 
 @Composable
 private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUseCustom: () -> Unit) {
+    if (BuildConfig.BUNDLED_MODEL) {
+        BundledModelPanel(model, onUseCustom, showDetails = true)
+        return
+    }
     val state by model.localModelState.collectAsStateWithLifecycle()
     val spec by model.localModelSpec.collectAsStateWithLifecycle()
     val capabilities by model.deviceCapabilities.collectAsStateWithLifecycle()
@@ -937,7 +966,7 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
     val busy by model.busy.collectAsStateWithLifecycle()
     val downloadActive by model.localModelDownloadActive.collectAsStateWithLifecycle()
     val selecting = spec != LocalModelCatalog.forProfile(effectiveProfile) || state.totalBytes != spec.bytes
-    val preparing = selecting || downloadActive || state.status in setOf(LocalModelStatus.CHECKING, LocalModelStatus.CONNECTING,
+    val preparing = selecting || downloadActive || state.status in setOf(LocalModelStatus.CHECKING, LocalModelStatus.COPYING, LocalModelStatus.CONNECTING,
         LocalModelStatus.DOWNLOADING, LocalModelStatus.VERIFYING)
     val compatible = policy.localAiSupported && DevicePolicy.canRunProfile(capabilities, effectiveProfile)
     var confirmDownload by remember(spec.fileName) { mutableStateOf(false) }
@@ -974,6 +1003,7 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
     Text(if (selecting) "Preparando modelo selecionado…" else when (state.status) {
         LocalModelStatus.CHECKING -> "Verificando modelo instalado…"
         LocalModelStatus.ABSENT -> "Modelo ainda não instalado"
+        LocalModelStatus.COPYING -> "Preparando IA incluída no APK…"
         LocalModelStatus.CONNECTING -> if (state.downloadedBytes > 0) "Conectando para continuar o download…" else "Conectando ao servidor do modelo…"
         LocalModelStatus.DOWNLOADING -> if (completePartial) "Arquivo recebido. Preparando a verificação…"
             else "Baixando: ${modelSize(state.downloadedBytes)} / ${modelSize(state.totalBytes)} · ${downloadPercent(receivedFraction)}"
@@ -1002,7 +1032,7 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
             Text("Conferindo ${modelSize(state.verifiedBytes)} / ${modelSize(state.totalBytes)} no aparelho. Esta etapa não baixa outro arquivo.", style = MaterialTheme.typography.bodySmall)
             if (downloadActive) OutlinedButton(onClick = model::cancelLocalModelDownload) { Text("Pausar verificação") }
         }
-        LocalModelStatus.CHECKING -> if (compatible) LinearProgressIndicator(Modifier.fillMaxWidth())
+        LocalModelStatus.COPYING, LocalModelStatus.CHECKING -> if (compatible) LinearProgressIndicator(Modifier.fillMaxWidth())
         LocalModelStatus.PAUSED -> {
             LinearProgressIndicator(progress = { receivedFraction }, modifier = Modifier.fillMaxWidth())
             Text("Os dados recebidos foram preservados. Continuar verifica o arquivo completo ou pede ao servidor os bytes que faltam; se ele não aceitar retomada, a transferência recomeça com aviso.", style = MaterialTheme.typography.bodySmall)

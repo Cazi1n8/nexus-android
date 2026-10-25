@@ -70,27 +70,21 @@ fun NexusDiagnosticsScreen(
     val effectiveProfile by model.effectiveLocalProfile.collectAsStateWithLifecycle()
     val startupCapabilities by model.deviceCapabilities.collectAsStateWithLifecycle()
     val compatibleLocal = policy.localAiSupported && DevicePolicy.canRunProfile(startupCapabilities, effectiveProfile)
-    var capabilities by remember { mutableStateOf(DeviceCapabilities.read(context)) }
-    val snapshot = remember(capabilities) { hardwareSnapshot(context, capabilities) }
+    // Reuse the app's snapshot instead of querying files and system memory on
+    // the UI thread every time this screen is opened.
+    var capabilities by remember { mutableStateOf(startupCapabilities) }
+    var showDetails by remember { mutableStateOf(false) }
     var checks by remember { mutableStateOf(emptyList<LocalCheck>()) }
     var checking by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Central de diagnóstico", style = MaterialTheme.typography.titleLarge)
-        Text("Verifique o que está disponível neste aparelho. O teste local carrega as bibliotecas e o rastreador de mãos, sem abrir câmera, microfone ou conexão com uma IA.")
-        snapshot.forEach { CheckRow(it) }
-        Text("Adaptação automática", style = MaterialTheme.typography.titleMedium)
-        CheckRow(LocalCheck("IA local neste perfil", if (compatibleLocal) "Habilitada; exige download verificado do modelo" else "Desativada; o chat personalizado continua disponível"))
-        CheckRow(LocalCheck("Seleção do modelo", "${if (settings.automaticProfile) "Automática" else "Manual"} · ${LocalModelCatalog.forProfile(effectiveProfile).displayName}"))
-        CheckRow(LocalCheck("Motivo do perfil", policy.reason))
-        CheckRow(LocalCheck("Modelo recomendado", policy.recommendedProfile?.let { profile ->
-            LocalModelCatalog.forProfile(profile).let { "${it.displayName} · ${it.bytes / 1_000_000} MB" }
-        } ?: "Nenhum modelo local recomendado para este aparelho"))
-        CheckRow(LocalCheck("Inferência adaptativa", if (compatibleLocal) "${policy.inferenceThreads} threads · ${policy.contextTokens} tokens de contexto · até ${policy.maxOutputTokens} tokens por resposta" else "Não ativada neste perfil"))
-        CheckRow(LocalCheck("Rastreamento adaptativo", "${policy.cameraWidth} × ${policy.cameraHeight} · intervalo mínimo ${policy.analysisIntervalMs} ms · até ${policy.maxHands} mão(s)"))
-        CheckRow(LocalCheck("Rastreamento de mãos", if (policy.handTrackingSupported) "Biblioteca prevista para esta câmera e arquitetura; inicialização ainda precisa de teste" else "Indisponível nesta câmera ou arquitetura; conteúdos de Libras continuam acessíveis"))
-        CheckRow(LocalCheck("Cubo 3D", if (policy.supportsGles2) "OpenGL ES 2.0 declarado; renderização ainda precisa de teste" else "OpenGL ES 2.0 ausente; o recurso 3D será limitado"))
-        Text("O perfil é calculado na inicialização para evitar trocar o modelo durante uma conversa. Os dados de RAM podem ser atualizados pelo teste, mas não trocam esse perfil. Feche outros aplicativos e reabra o NEXUS para reavaliá-lo. Estes critérios não garantem fluidez em qualquer aparelho.", style = MaterialTheme.typography.bodySmall)
+        Text("Verifique os recursos do NEXUS. Esta tela não abre câmera ou microfone e não envia os dados do diagnóstico.")
+        CheckRow(LocalCheck("Versão instalada", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · ${if (BuildConfig.DEBUG) "teste" else "distribuição"}"))
+        CheckRow(LocalCheck("IA local", if (compatibleLocal) "Compatível com o perfil de processamento atual" else "Indisponível neste perfil; provedor personalizado opcional"))
+        CheckRow(LocalCheck("Ajuste automático", policy.reason))
+        CheckRow(LocalCheck("Rastreamento de mãos", if (policy.handTrackingSupported) "Pode ser testado com sua autorização" else "Indisponível para a câmera ou arquitetura informada pelo Android"))
+        CheckRow(LocalCheck("Cubo 3D", if (policy.supportsGles2) "Recurso gráfico declarado pelo Android; precisa de teste" else "Recurso gráfico necessário indisponível"))
         CheckRow(LocalCheck("Permissão da câmera", permissionStatus(context, Manifest.permission.CAMERA)))
         CheckRow(LocalCheck("Permissão do microfone", permissionStatus(context, Manifest.permission.RECORD_AUDIO)))
         CheckRow(LocalCheck("Reconhecimento de fala", when {
@@ -102,17 +96,32 @@ fun NexusDiagnosticsScreen(
         CheckRow(LocalCheck("Idioma ${settings.language}", if (voiceState.languageReady) "Voz disponível no mecanismo" else "Dados de voz ausentes ou mecanismo ainda não pronto"))
         CheckRow(LocalCheck("Vozes deste idioma", "${voices.count { !it.requiresNetwork }} locais · ${voices.count { it.requiresNetwork }} de rede"))
         CheckRow(LocalCheck("IA selecionada", if (settings.aiMode == AiMode.NEXUS_LOCAL) "NEXUS AI local" else "Provedor personalizado"))
-        CheckRow(LocalCheck("Modelo local", "${localModel.status.name} · ${localModel.downloadedBytes / 1_000_000} / ${localModel.totalBytes / 1_000_000} MB"))
+        CheckRow(LocalCheck("Modelo local", when (localModel.status) {
+            br.com.nexus.assistant.data.local.LocalModelStatus.READY -> "Preparado e verificado"
+            br.com.nexus.assistant.data.local.LocalModelStatus.ABSENT -> if (BuildConfig.BUNDLED_MODEL) "Incluído no APK; prepare ao abrir o Chat" else "Ainda não preparado"
+            br.com.nexus.assistant.data.local.LocalModelStatus.FAILED -> "Falha na preparação; veja Configurações"
+            else -> "Preparação em andamento ou pausada; veja o Chat ou Configurações"
+        }))
         CheckRow(LocalCheck("IA remota opcional", if (settings.endpoint.isNotBlank() && settings.model.isNotBlank()) "Configurada; exige internet e consentimento. Conexão não testada aqui" else "Pode ser configurada mesmo sem IA local; exige servidor real e internet"))
+        OutlinedButton(onClick = { showDetails = !showDetails }) {
+            Text(if (showDetails) "Ocultar detalhes locais" else "Mostrar detalhes locais")
+        }
+        if (showDetails) {
+            Text("Informações fornecidas pelo Android deste aparelho, consultadas apenas aqui. O nome pode ser um código do fabricante ou da ROM. RAM e núcleos disponíveis ao app não são uma ficha técnica comercial. Não consultamos IMEI, número de série ou identificadores de publicidade.", style = MaterialTheme.typography.bodySmall)
+            hardwareSnapshot(capabilities).forEach { CheckRow(it) }
+            CheckRow(LocalCheck("Modelo de IA em uso", LocalModelCatalog.forProfile(effectiveProfile).displayName))
+            CheckRow(LocalCheck("Processamento adaptativo", if (compatibleLocal) "${policy.inferenceThreads} threads · ${policy.contextTokens} tokens de contexto · até ${policy.maxOutputTokens} tokens por resposta" else "Não ativado neste perfil"))
+            CheckRow(LocalCheck("Análise de câmera", "${policy.cameraWidth} × ${policy.cameraHeight} · intervalo mínimo ${policy.analysisIntervalMs} ms · até ${policy.maxHands} mão(s)"))
+            Text("O perfil de processamento é calculado ao iniciar o NEXUS. O teste atualiza esta leitura de recursos, sem trocar o modelo durante uma conversa. RAM livre varia com outros aplicativos; os critérios não garantem fluidez em todo aparelho.", style = MaterialTheme.typography.bodySmall)
+        }
         Button(onClick = {
             checking = true
             checks = emptyList()
-            capabilities = DeviceCapabilities.read(context)
             voice.refreshLanguageVoices()
             scope.launch {
                 try {
                     checks = runLocalChecks(context)
-                    capabilities = DeviceCapabilities.read(context)
+                    capabilities = withContext(Dispatchers.IO) { DeviceCapabilities.read(context) }
                 } finally { checking = false }
             }
         }, enabled = !checking) { Text(if (checking) "Verificando bibliotecas…" else "Executar testes locais") }
@@ -153,25 +162,24 @@ private fun CheckRow(check: LocalCheck) {
 private fun permissionStatus(context: Context, permission: String): String =
     if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) "Concedida" else "Não concedida"
 
-private fun hardwareSnapshot(context: Context, capabilities: DeviceCapabilities): List<LocalCheck> {
+private fun hardwareSnapshot(capabilities: DeviceCapabilities): List<LocalCheck> {
     val runtime = Runtime.getRuntime()
     val pageBytes = runCatching { Os.sysconf(OsConstants._SC_PAGESIZE) }.getOrDefault(0L)
     return listOf(
-        LocalCheck("Aparelho", "${Build.MANUFACTURER} ${Build.MODEL}"),
-        LocalCheck("Android", "${Build.VERSION.RELEASE} · API ${capabilities.sdkInt}"),
+        LocalCheck("Nome informado pelo Android", "${Build.MANUFACTURER} ${Build.MODEL}".trim()),
+        LocalCheck("Versão informada pelo Android", "${Build.VERSION.RELEASE} · API ${capabilities.sdkInt}"),
         LocalCheck("Arquiteturas do aparelho", capabilities.supportedAbis.joinToString()),
         LocalCheck("Processo do aplicativo", if (capabilities.process64Bit) "64 bits" else "32 bits; IA local indisponível"),
-        LocalCheck("Runtime da IA local", "CPU · arm64-v8a / x86_64"),
-        LocalCheck("Núcleos disponíveis", capabilities.cpuCores.toString()),
+        LocalCheck("Arquitetura do processo", capabilities.processAbi.ifBlank { "Não informada pelo Android" }),
+        LocalCheck("Núcleos disponíveis ao app", capabilities.cpuCores.toString()),
         LocalCheck("Página de memória", if (pageBytes > 0L) "$pageBytes bytes" else "Não foi possível medir"),
-        LocalCheck("RAM total / disponível", "${capabilities.totalRamBytes / 1_048_576} / ${capabilities.availableRamBytes / 1_048_576} MiB"),
+        LocalCheck("RAM utilizável pelo sistema / livre na leitura", "${capabilities.totalRamBytes / 1_048_576} / ${capabilities.availableRamBytes / 1_048_576} MiB; pode diferir da RAM anunciada"),
         LocalCheck("Android sinaliza pouca RAM", if (capabilities.lowRam) "Sim" else "Não"),
         LocalCheck("Limite de heap Java", "${runtime.maxMemory() / 1_048_576} MiB; não inclui todo o uso nativo"),
         LocalCheck("Armazenamento privado livre", "${capabilities.freeDiskBytes / 1_048_576} MiB"),
         LocalCheck("Câmera frontal / traseira", "${if (capabilities.hasFrontCamera) "Disponível" else "Ausente"} / ${if (capabilities.hasRearCamera) "Disponível" else "Ausente"}"),
         LocalCheck("Microfone informado pelo Android", if (capabilities.hasMicrophone) "Disponível; gravação ainda precisa de teste" else "Ausente"),
-        LocalCheck("OpenGL ES declarado", "${capabilities.glesVersion ushr 16}.${capabilities.glesVersion and 0xffff}"),
-        LocalCheck("Build", "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · ${if (BuildConfig.DEBUG) "debug" else "release"}")
+        LocalCheck("OpenGL ES declarado", "${capabilities.glesVersion ushr 16}.${capabilities.glesVersion and 0xffff}")
     )
 }
 

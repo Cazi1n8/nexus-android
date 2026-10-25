@@ -80,9 +80,14 @@ private fun MouseScreen(session: GestureSession) {
         Slider(session.sensitivity, session::updateSensitivity, valueRange = .6f..2.3f)
         Text("Limiar de pinça")
         Slider(session.pinchThreshold, session::updatePinchThreshold, valueRange = .2f.. .55f)
+        Row {
+            Checkbox(checked = session.showPreview, onCheckedChange = session::updateShowPreview)
+            Text("Mostrar prévia da câmera", modifier = Modifier.padding(top = 12.dp))
+        }
+        Text("Ocultar a prévia mantém o rastreamento ativo e os indicadores de privacidade do Android.", style = MaterialTheme.typography.bodySmall)
         Text("Toques enviados: ${session.clicks} · duplos: ${session.doubleClicks}")
         Button(onClick = { testCount++ }, modifier = Modifier.fillMaxWidth()) { Text("Botão real de teste: $testCount") }
-        Text("O toque mantido é cancelado se a mão desaparecer. Use PARAR em caso de dificuldade. O painel de câmera permanece visível.", style = MaterialTheme.typography.bodySmall)
+        Text("O toque mantido é cancelado se a mão desaparecer. Use PARAR em caso de dificuldade. O painel de controle mantém o botão PARAR visível; a imagem da câmera é opcional.", style = MaterialTheme.typography.bodySmall)
         HorizontalDivider()
         GlobalMousePanel(onBeforeStart = session::stopMouse)
         Text("Precisão e atraso dependem da iluminação e do aparelho. Toques e câmera ainda precisam de teste físico no dispositivo utilizado.", style = MaterialTheme.typography.bodySmall)
@@ -97,6 +102,8 @@ private fun HandsScreen(onNavigateBack: () -> Unit, onOpenCommands: () -> Unit) 
     val policy = remember(capabilities) { DevicePolicy.evaluate(capabilities) }
     val prefs = remember { context.getSharedPreferences("nexus_hands_free", Context.MODE_PRIVATE) }
     val controller = remember { HandsFreeController() }
+    val previewPrefs = remember { context.getSharedPreferences("nexus_gestures", Context.MODE_PRIVATE) }
+    var showPreview by remember { mutableStateOf(previewPrefs.getBoolean("hands_show_preview", false)) }
     var active by remember { mutableStateOf(false) }
     var front by remember { mutableStateOf(capabilities.hasFrontCamera) }
     var frame by remember { mutableStateOf(HandFrame()) }
@@ -106,7 +113,15 @@ private fun HandsScreen(onNavigateBack: () -> Unit, onOpenCommands: () -> Unit) 
     var apps by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
     val global by GlobalMouseRuntime.state.collectAsState()
     LaunchedEffect(context) { apps = withContext(Dispatchers.IO) { PhoneCommands.installedApps(context) } }
-    StopOnBackground { active = false; controller.reset() }
+    fun startCamera() {
+        if (!policy.handTrackingSupported || GlobalMouseRuntime.state.value.active) return
+        active = true; frame = HandFrame(); controller.reset(); error = null
+    }
+    val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) startCamera()
+        else error = "Autorize a câmera para reconhecer gestos. As associações de ações continuam disponíveis sem ela."
+    }
+    StopOnBackground { frame = HandFrame(); controller.reset() }
     fun execute(trigger: GestureTrigger) {
         when (val action = mapping[trigger] ?: "none") {
             "none" -> feedback = "${trigger.label}: nenhuma ação configurada."
@@ -115,7 +130,9 @@ private fun HandsScreen(onNavigateBack: () -> Unit, onOpenCommands: () -> Unit) 
             else -> {
                 val packageName = action.removePrefix("app:")
                 if (action.startsWith("app:") && apps.any { it.first == packageName }) {
-                    active = false
+                    // CameraX pauses with the activity; keep the explicit session choice
+                    // so returning to NEXUS resumes without reconfiguring the mode.
+                    controller.reset()
                     feedback = PhoneCommands.execute(context, action) ?: "Aplicativo aberto por ${trigger.label.lowercase()}."
                 } else feedback = "Aplicativo indisponível. Escolha novamente a ação."
             }
@@ -125,11 +142,19 @@ private fun HandsScreen(onNavigateBack: () -> Unit, onOpenCommands: () -> Unit) 
         Text("Mãos livres · ações autorizadas", style = MaterialTheme.typography.titleLarge)
         Text("Configurações independentes do mouse e do cubo. Mantenha a pose por 0,42 s e mude de postura antes de repetir. Para gesto lateral, desloque a mão aberta para o lado.")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { active = !active; frame = HandFrame(); controller.reset(); error = null }, enabled = active || !global.active && policy.handTrackingSupported) { Text(if (active) "Parar câmera" else "Iniciar câmera") }
+            Button(onClick = {
+                if (active) { active = false; frame = HandFrame(); controller.reset() }
+                else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
+                else cameraPermission.launch(Manifest.permission.CAMERA)
+            }, enabled = active || !global.active && policy.handTrackingSupported) { Text(if (active) "Parar câmera" else "Iniciar câmera") }
             OutlinedButton(onClick = { front = !front; frame = HandFrame(); controller.reset() }, enabled = capabilities.hasFrontCamera && capabilities.hasRearCamera) { Text("Trocar câmera") }
         }
         if (!policy.handTrackingSupported) Text("Os comandos por câmera não estão disponíveis neste aparelho. As associações podem ser configuradas para uso em um dispositivo compatível.")
-        CameraBox(active, front, frame, onFrame = {
+        Row {
+            Checkbox(showPreview, { showPreview = it; previewPrefs.edit().putBoolean("hands_show_preview", it).apply() })
+            Text("Mostrar prévia da câmera", modifier = Modifier.padding(top = 12.dp))
+        }
+        CameraBox(active, front, frame, showPreview = showPreview, onFrame = {
             frame = it
             val result = controller.update(it, .35f)
             feedback = "${it.hands.size} mão(s) · ${result.configuration.label} · ${it.processingMs} ms"
@@ -159,7 +184,7 @@ private fun HandsScreen(onNavigateBack: () -> Unit, onOpenCommands: () -> Unit) 
                 }
             }
         }
-        Text("Reconhecimento geométrico experimental; não reconhece Libras. A câmera é encerrada antes de abrir outro aplicativo.", style = MaterialTheme.typography.bodySmall)
+        Text("Reconhecimento geométrico experimental; não reconhece Libras. A câmera pausa fora desta tela. Volte ao NEXUS para continuar; controle de mãos livres fora do app ainda não está disponível.", style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -176,6 +201,8 @@ private fun CubeScreen() {
         return
     }
     val controller = remember { CubeController() }
+    val previewPrefs = remember { context.getSharedPreferences("nexus_gestures", Context.MODE_PRIVATE) }
+    var showPreview by remember { mutableStateOf(previewPrefs.getBoolean("cube_show_preview", false)) }
     var cube by remember { mutableStateOf(controller.state) }
     var active by remember { mutableStateOf(false) }
     var front by remember { mutableStateOf(capabilities.hasFrontCamera) }
@@ -191,7 +218,7 @@ private fun CubeScreen() {
         if (granted) startCamera()
         else error = "A câmera não foi autorizada. Você pode explorar o cubo manualmente e habilitar a permissão nas configurações do Android quando desejar."
     }
-    StopOnBackground { active = false; cube = controller.release() }
+    StopOnBackground { frame = HandFrame(); cube = controller.release() }
     GestureColumn {
         Text("NEXUS 3D · OpenGL ES", style = MaterialTheme.typography.titleLarge)
         Text("Comece a pinça sobre o cubo para segurá-lo. Solte para liberar. Uma mão move ou gira. Duas pinças sobre o objeto ampliam, reduzem, giram e deslocam. Perder a mão solta o cubo.")
@@ -206,11 +233,16 @@ private fun CubeScreen() {
         if (!policy.handTrackingSupported) Text("Rastreamento de mãos indisponível neste aparelho. A exploração manual do cubo continua disponível.")
         else if (policy.maxHands < 2) Text("Este perfil reduz o rastreamento a uma mão para preservar recursos. A manipulação com duas mãos está indisponível neste aparelho.")
         if (global.active) Text("O mouse global está usando a câmera. Pare essa sessão antes de iniciar o rastreamento 3D; o controle manual continua disponível.")
+        Row {
+            Checkbox(showPreview, { showPreview = it; previewPrefs.edit().putBoolean("cube_show_preview", it).apply() })
+            Text("Mostrar prévia da câmera", modifier = Modifier.padding(top = 12.dp))
+        }
+        Text("A câmera pausa ao sair do NEXUS e retoma ao voltar. PARAR encerra a sessão.", style = MaterialTheme.typography.bodySmall)
         Box(Modifier.fillMaxWidth().height(340.dp).background(Color.Black).border(1.dp, Color(0xFF31E7FA))
             .onSizeChanged { controller.aspect = it.width.toFloat() / it.height.coerceAtLeast(1) }) {
             if (active) HandCamera(front, Modifier.fillMaxSize(), onFrame = {
                 frame = it; cube = controller.update(it, rotate, .35f)
-            }, onError = { error = it; active = false; cube = controller.release() }, requestedHands = 2)
+            }, onError = { error = it; active = false; cube = controller.release() }, requestedHands = 2, showPreview = showPreview)
             HandSkeleton(frame, Modifier.fillMaxSize())
             CubeScene(cube, Modifier.fillMaxSize())
         }
@@ -232,9 +264,9 @@ private fun CubeScreen() {
 }
 
 @Composable
-private fun CameraBox(active: Boolean, front: Boolean, frame: HandFrame, onFrame: (HandFrame) -> Unit, onError: (String) -> Unit) {
+private fun CameraBox(active: Boolean, front: Boolean, frame: HandFrame, showPreview: Boolean = true, onFrame: (HandFrame) -> Unit, onError: (String) -> Unit) {
     Box(Modifier.fillMaxWidth().height(300.dp).background(Color.Black).border(1.dp, Color(0xFF31E7FA))) {
-        if (active) HandCamera(front, Modifier.fillMaxSize(), onFrame, onError)
+        if (active) HandCamera(front, Modifier.fillMaxSize(), onFrame, onError, showPreview = showPreview)
         HandSkeleton(frame, Modifier.fillMaxSize())
     }
 }

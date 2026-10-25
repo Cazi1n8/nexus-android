@@ -1,6 +1,6 @@
 # Progresso histórico do NEXUS 0.1
 
-**Estado atual 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md). A alpha.3 tem APK publicado e verificado, 90 testes JVM e 15 testes comuns Android aprovados. Dois casos opcionais ignorados na suíte comum passaram em execuções dedicadas. A prova de produção baixou os dois modelos reais pelo próprio aplicativo e executou o compacto, cobrindo o download que a alpha.2 não testava. Resultados novos: [RELATORIO_ALPHA_3.md](docs/RELATORIO_ALPHA_3.md). A [matriz dos pedidos](docs/PEDIDOS_E_STATUS.md) registra o que ainda falta. As evidências abaixo pertencem à versão 0.1.
+**Estado atual 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md) e [relatório alpha.4](docs/RELATORIO_ALPHA_4.md). A etapa alpha.4 está em verificação e não conclui todos os pedidos. A documentação abaixo é histórica.
 
 Atualizado em **23/10/2026**, horário de São Paulo. O APK foi compilado e pode ser instalado para testes. A primeira fase ainda precisa de validação de uso em celular; não há declaração de que todas as funções ou fases estejam concluídas.
 

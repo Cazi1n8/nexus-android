@@ -34,6 +34,29 @@ class LibrasPracticeTest {
         assertEquals(PracticeObservation.ADJUST, observation(open, PreparationExercise.FLEXED))
     }
 
+    @Test fun freeModeIdentifiesOnlyTheSupportedGeometricConfigurations() {
+        val extended = LibrasPracticeEvaluator.observe(listOf(TrackedHand(open)))
+        assertEquals(PracticeObservation.MATCH, extended.observation)
+        assertEquals(PreparationExercise.EXTENDED, extended.configuration)
+        val flexed = LibrasPracticeEvaluator.observe(listOf(TrackedHand(bent)))
+        assertEquals(PracticeObservation.MATCH, flexed.observation)
+        assertEquals(PreparationExercise.FLEXED, flexed.configuration)
+        val mixed = open.mapIndexed { i, point -> if (i in 9..12) bent[i] else point }
+        val ambiguous = LibrasPracticeEvaluator.observe(listOf(TrackedHand(mixed)))
+        assertEquals(PracticeObservation.ADJUST, ambiguous.observation)
+        assertEquals(null, ambiguous.configuration)
+    }
+
+    @Test fun freeModeRefusesToLabelMissingClippedOrMultipleHands() {
+        assertEquals(PracticeObservation.NO_HAND, LibrasPracticeEvaluator.observe(emptyList()).observation)
+        assertEquals(PracticeObservation.MULTIPLE_HANDS,
+            LibrasPracticeEvaluator.observe(listOf(TrackedHand(open), TrackedHand(bent))).observation)
+        val clipped = open.mapIndexed { index, point -> if (index == 8) point.copy(x = .999f) else point }
+        val assessment = LibrasPracticeEvaluator.observe(listOf(TrackedHand(clipped)))
+        assertEquals(PracticeObservation.UNUSABLE, assessment.observation)
+        assertEquals(null, assessment.configuration)
+    }
+
     @Test fun mirroredHandHasSameResult() {
         assertEquals(PracticeObservation.MATCH, observation(open.map { it.copy(x = 1f - it.x) }))
         assertEquals(PracticeObservation.MATCH, observation(bent.map { it.copy(x = 1f - it.x) }, PreparationExercise.FLEXED))

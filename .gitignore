@@ -25,7 +25,8 @@ app/src/main/assets/.hand_model_*
 # Generated CMake outputs and verified third-party runtime sources.
 **/.cxx/
 app/src/main/cpp/vendor/
-# User-downloaded LLM weights must never enter Git or the APK.
+# Generated/downloaded LLM weights stay out of Git. A bundled build may package
+# the explicitly prepared compact asset; ordinary optional weights stay private.
 *.gguf
 *.gguf.part
 # Verified OCR assets are prepared before compilation and bundled into the APK.

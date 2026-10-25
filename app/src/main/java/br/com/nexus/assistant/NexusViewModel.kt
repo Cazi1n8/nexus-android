@@ -42,12 +42,14 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         LocalModelManager(File(application.filesDir, "models"), LocalModelCatalog.forProfile(profile))
     }
     private val localProviders = localModels.mapValues { (_, manager) -> LocalAiProvider(manager) { devicePolicy.value } }
-    private val provider: AiProvider = AiCoordinator(object : AiProvider {
+    private val provider: AiProvider = AiCoordinator(LocalImageTextProvider(object : AiProvider {
         override suspend fun complete(settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>): String {
             val profile = effectiveProfile(settings)
             return localProviders.getValue(profile).complete(settings.copy(localModelProfile = profile), token, messages, memories)
         }
-    })
+    }, readText = { path ->
+        br.com.nexus.assistant.device.vision.LocalTextReader(application).use { reader -> reader.read(File(path)).text }
+    }))
     private var modelDownloadJob: Job? = null
     private val _localModelDownloadActive = MutableStateFlow(false)
     val localModelDownloadActive = _localModelDownloadActive.asStateFlow()
@@ -63,8 +65,17 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.Eagerly, LocalModelCatalog.forProfile(effectiveProfile(NexusSettings())))
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val localModelState = effectiveLocalProfile
-        .flatMapLatest { localModels.getValue(it).state }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, LocalModelState())
+        .flatMapLatest { profile ->
+            localModels.getValue(profile).state.map { state ->
+                // A bundled model is intentionally idle until the user opens
+                // Chat. CHECKING is the manager's initial value, not active work.
+                if (BuildConfig.BUNDLED_MODEL && state.status == LocalModelStatus.CHECKING) {
+                    state.copy(status = LocalModelStatus.ABSENT)
+                } else state
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly,
+            LocalModelState(status = if (BuildConfig.BUNDLED_MODEL) LocalModelStatus.ABSENT else LocalModelStatus.CHECKING))
     val conversations = repository.conversations.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val memories = repository.memories.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val _selected = MutableStateFlow<String?>(null)
@@ -77,6 +88,10 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     val busy = _busy.asStateFlow()
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
+    private val _chatDraft = MutableStateFlow<String?>(null)
+    val chatDraft = _chatDraft.asStateFlow()
+    fun stageChatDraft(text: String) { _chatDraft.value = text.take(24_000) }
+    fun consumeChatDraft() { _chatDraft.value = null }
     private val _attachment = MutableStateFlow<String?>(null)
     val attachment = _attachment.asStateFlow()
     private var responseJob: Job? = null
@@ -95,16 +110,18 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     val importing = _importing.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            settings.map(::effectiveProfile).distinctUntilChanged().collectLatest { profile ->
-                localModels.getValue(profile).refresh()
+        if (!BuildConfig.BUNDLED_MODEL) {
+            viewModelScope.launch {
+                settings.map(::effectiveProfile).distinctUntilChanged().collectLatest { profile ->
+                    localModels.getValue(profile).refresh()
+                }
             }
         }
     }
 
     fun report(message: String) { _error.value = message }
     fun clearError() { _error.value = null }
-    fun newConversation() { conversationGeneration++; cancelResponse(); _selected.value = null; removeAttachment() }
+    fun newConversation() { _chatDraft.value = null; conversationGeneration++; cancelResponse(); _selected.value = null; removeAttachment() }
     fun openConversation(id: String) { conversationGeneration++; cancelResponse(); _selected.value = id; removeAttachment() }
     fun cancelResponse() {
         _pendingAction.value = null
@@ -302,7 +319,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     private fun effectiveProfile(value: NexusSettings): LocalModelProfile =
-        if (value.automaticProfile) devicePolicy.value.recommendedProfile ?: LocalModelProfile.COMPACT else value.localModelProfile
+        if (BuildConfig.BUNDLED_MODEL) LocalModelProfile.COMPACT
+        else if (value.automaticProfile) devicePolicy.value.recommendedProfile ?: LocalModelProfile.COMPACT else value.localModelProfile
 
     private fun canUseAi(value: NexusSettings, hasImage: Boolean = false): Boolean {
         if (value.aiMode == AiMode.NEXUS_LOCAL) {
@@ -316,12 +334,9 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     else "O modelo equilibrado exige mais RAM disponível. Ative o ajuste automático, escolha o compacto ou use um provedor personalizado.")
                 return false
             }
-            if (hasImage) {
-                report("O modelo local aceita somente texto. Para imagens, escolha um provedor multimodal personalizado com sua autorização.")
-                return false
-            }
             if (localModels.getValue(profile).state.value.status != LocalModelStatus.READY) {
-                report("Baixe o modelo selecionado em NEXUS AI. Depois do download verificado, a conversa funciona sem servidor, chave ou internet.")
+                report(if (BuildConfig.BUNDLED_MODEL) "A IA incluída ainda está sendo preparada. Aguarde a verificação terminar ou toque em Preparar IA incluída."
+                    else "Baixe o modelo selecionado em NEXUS AI. Depois do download verificado, a conversa funciona sem servidor, chave ou internet.")
                 return false
             }
             return true
@@ -333,7 +348,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         return true
     }
 
-    fun downloadLocalModel() {
+    /** Opening Chat may prepare the bundled asset; this never authorizes a network download. */
+    fun prepareLocalAi() {
+        if (!BuildConfig.BUNDLED_MODEL || settings.value.aiMode != AiMode.NEXUS_LOCAL) return
+        startLocalModelPreparation()
+    }
+
+    fun downloadLocalModel() = startLocalModelPreparation()
+
+    private fun startLocalModelPreparation() {
         // A cancelled job can still be closing its socket and file. Keep the
         // barrier until completion rather than queuing a second download.
         if (deletingData || modifyingLocalModel || modelDownloadJob != null) return
@@ -344,10 +367,20 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val manager = localModels.getValue(profile)
+        if (manager.state.value.status == LocalModelStatus.READY) return
         val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
-            try { manager.download() }
+            try {
+                if (BuildConfig.BUNDLED_MODEL) {
+                    // Wait for the persisted mode before doing local setup; a
+                    // restored optional provider must not trigger asset copying.
+                    if (preferences.settings.first().aiMode != AiMode.NEXUS_LOCAL) return@launch
+                    manager.installBundled {
+                        getApplication<Application>().assets.open("models/${LocalModelCatalog.compact.fileName}")
+                    }
+                } else manager.download()
+            }
             catch (cancelled: CancellationException) { throw cancelled }
-            catch (failure: Exception) { report(failure.message ?: "Não foi possível concluir o download do modelo.") }
+            catch (failure: Exception) { report(failure.message ?: "Não foi possível concluir a preparação da IA.") }
         }
         modelDownloadJob = job
         _localModelDownloadActive.value = true
@@ -377,7 +410,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             runningResponses.toList().forEach { it.join() }
             localProviders.getValue(profile).releaseAndAwait()
             localModels.getValue(profile).delete()
-            report("Modelo selecionado removido. As conversas e o outro perfil foram preservados.")
+            report(if (BuildConfig.BUNDLED_MODEL) "Cópia local da IA removida. O modelo continua no APK e será preparado ao abrir o Chat. Suas conversas foram preservadas."
+                else "Modelo selecionado removido. As conversas e o outro perfil foram preservados.")
         } finally { modifyingLocalModel = false }
     }
 

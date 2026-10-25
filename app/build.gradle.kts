@@ -7,6 +7,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val bundleModel = providers.gradleProperty("nexusBundleModel").map(String::toBoolean).getOrElse(true)
+val bundledAssets = rootProject.file(".build-deps/bundled-assets")
+
 android {
     namespace = "br.com.nexus.assistant"
     compileSdk = 35
@@ -16,8 +19,9 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 22
-        versionName = "2.0.0-alpha.3"
+        versionCode = 23
+        versionName = "2.0.0-alpha.4"
+        buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         // Universal installation; local LLM inference is packaged only for 64-bit ABIs.
@@ -65,7 +69,8 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     // MediaPipe model loaders may memory-map these assets.
-    androidResources { noCompress += listOf("task", "tflite") }
+    androidResources { noCompress += listOf("task", "tflite", "gguf") }
+    if (bundleModel) sourceSets.getByName("main").assets.srcDir(bundledAssets)
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     testOptions { unitTests.isIncludeAndroidResources = true }
     lint {
@@ -100,6 +105,32 @@ val verifyOcrRuntime by tasks.registering {
         }
     }
 }
+
+// Full builds fail before packaging if the pinned bundled model is absent or altered.
+val verifyBundledModel by tasks.registering {
+    val model = File(bundledAssets, "models/qwen2.5-0.5b-instruct-q4_k_m.gguf")
+    inputs.files(model)
+    onlyIf { bundleModel }
+    doLast {
+        check(model.isFile && model.length() == 491_400_032L) {
+            "Execute python3 scripts/fetch_bundled_model.py para preparar a IA incluída no APK."
+        }
+        val digest = MessageDigest.getInstance("SHA-256")
+        model.inputStream().buffered().use { input ->
+            val buffer = ByteArray(1024 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        val actual = digest.digest().joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
+        check(actual == "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db") {
+            "Modelo incluído inválido. Prepare novamente com fetch_bundled_model.py."
+        }
+    }
+}
+tasks.named("preBuild").configure { if (bundleModel) dependsOn(verifyBundledModel) }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.05.01")

@@ -4,8 +4,10 @@ import br.com.nexus.assistant.data.AiException
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CancellationException
@@ -31,7 +33,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
-/** Fetches only the explicitly chosen public model. Conversations never enter this request. */
+/** Installs a pinned local model from the APK or from its explicitly authorized public URL. */
 class LocalModelManager(
     private val directory: File,
     val spec: LocalModelSpec = LocalModelCatalog.compact,
@@ -61,6 +63,7 @@ class LocalModelManager(
         .callTimeout(boundedTimeout(client.callTimeoutMillis, 30 * 60 * 1000), TimeUnit.MILLISECONDS)
         .build()
     private val mutex = Mutex()
+    private var operationSource = LocalModelSource.NETWORK
     private val _state = MutableStateFlow(LocalModelState(totalBytes = spec.bytes))
     val state = _state.asStateFlow()
     private val destination get() = File(directory, spec.fileName)
@@ -98,6 +101,7 @@ class LocalModelManager(
     suspend fun download() = mutex.withLock {
         if (_state.value.status == LocalModelStatus.READY && destination.isFile) return@withLock
         withContext(Dispatchers.IO) {
+            operationSource = LocalModelSource.NETWORK
             val coroutine = currentCoroutineContext()
             var call: Call? = null
             try {
@@ -183,6 +187,144 @@ class LocalModelManager(
         }
     }
 
+    /**
+     * Prepares the exact model shipped in the APK. This path never constructs an
+     * HTTP request. A verified private copy is reused without opening the asset.
+     * Cancelled copies remain resumable; their prefix is compared with the asset
+     * before appending, and the complete private file always passes SHA-256.
+     */
+    suspend fun installBundled(open: () -> InputStream) = mutex.withLock {
+        withContext(Dispatchers.IO) {
+            operationSource = LocalModelSource.BUNDLED
+            val coroutine = currentCoroutineContext()
+            val input = AtomicReference<InputStream?>(null)
+            val cancellation = CoroutineScope(coroutine).launch(start = CoroutineStart.UNDISPATCHED) {
+                try { awaitCancellation() } finally {
+                    runCatching { input.getAndSet(null)?.close() }
+                }
+            }
+            try {
+                ensureDirectory()
+                if (destination.exists()) {
+                    if (verify(destination) { coroutine.ensureActive() }) {
+                        partial.delete()
+                        update(LocalModelStatus.READY, spec.bytes, verified = spec.bytes)
+                        return@withContext
+                    }
+                    check(destination.delete() || !destination.exists()) {
+                        "Não foi possível substituir a cópia local da IA."
+                    }
+                }
+                var offset = partialSize()
+                if (offset == spec.bytes) {
+                    if (verify(partial) { coroutine.ensureActive() }) {
+                        promoteVerifiedPartial { coroutine.ensureActive() }
+                        return@withContext
+                    }
+                    check(partial.delete() || !partial.exists()) {
+                        "Não foi possível descartar a cópia incompleta da IA."
+                    }
+                    offset = 0
+                }
+                val needed = spec.bytes - offset + STORAGE_MARGIN
+                check(directory.usableSpace >= needed) {
+                    "Libere pelo menos ${(needed + 999_999) / 1_000_000} MB no armazenamento interno para preparar a IA incluída."
+                }
+                update(LocalModelStatus.COPYING, offset, "Preparando a IA incluída no aplicativo, sem download.")
+                coroutine.ensureActive()
+                var stream = open().also(input::set)
+                coroutine.ensureActive()
+                if (offset > 0 && !bundledPrefixMatches(stream, offset) { coroutine.ensureActive() }) {
+                    // The interrupted file may come from an older or corrupted
+                    // transfer. Never append to a prefix that differs from the APK.
+                    runCatching { input.getAndSet(null)?.close() }
+                    check(partial.delete() || !partial.exists()) {
+                        "Não foi possível reiniciar a preparação da IA incluída."
+                    }
+                    offset = 0
+                    coroutine.ensureActive()
+                    stream = open().also(input::set)
+                    update(LocalModelStatus.COPYING, 0, "Reparando a cópia local a partir da IA incluída no aplicativo.")
+                }
+                copyBundled(stream, offset) { coroutine.ensureActive() }
+                runCatching { input.getAndSet(null)?.close() }
+                coroutine.ensureActive()
+                completePartial { coroutine.ensureActive() }
+            } catch (cancelled: CancellationException) {
+                publishAvailable("Preparação pausada. A cópia recebida foi preservada; você pode continuar sem internet.")
+                throw cancelled
+            } catch (failure: Exception) {
+                if (!coroutine.isActive) {
+                    publishAvailable("Preparação pausada. A cópia local foi preservada.")
+                    coroutine.ensureActive()
+                }
+                publishFailure(failure.message ?: "Não foi possível preparar a IA incluída. Tente novamente.")
+                throw AiException(_state.value.message.orEmpty(), failure)
+            } finally {
+                cancellation.cancel()
+                runCatching { input.getAndSet(null)?.close() }
+            }
+        }
+    }
+
+    private fun bundledPrefixMatches(input: InputStream, offset: Long, checkCancellation: () -> Unit): Boolean {
+        val assetBytes = ByteArray(64 * 1024)
+        val partialBytes = ByteArray(assetBytes.size)
+        partial.inputStream().use { saved ->
+            var checked = 0L
+            while (checked < offset) {
+                checkCancellation()
+                val length = minOf(assetBytes.size.toLong(), offset - checked).toInt()
+                readBundledChunk(input, assetBytes, length, checkCancellation)
+                readBundledChunk(saved, partialBytes, length, checkCancellation)
+                for (index in 0 until length) if (assetBytes[index] != partialBytes[index]) return false
+                checked += length
+            }
+        }
+        return true
+    }
+
+    private fun readBundledChunk(input: InputStream, bytes: ByteArray, length: Int, checkCancellation: () -> Unit) {
+        var position = 0
+        while (position < length) {
+            checkCancellation()
+            val count = input.read(bytes, position, length - position)
+            when {
+                count < 0 -> throw IOException("A IA incluída no aplicativo está incompleta. Reinstale o APK verificado após exportar seus dados.")
+                count > 0 -> position += count
+                else -> {
+                    val next = input.read()
+                    if (next < 0) throw IOException("A IA incluída no aplicativo está incompleta.")
+                    bytes[position++] = next.toByte()
+                }
+            }
+        }
+    }
+
+    private fun copyBundled(input: InputStream, offset: Long, checkCancellation: () -> Unit) {
+        var copied = offset
+        var notifiedAt = System.nanoTime()
+        val started = notifiedAt
+        val bytes = ByteArray(64 * 1024)
+        FileOutputStream(partial, offset > 0).use { output ->
+            while (copied < spec.bytes) {
+                checkCancellation()
+                val length = minOf(bytes.size.toLong(), spec.bytes - copied).toInt()
+                readBundledChunk(input, bytes, length, checkCancellation)
+                output.write(bytes, 0, length)
+                copied += length
+                val now = System.nanoTime()
+                if (copied == spec.bytes || copied - offset == length.toLong() || now - notifiedAt >= PROGRESS_INTERVAL_NANOS) {
+                    val elapsed = (now - started).coerceAtLeast(1)
+                    update(LocalModelStatus.COPYING, copied, "Preparando a IA incluída no aplicativo, sem download.",
+                        speed = ((copied - offset).toDouble() * 1_000_000_000 / elapsed).toLong().coerceAtLeast(0))
+                    notifiedAt = now
+                }
+            }
+        }
+        checkCancellation()
+    }
+
     /** Reads only the immutable model's exact byte budget, without waiting for HTTP EOF. */
     private fun receiveBody(
         input: java.io.InputStream,
@@ -251,10 +393,16 @@ class LocalModelManager(
         if (partial.length() != spec.bytes) throw IOException("O modelo ainda não foi recebido por completo. Continue o download.")
         if (!verify(partial, checkCancellation)) {
             check(partial.delete() || !partial.exists()) { "Não foi possível descartar o modelo corrompido." }
-            throw IOException("A verificação SHA-256 do modelo falhou. O arquivo foi descartado; baixe-o novamente.")
+            throw IOException(if (operationSource == LocalModelSource.BUNDLED)
+                "A verificação SHA-256 da IA incluída falhou. A cópia foi descartada; tente preparar novamente com o APK verificado."
+                else "A verificação SHA-256 do modelo falhou. O arquivo foi descartado; baixe-o novamente.")
         }
+        promoteVerifiedPartial(checkCancellation)
+    }
+
+    private fun promoteVerifiedPartial(checkCancellation: () -> Unit) {
         checkCancellation()
-        check(partial.renameTo(destination)) { "Não foi possível concluir o download no armazenamento interno." }
+        check(partial.renameTo(destination)) { "Não foi possível concluir a preparação da IA no armazenamento interno." }
         update(LocalModelStatus.READY, spec.bytes, verified = spec.bytes)
     }
 
@@ -280,6 +428,7 @@ class LocalModelManager(
         val count = partial.length()
         if (count > spec.bytes) {
             check(partial.delete() || !partial.exists())
+            if (operationSource == LocalModelSource.BUNDLED) return 0
             throw IOException("O download parcial tinha tamanho inválido e foi descartado. Baixe o modelo novamente.")
         }
         return count
@@ -312,13 +461,15 @@ class LocalModelManager(
 
     fun requireReadyFile(): File {
         if (_state.value.status != LocalModelStatus.READY || !destination.isFile) {
-            throw AiException("Baixe e verifique o modelo em NEXUS AI para conversar sem servidor ou chave.")
+            throw AiException(if (operationSource == LocalModelSource.BUNDLED)
+                "Abra o Chat IA para preparar a IA incluída no aplicativo."
+                else "Baixe e verifique o modelo em NEXUS AI para conversar sem servidor ou chave.")
         }
         return destination
     }
 
     private fun update(status: LocalModelStatus, bytes: Long = 0, message: String? = null, speed: Long = 0, verified: Long = 0) {
-        _state.value = LocalModelState(status, bytes, spec.bytes, message, speed, verified)
+        _state.value = LocalModelState(status, bytes, spec.bytes, message, speed, verified, operationSource)
     }
 
     private suspend fun awaitResponse(call: Call): Response = suspendCancellableCoroutine { continuation ->

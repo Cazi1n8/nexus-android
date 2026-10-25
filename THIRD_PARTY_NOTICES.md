@@ -10,11 +10,11 @@ NEXUS identifica as tecnologias utilizadas e não apresenta modelos públicos co
 - Texto completo incluído no APK: `app/src/main/assets/licenses/llama.cpp-MIT.txt`.
 - A fonte é obtida explicitamente por `scripts/fetch_llama_cpp.py`, com SHA-256 do arquivo verificado antes da extração. Não há download de código durante a execução do aplicativo.
 
-## Modelo de linguagem opcional
+## Modelo de linguagem incluído na versão completa
 
 - Distribuidor: Qwen, modelo `Qwen2.5-0.5B-Instruct-GGUF`.
 - Fonte e licença Apache 2.0: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF
-- Os pesos não fazem parte do repositório ou do APK. O usuário autoriza o download do modelo; a identificação, revisão, tamanho e SHA-256 constam no catálogo do aplicativo.
+- Os pesos não fazem parte do repositório Git. A compilação completa inclui o modelo compacto no APK, preparado por `scripts/fetch_bundled_model.py`; a variante de desenvolvimento `-PnexusBundleModel=false` mantém download separado com autorização. Revisão `9217f5db79a29953eb74d5343926648285ec7e67`, 491.400.032 bytes, SHA-256 `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db`. Licença completa incluída: `licenses/Qwen2.5-0.5B-Apache-2.0.txt`. O modelo e o APK ficam no aparelho; a preparação local não abre conexão.
 - O runtime e os pesos são projetos diferentes, com licenças próprias. O modelo compacto é de texto; sua inclusão não oferece compreensão de imagens ou vídeo.
 
 ## OCR local: Tesseract4Android, Tesseract e idiomas

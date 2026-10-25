@@ -48,6 +48,7 @@ class GestureSession internal constructor(context: Context) {
     var error by mutableStateOf<String?>(null); private set
     var sensitivity by mutableFloatStateOf(preferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f)); private set
     var pinchThreshold by mutableFloatStateOf(preferences.getFloat("pinch", .35f).coerceIn(.2f, .55f)); private set
+    var showPreview by mutableStateOf(preferences.getBoolean("show_preview", false)); private set
     var clicks by mutableIntStateOf(0); private set
     var doubleClicks by mutableIntStateOf(0); private set
 
@@ -63,6 +64,7 @@ class GestureSession internal constructor(context: Context) {
     fun resetPreferences() {
         stopMouse()
         sensitivity = 1.3f; pinchThreshold = .35f; frontCamera = capabilities.hasFrontCamera
+        showPreview = false
         clicks = 0; doubleClicks = 0; error = null
     }
     fun switchCamera() {
@@ -77,6 +79,10 @@ class GestureSession internal constructor(context: Context) {
     fun updatePinchThreshold(value: Float) {
         pinchThreshold = value.coerceIn(.2f, .55f)
         preferences.edit().putFloat("pinch", pinchThreshold).apply()
+    }
+    fun updateShowPreview(value: Boolean) {
+        showPreview = value
+        preferences.edit().putBoolean("show_preview", value).apply()
     }
     fun calibrate() { frame.hands.firstOrNull()?.let { controller.calibrate(it.index, sensitivity) } }
     internal fun onFrame(next: HandFrame) {
@@ -152,9 +158,13 @@ fun GestureSessionHost(
             .background(Color(0xF0101820)).border(1.dp, Color(0xFF31E7FA)).padding(6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Câmera · mouse ativo", style = MaterialTheme.typography.labelSmall, color = Color(0xFF31E7FA))
-            Box(Modifier.fillMaxWidth().height(126.dp)) {
-                HandCamera(session.frontCamera, Modifier.fillMaxSize(), session::onFrame, session::fail)
-                HandSkeleton(session.frame, Modifier.fillMaxSize())
+            if (session.showPreview) {
+                Box(Modifier.fillMaxWidth().height(126.dp)) {
+                    HandCamera(session.frontCamera, Modifier.fillMaxSize(), session::onFrame, session::fail)
+                    HandSkeleton(session.frame, Modifier.fillMaxSize())
+                }
+            } else {
+                HandCamera(session.frontCamera, Modifier.size(1.dp), session::onFrame, session::fail, showPreview = false)
             }
             Text(when {
                 session.frame.timestampMs == 0L -> "Iniciando rastreador…"

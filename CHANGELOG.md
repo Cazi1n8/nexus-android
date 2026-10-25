@@ -1,3 +1,13 @@
+# 2.0.0-alpha.4 — em verificação
+
+- IA compacta incluída no APK completo e preparação local verificada sem rede.
+- Base compacta fixa com orçamento de processamento adaptativo, preservando parciais e espaço já recebido.
+- Calculadora local com precedência correta e OCR real no chat com imagens.
+- Prévia opcional de câmera oculta por padrão, callbacks antigos descartados e mouse global preservado ao remover tarefa.
+- Libras continua após acerto, modos atividade/livre geométrico e referência no canto.
+- Diagnóstico reduzido com hardware opcional; auditoria de permissões/Play Protect e limites reais de segundo plano.
+- Voz e demais módulos fora do app, classificador validado de letras e liberação pelo Play Protect permanecem pendentes.
+
 # Alterações do NEXUS
 
 ## 2.0.0-alpha.3 — versão de teste publicada, 25/10/2026

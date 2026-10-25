@@ -49,7 +49,7 @@ jobs:
           python3 scripts/fetch_ocr_models.py
           python3 scripts/fetch_ocr_runtime.py
       - name: Compilar aplicativo e testes instrumentados
-        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
+        run: gradle -PnexusBundleModel=false --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
       # KVM is exposed only on this temporary GitHub-hosted runner.
       # These are the udev permissions documented by android-emulator-runner.
       - name: Habilitar KVM no executor temporário
@@ -70,7 +70,7 @@ jobs:
           disable-animations: true
           emulator-boot-timeout: 600
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
-          script: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace connectedDebugAndroidTest
+          script: gradle -PnexusBundleModel=false --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace connectedDebugAndroidTest
       - name: Guardar relatórios instrumentados
         if: always()
         uses: actions/upload-artifact@v4

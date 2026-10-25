@@ -61,6 +61,11 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     private var lastFrameAt = 0L
     private var openedAt = 0L
     private var terminalError: String? = null
+    private val pendingFrame = AtomicReference<HandFrame?>(null)
+    // At most one UI delivery is queued. A busy screen must not accumulate old camera frames.
+    private val deliverFrame = Runnable {
+        pendingFrame.getAndSet(null)?.let { if (!stopped.get()) onFrame(it) }
+    }
     private lateinit var sessionPolicy: DevicePolicy
     private var useFrontCamera = true
     private val watchdog = object : Runnable {
@@ -89,16 +94,8 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
+        if (intent == null || intent.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
         if (started) return START_NOT_STICKY
-        val capabilities = DeviceCapabilities.read(this)
-        sessionPolicy = DevicePolicy.evaluate(capabilities)
-        if (!sessionPolicy.handTrackingSupported) {
-            fail(if (!capabilities.hasCamera) "Este aparelho não possui uma câmera disponível para o mouse global."
-                else "O rastreador de mãos não é compatível com a arquitetura deste aparelho. O mouse global foi desativado.")
-            return START_NOT_STICKY
-        }
-        useFrontCamera = capabilities.hasFrontCamera
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             fail("A permissão da câmera não foi concedida."); return START_NOT_STICKY
         }
@@ -122,7 +119,28 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
             GlobalMouseRuntime.update(GlobalMouseState(active = true))
             accessibility.beginSession()
             registry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-            startCamera()
+            // File-system and PackageManager observations run off the UI thread. The
+            // foreground notification is already visible while preparing the session.
+            executor.execute {
+                try {
+                    val capabilities = DeviceCapabilities.read(this)
+                    val policy = DevicePolicy.evaluate(capabilities)
+                    main.post {
+                        if (!stopped.get()) {
+                            if (!policy.handTrackingSupported) {
+                                fail(if (!capabilities.hasCamera) "Este aparelho não possui uma câmera disponível para o mouse global."
+                                    else "O rastreador de mãos não é compatível com a arquitetura deste aparelho. O mouse global foi desativado.")
+                            } else {
+                                sessionPolicy = policy
+                                useFrontCamera = capabilities.hasFrontCamera
+                                startCamera()
+                            }
+                        }
+                    }
+                } catch (_: Exception) {
+                    main.post { if (!stopped.get()) fail("Não foi possível verificar a câmera deste aparelho. A sessão foi encerrada.") }
+                }
+            }
             main.post(watchdog)
         } catch (_: Exception) {
             fail("Não foi possível iniciar o mouse global. Abra o NEXUS, confira câmera, notificações e acessibilidade e tente novamente.")
@@ -201,7 +219,9 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
                 val processingMs = SystemClock.elapsedRealtime() - now
                 cadence.observeCost(processingMs)
                 val frame = HandFrame(hands, rotated!!.width, rotated!!.height, processingMs, now)
-                main.post { if (!stopped.get()) onFrame(frame) }
+                pendingFrame.set(frame)
+                main.removeCallbacks(deliverFrame)
+                main.post(deliverFrame)
             } catch (_: Exception) {
                 if (inferenceFailed.compareAndSet(false, true)) main.post {
                     if (!stopped.get()) fail("O rastreamento falhou. A câmera e o controle global foram encerrados.")
@@ -263,12 +283,16 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
         NexusAccessibilityService.instance?.updateCursor(null)
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?) { stopSelf(); super.onTaskRemoved(rootIntent) }
+    // Swiping the activity away does not revoke an explicitly started foreground session.
+    // Android may still stop the process; START_NOT_STICKY never restarts the camera silently.
+    override fun onTaskRemoved(rootIntent: Intent?) { super.onTaskRemoved(rootIntent) }
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         stopped.set(true)
         main.removeCallbacks(watchdog)
+        main.removeCallbacks(deliverFrame)
+        pendingFrame.set(null)
         analysis?.clearAnalyzer()
         analysis?.let { provider?.unbind(it) }
         registry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)

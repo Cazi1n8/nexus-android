@@ -1,3 +1,15 @@
+# Etapa atual — 2.0.0-alpha.4 (versão 23)
+
+Em verificação: IA compacta incluída no APK, cópia e verificação local sem download no celular, perfil base estável com processamento adaptativo; calculadora real; OCR integrado ao chat local; preview opcional oculto; mouse global continua fora do app/inrecentes; Libras sem encerramento automático após acerto, alvo no canto e modo livre de configurações geométricas; diagnóstico mínimo e detalhes por escolha.
+
+**129 testes JVM e 66 testes Python aprovados localmente.** Compilação aprovada em 2m35, APK local 615.068.956 bytes verificado, lint 0 erros/42 avisos/1 informação. Prova Android de primeiro chat offline e publicação aguardam conclusão. Resultados serão atualizados no [relatório alpha.4](docs/RELATORIO_ALPHA_4.md).
+
+**Bloqueio de instalação relatado pelo Play Protect não foi resolvido ou aprovado pelo Google.** [Auditoria de permissões e limites de segundo plano](docs/PERMISSOES_E_SEGUNDO_PLANO.md). Voz, Libras, mãos livres e 3D ainda não têm serviço para operar fora do app. Não há reconhecimento validado do alfabeto de Libras ou visão multimodal local geral. As correções não demonstram ausência de travamentos no S9+ físico; essa validação permanece pendente.
+
+O APK completo conterá 491.400.032 bytes de modelo Qwen0.5B, além do código/OCR. Nenhum peso/segredo é versionado. Assinatura estável para distribuição continua pendente. [Matriz de pedidos](docs/PEDIDOS_E_STATUS.md).
+
+---
+
 # NEXUS 2.0 — progresso verificável
 
 Atualizado em **25/10/2026 (UTC)**. Código atual: **2.0.0-alpha.3**, código de versão 22, com APK de teste publicado, baixado e verificado. A alpha.2 permanece documentada como versão anterior com o bloqueio de download relatado pelo usuário. O projeto, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ informado pelo usuário ainda não foi testado fisicamente pelo ambiente.

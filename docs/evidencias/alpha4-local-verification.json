@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0-alpha.4",
+  "code": 23,
+  "jvm": {
+    "tests": 129,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pythonScriptTests": 66,
+  "lint": {
+    "Error": 0,
+    "Warning": 42,
+    "Information": 1
+  },
+  "build": "BUILD SUCCESSFUL in 2m 35s",
+  "physicalDeviceTests": false,
+  "playProtectApproval": false
+}

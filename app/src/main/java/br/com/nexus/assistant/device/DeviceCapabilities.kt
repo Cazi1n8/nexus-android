@@ -8,6 +8,35 @@ import android.os.Process
 import br.com.nexus.assistant.data.local.LocalModelCatalog
 import br.com.nexus.assistant.data.local.LocalModelProfile
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.LinkOption
+
+/** File lengths are candidates for preparation, never proof of model integrity. */
+internal data class LocalModelFileInventory(
+    val installedProfiles: Set<LocalModelProfile>,
+    val downloadedBytes: Map<LocalModelProfile, Long>,
+)
+
+/** Reads metadata only. A complete .part remains unverified until the manager checks SHA-256. */
+internal fun readLocalModelFileInventory(directory: File): LocalModelFileInventory {
+    val installed = mutableSetOf<LocalModelProfile>()
+    val downloaded = mutableMapOf<LocalModelProfile, Long>()
+    for (profile in LocalModelProfile.entries) {
+        val spec = LocalModelCatalog.forProfile(profile)
+        val finalFile = File(directory, spec.fileName)
+        if (Files.isRegularFile(finalFile.toPath(), LinkOption.NOFOLLOW_LINKS) && finalFile.length() == spec.bytes) {
+            installed += profile
+            downloaded[profile] = spec.bytes
+        } else {
+            val partial = File(directory, "${spec.fileName}.part")
+            if (Files.isRegularFile(partial.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                val bytes = partial.length()
+                if (bytes in 1..spec.bytes) downloaded[profile] = bytes
+            }
+        }
+    }
+    return LocalModelFileInventory(installed.toSet(), downloaded.toMap())
+}
 
 /** Hardware/OS observations, not a promise that a permission or a physical sensor test passed. */
 data class DeviceCapabilities(
@@ -27,6 +56,8 @@ data class DeviceCapabilities(
     val hasCamera: Boolean = hasFrontCamera || hasRearCamera,
     /** Candidates only; LocalModelManager must still verify SHA-256 before inference. */
     val installedModelProfiles: Set<LocalModelProfile> = emptySet(),
+    /** Bounded private final/partial bytes already on disk; not a READY flag. */
+    val downloadedModelBytes: Map<LocalModelProfile, Long> = emptyMap(),
 ) {
     companion object {
         /** Cheap, permission-free snapshot; does not start a camera, microphone or native engine. */
@@ -38,6 +69,7 @@ data class DeviceCapabilities(
             val packages = app.packageManager
             val is64 = Process.is64Bit()
             val processAbis = if (is64) Build.SUPPORTED_64_BIT_ABIS else Build.SUPPORTED_32_BIT_ABIS
+            val modelInventory = readLocalModelFileInventory(File(app.filesDir, "models"))
             return DeviceCapabilities(
                 sdkInt = Build.VERSION.SDK_INT,
                 supportedAbis = Build.SUPPORTED_ABIS.toList(),
@@ -53,11 +85,8 @@ data class DeviceCapabilities(
                 hasCamera = packages.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY),
                 hasMicrophone = packages.hasSystemFeature(PackageManager.FEATURE_MICROPHONE),
                 glesVersion = manager?.deviceConfigurationInfo?.reqGlEsVersion ?: 0,
-                installedModelProfiles = LocalModelProfile.entries.filter { profile ->
-                    val spec = LocalModelCatalog.forProfile(profile)
-                    val file = File(app.filesDir, "models/${spec.fileName}")
-                    file.isFile && file.length() == spec.bytes
-                }.toSet(),
+                installedModelProfiles = modelInventory.installedProfiles,
+                downloadedModelBytes = modelInventory.downloadedBytes,
             )
         }
     }

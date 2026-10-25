@@ -62,7 +62,7 @@ jobs:
       - name: Baixar GGUF público fixado para o teste real
         run: python3 scripts/fetch_language_model.py --output "$NEXUS_FIXTURE_FILE"
       - name: Compilar aplicativo e teste instrumentado
-        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
+        run: gradle -PnexusBundleModel=false --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
       - name: Habilitar KVM no executor temporário
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

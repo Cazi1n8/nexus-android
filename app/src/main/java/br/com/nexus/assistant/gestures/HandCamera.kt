@@ -2,6 +2,8 @@ package br.com.nexus.assistant.gestures
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Size
 import androidx.camera.core.CameraSelector
@@ -12,6 +14,7 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
@@ -46,7 +49,8 @@ internal fun HandCamera(
     modifier: Modifier = Modifier,
     onFrame: (HandFrame) -> Unit,
     onError: (String) -> Unit,
-    requestedHands: Int = 1
+    requestedHands: Int = 1,
+    showPreview: Boolean = true
 ) {
     val context = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -64,9 +68,10 @@ internal fun HandCamera(
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         }
     }
-    AndroidView(factory = { previewView }, modifier = modifier)
+    if (showPreview) AndroidView(factory = { previewView }, modifier = modifier)
+    else Box(modifier)
 
-    DisposableEffect(context, owner, useFrontCamera, handCount, policy) {
+    DisposableEffect(context, owner, useFrontCamera, handCount, policy, showPreview) {
         val stopped = AtomicBoolean(false)
         if (!policy.handTrackingSupported) {
             ContextCompat.getMainExecutor(context).execute {
@@ -78,6 +83,11 @@ internal fun HandCamera(
         val detector = AtomicReference<HandLandmarker?>(null)
         val executor = Executors.newSingleThreadExecutor()
         val main = ContextCompat.getMainExecutor(context)
+        val frameHandler = Handler(Looper.getMainLooper())
+        val pendingFrame = AtomicReference<HandFrame?>(null)
+        val deliverFrame = Runnable {
+            pendingFrame.getAndSet(null)?.let { if (!stopped.get()) currentFrame.value(it) }
+        }
         var provider: ProcessCameraProvider? = null
         val selector = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
@@ -103,7 +113,7 @@ internal fun HandCamera(
                     .setMinHandPresenceConfidence(.55f)
                     .setMinTrackingConfidence(.55f)
                     .build()
-                detector.set(HandLandmarker.createFromOptions(context, options))
+                if (!stopped.get()) detector.set(HandLandmarker.createFromOptions(context, options))
             } catch (_: Exception) {
                 report("Não foi possível carregar o rastreador de mãos. Confira o modelo MediaPipe e a compatibilidade deste aparelho.")
             } catch (_: LinkageError) {
@@ -136,7 +146,11 @@ internal fun HandCamera(
                 val processingMs = SystemClock.elapsedRealtime() - now
                 cadence.observeCost(processingMs)
                 val frame = HandFrame(hands, rotated!!.width, rotated!!.height, processingMs, now)
-                main.execute { if (!stopped.get()) currentFrame.value(frame) }
+                // Drop stale UI deliveries rather than queueing every camera frame while
+                // Compose/the main thread is busy opening another feature.
+                pendingFrame.set(frame)
+                frameHandler.removeCallbacks(deliverFrame)
+                frameHandler.post(deliverFrame)
             } catch (_: Exception) {
                 if (!inferenceFailed) {
                     inferenceFailed = true
@@ -158,10 +172,11 @@ internal fun HandCamera(
                 try {
                     val cameraProvider = future.get()
                     provider = cameraProvider
-                    preview.setSurfaceProvider(previewView.surfaceProvider)
+                    if (showPreview) preview.setSurfaceProvider(previewView.surfaceProvider)
                     val cameraSelector = if (useFrontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
                     check(cameraProvider.hasCamera(cameraSelector))
-                    cameraProvider.bindToLifecycle(owner, cameraSelector, preview, analysis)
+                    if (showPreview) cameraProvider.bindToLifecycle(owner, cameraSelector, preview, analysis)
+                    else cameraProvider.bindToLifecycle(owner, cameraSelector, analysis)
                 } catch (_: Exception) {
                     report("Não foi possível abrir esta câmera. Verifique a permissão e se outro aplicativo está usando a câmera.")
                 }
@@ -170,6 +185,8 @@ internal fun HandCamera(
 
         onDispose {
             stopped.set(true)
+            frameHandler.removeCallbacks(deliverFrame)
+            pendingFrame.set(null)
             analysis.clearAnalyzer()
             provider?.unbind(preview, analysis)
             executor.execute { detector.getAndSet(null)?.close() }

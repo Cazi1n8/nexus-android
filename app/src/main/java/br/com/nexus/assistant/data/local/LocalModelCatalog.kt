@@ -34,7 +34,9 @@ object LocalModelCatalog {
 
 enum class LocalModelProfile { COMPACT, BALANCED }
 
-enum class LocalModelStatus { CHECKING, ABSENT, CONNECTING, DOWNLOADING, VERIFYING, READY, PAUSED, FAILED }
+enum class LocalModelStatus { CHECKING, ABSENT, CONNECTING, DOWNLOADING, COPYING, VERIFYING, READY, PAUSED, FAILED }
+
+enum class LocalModelSource { NETWORK, BUNDLED }
 
 data class LocalModelState(
     val status: LocalModelStatus = LocalModelStatus.CHECKING,
@@ -43,4 +45,5 @@ data class LocalModelState(
     val message: String? = null,
     val bytesPerSecond: Long = 0,
     val verifiedBytes: Long = 0,
+    val source: LocalModelSource = LocalModelSource.NETWORK,
 )
