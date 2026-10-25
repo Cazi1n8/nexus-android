@@ -13,7 +13,8 @@
     "Warning": 42,
     "Information": 1
   },
-  "build": "BUILD SUCCESSFUL in 2m 35s",
+  "build": "BUILD SUCCESSFUL in 2m 27s",
   "physicalDeviceTests": false,
-  "playProtectApproval": false
+  "playProtectApproval": false,
+  "sourceCommit": "340bb35a4548f4e131db13ec4522b104c17d1923"
 }

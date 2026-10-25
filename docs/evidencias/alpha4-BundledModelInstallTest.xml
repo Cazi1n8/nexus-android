@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.nexus.assistant.data.local.BundledModelInstallTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-10-25T13:32:48" hostname="runnervmtai0g" time="0.523">
+  <properties/>
+  <testcase name="aValidInterruptedPrefixIsComparedThenResumedWithoutDuplicatingIt" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.091"/>
+  <testcase name="aTruncatedApkStreamCannotBePromotedAndClosesItsResources" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.028"/>
+  <testcase name="aCorruptInstalledCopyIsRepairedFromTheBundledAsset" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.058"/>
+  <testcase name="aSameLengthCorruptApkStreamIsDiscardedWithoutUnlockingChat" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.026"/>
+  <testcase name="zeroLengthBulkReadsDoNotCreateAnInfinitePreparationLoop" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.012"/>
+  <testcase name="cancellationClosesTheAssetAndANewManagerResumesThePrivateCopy" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.107"/>
+  <testcase name="cancellingABlockedAssetReadClosesItAndPreservesOnlyCompletedChunks" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.028"/>
+  <testcase name="aMismatchingInterruptedPrefixRestartsFromTheApkSafely" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.022"/>
+  <testcase name="aCompleteVerifiedPartialIsPromotedWithoutOpeningTheApkAsset" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.018"/>
+  <testcase name="anAssetOpenFailureLeavesChatLockedAndCanBeRetriedLocally" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.021"/>
+  <testcase name="preparationDoesNotNeedToReadPastTheExactPinnedByteBudget" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.016"/>
+  <testcase name="deletingThePrivateCopyDoesNotRequireANetworkDownloadToPrepareItAgain" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.016"/>
+  <testcase name="exactIncludedBytesBecomeAReadyPrivateModelAndTheJobReturns" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.009"/>
+  <testcase name="anOversizedOldPartialCanBeRepairedFromTheBundledAsset" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.006"/>
+  <testcase name="anExistingVerifiedModelIsReusedWithoutOpeningTheApkAsset" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.015"/>
+  <testcase name="simultaneousPreparationCallsSerializeAndReuseTheFirstVerifiedCopy" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.025"/>
+  <testcase name="aCompleteCorruptPartialIsRepairedLocallyInsteadOfRequestingADownload" classname="br.com.nexus.assistant.data.local.BundledModelInstallTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.nexus.assistant.data.ArithmeticToolTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-25T13:32:48" hostname="runnervmtai0g" time="0.042">
+  <properties/>
+  <testcase name="actual coordinator uses arithmetic before either language provider" classname="br.com.nexus.assistant.data.ArithmeticToolTest" time="0.02"/>
+  <testcase name="ordinary conversation and embedded calculations are left to language provider" classname="br.com.nexus.assistant.data.ArithmeticToolTest" time="0.002"/>
+  <testcase name="parentheses decimals signs and exponent precedence are real arithmetic" classname="br.com.nexus.assistant.data.ArithmeticToolTest" time="0.005"/>
+  <testcase name="invalid operations return truthful bounded errors" classname="br.com.nexus.assistant.data.ArithmeticToolTest" time="0.004"/>
+  <testcase name="actual coordinator still dispatches general conversation to explicitly chosen provider" classname="br.com.nexus.assistant.data.ArithmeticToolTest" time="0.007"/>
+  <testcase name="same precedence evaluates multiplication and division from left to right" classname="br.com.nexus.assistant.data.ArithmeticToolTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

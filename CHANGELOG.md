@@ -1,4 +1,4 @@
-# 2.0.0-alpha.4 — em verificação
+# 2.0.0-alpha.4 — APK de teste publicado
 
 - IA compacta incluída no APK completo e preparação local verificada sem rede.
 - Base compacta fixa com orçamento de processamento adaptativo, preservando parciais e espaço já recebido.

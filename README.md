@@ -2,14 +2,14 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Etapa atual: 2.0.0-alpha.4, versão 23, em verificação.** A versão completa inclui a IA compacta no APK. O novo APK e os resultados de emulador serão registrados após a execução. A alpha.3 e suas evidências continuam no [relatório histórico](docs/RELATORIO_ALPHA_3.md).
+**Versão de teste disponível: 2.0.0-alpha.4, versão 23.** A versão completa inclui a IA compacta no APK. Build, 129 testes JVM e a prova de Chat/OCR/cálculo sem internet passaram; o APK público foi baixado e inspecionado. A alpha.3 e suas evidências continuam no [relatório histórico](docs/RELATORIO_ALPHA_3.md).
 
 ## Mudanças desta etapa
 
 - IA de texto Qwen2.5 0.5B incluída no APK, sem download separado no celular. Ao abrir o Chat, o app prepara uma cópia privada, confere tamanho e SHA-256 e mostra progresso real, pausa e retomada. O processamento se ajusta à memória/CPU, mantendo a mesma base compacta.
 - Calculadora local real para expressões: `10+10÷10×10 = 20`. Não depende de o modelo adivinhar operações. Respostas de outros assuntos continuam podendo conter erros.
 - Chat permite anexar imagem no modo local: extrai texto por OCR e pode explicar esse texto. **Não reconhece objetos, pessoas ou cenas.** A descrição geral de fotos requer provedor multimodal opcional autorizado.
-- Mouse global experimental permanece ativo fora do NEXUS e ao remover a tarefa da lista de recentes, com notificação e **PARAR**. A prévia do vídeo é opcional e vem oculta nos modos de mãos; os indicadores de privacidade permanecem.
+- Mouse global experimental permanece ativo fora do NEXUS e ao remover a tarefa da lista de recentes, com notificação e **PARAR**. A prévia do vídeo vem oculta no mouse, mãos livres e 3D; Libras oferece botão para ocultá-la. Os indicadores de privacidade permanecem.
 - Libras mantém o treino após o acerto, mostra o alvo no canto e oferece modo livre para configurações de mão efetivamente suportadas. **Não reconhece o alfabeto completo nem certifica sinais de Libras.** Conteúdo validado e classificador de letras continuam pendentes.
 - Diagnóstico exibe compatibilidade/permissões/versão; detalhes locais do hardware aparecem somente por escolha explícita. Não coleta identificadores pessoais nem envia o diagnóstico.
 
@@ -19,7 +19,7 @@ Voz, Libras, mãos livres e 3D **ainda não operam fora do app**. Preservar uma 
 
 O usuário relatou que o **Play Protect bloqueou a instalação**. O aviso não identifica a causa exata. A acessibilidade usada no controle global é uma capacidade sensível; revisar o código não equivale à aprovação pelo Google. Não há garantia de liberação desta versão. Antes de distribuição pública, faltam assinatura de lançamento estável e revisão das capacidades/políticas. Não desative as proteções do aparelho para testar.
 
-Quando o APK aprovado pelo build for publicado, o link direto ficará neste arquivo e nas [Releases](https://github.com/Cazi1n8/nexus-android/releases). A versão completa terá aproximadamente 590 MiB por incluir o modelo. Instalar e preparar a IA exige espaço adicional; reserve pelo menos 1,5 GB livres e espaço temporário para o download do APK.
+**[Baixar NEXUS 2.0.0-alpha.4.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.4-build-13/NEXUS-2.0.0-alpha.4.apk)** — **586,6 MiB**, download direto sem ZIP ou login. SHA-256 `0c7059c77d07bc7eed40d5d7701a36e98ca3495a1d77a74c2500f7c7e85286df`. O arquivo publicado foi baixado e conferido com o digest do GitHub, assinatura v2, ZIP 16 KB, quatro ABIs, 40 bibliotecas ELF e integridade do GGUF/OCR. Instalar e preparar a IA exige espaço adicional; reserve cerca de 2 GB livres para download, instalação e preparo.
 
 1. Abra o APK somente se a verificação do Android permitir a instalação.
 2. Abra **Chat IA** e aguarde **IA local pronta para conversar**. A preparação copia dados do APK; não baixa outro modelo.
@@ -27,7 +27,7 @@ Quando o APK aprovado pelo build for publicado, o link direto ficará neste arqu
 4. Voz usa os serviços reais de reconhecimento/síntese do Android; permita o microfone e instale uma voz Português (Brasil), se necessário. O serviço Android pode precisar de rede.
 5. Controle fora do app: **Mouse Virtual → Mouse em outros aplicativos**, com consentimento e acessibilidade ativada nas configurações oficiais. **PARAR** encerra câmera e controle.
 
-APKs de depuração gerados em execuções diferentes podem ter certificados diferentes. Exporte conversas em **Memória e histórico** antes de remover uma instalação incompatível. Desinstalar apaga dados privados, imagens e modelos; o JSON exporta textos, sem token ou imagens. Os pesos incluídos poderão ser preparados novamente sem internet.
+O certificado desta alpha.4 é diferente do APK alpha.3 publicado: o Android não aceita atualização direta entre eles. Exporte conversas em **Memória e histórico** antes de qualquer remoção. **Não remova a instalação atual enquanto a nova estiver bloqueada pelo Play Protect.** Desinstalar apaga dados privados, imagens e modelos; o JSON exporta textos, sem token ou imagens. Os pesos incluídos poderão ser preparados novamente sem internet.
 
 ## Compatibilidade e privacidade
 
@@ -56,7 +56,7 @@ Para regressão do downloader antigo, `-PnexusBundleModel=false` compila uma var
 
 ## Estado e testes
 
-Compilação local aprovada; 129 testes JVM e 66 testes Python dos scripts passaram. Lint: 0 erros, 42 avisos e 1 informação. APK local gerado e inspecionado; testes Android e publicação aguardam conclusão. Não houve teste físico no Samsung Galaxy S9+ pelo ambiente. Não foi comprovada correção de todos os travamentos.
+Compilação local e GitHub aprovadas; 129 testes JVM, 66 testes Python dos scripts e 44 do servidor opcional passaram. Lint: 0 erros, 42 avisos locais/43 no GitHub e 1 informação. Android comum: 15 aprovados, 0 falhas/erros, 3 casos opcionais ignorados e aprovados em execuções dedicadas. A prova do APK completo sem internet preparou a IA em 4,748 s, gerou “Azul.”, calculou 20 e leu “OLA NEXUS 2026” da imagem sintética no Chat; histórico Room e perfil após recriar a Activity foram conferidos. São tempos e resultados do emulador. APK público verificado. Não houve teste físico no Samsung Galaxy S9+ pelo ambiente. Não foi comprovada correção de todos os travamentos.
 
 - [Relatório alpha.4](docs/RELATORIO_ALPHA_4.md)
 - [Progresso por funcionalidade](PROGRESSO_NEXUS_2.md)

@@ -1,7 +1,7 @@
 {
-  "apk": "/workspace/nexus/app/build/outputs/apk/debug/app-debug.apk",
-  "bytes": 615068956,
-  "sha256": "4abba0fcf125548e40b8313c21f99541078da97e9369aa5a3f13f9e3b2e5903c",
+  "apk": "/workspace/NEXUS-2.0.0-alpha.4-local.apk",
+  "bytes": 615322523,
+  "sha256": "5886db00ce9db33fddf202bcb87601ce7ba63d04d53a9c387d44f6884b00d716",
   "versionName": "2.0.0-alpha.4",
   "versionCode": 23,
   "minSdk": 26,
@@ -228,5 +228,6 @@
     "assets/licenses/libpng-LICENSE.txt",
     "assets/licenses/llama.cpp-MIT.txt",
     "assets/licenses/tessdata_fast-Apache-2.0.txt"
-  ]
+  ],
+  "sourceCommit": "340bb35a4548f4e131db13ec4522b104c17d1923"
 }

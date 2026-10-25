@@ -1,0 +1,97 @@
+{
+  "sourceCommit": "48938e7205b329565766e3e4342aff016d801c03",
+  "applicationSourceTree": "ff4e354de03ea744ec242d3b9a3ad60bc81854b7",
+  "applicationSourceUnchangedSince": "340bb35a4548f4e131db13ec4522b104c17d1923",
+  "mainWorkflow": {
+    "id": 40199143023,
+    "buildJob": 121186365496,
+    "publishJob": 121187414341,
+    "result": "success",
+    "buildDuration": "2m 36s"
+  },
+  "jvm": {
+    "tests": 129,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "scriptTests": 66,
+  "optionalServerTests": 44,
+  "lint": {
+    "errors": 0,
+    "warnings": 43,
+    "information": 1
+  },
+  "commonAndroid": {
+    "id": 40199143106,
+    "job": 121186365820,
+    "api": 29,
+    "abi": "x86_64",
+    "tests": 18,
+    "passed": 15,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3,
+    "result": "success"
+  },
+  "bundledChat": {
+    "id": 40199143131,
+    "job": 121186365829,
+    "result": "success",
+    "tests": 1,
+    "networkBefore": false,
+    "networkAfter": false,
+    "preparationMilliseconds": 4748,
+    "reply": "Azul.",
+    "replyMilliseconds": 10686,
+    "mathCorrect": true,
+    "imageTextReadLocally": true,
+    "persistedAssistantMessages": 3,
+    "profileStableAfterActivityRecreation": true,
+    "testDurationSeconds": 33.272
+  },
+  "nativeAi": {
+    "id": 40197768477,
+    "job": 121182245857,
+    "result": "success",
+    "tests": 1,
+    "generatedCases": 4
+  },
+  "legacyProductionDownload": {
+    "id": 40197768490,
+    "job": 121182246093,
+    "result": "success",
+    "tests": 1,
+    "modelsDownloadedAndVerified": 2,
+    "generatedAnswer": "42"
+  },
+  "initialFailuresResolved": {
+    "oldVisionUiLabelRun": 40197768484,
+    "firstChatAcceptanceNotObservedRun": 40197768499,
+    "resolution": "Updated obsolete Vision test label and verified actual semantic send acceptance. Production app source remained unchanged."
+  },
+  "physicalDeviceTested": false,
+  "playProtectApproved": false,
+  "artifacts": [
+    {
+      "id": 12601351755,
+      "sha256": "2b427c8aa20085a09e8fae60aafbbc9572b10efae4f8422b7e4f1de1faffe49c"
+    },
+    {
+      "id": 12600912482,
+      "sha256": "b551d952ef4da634487952d1ec5f1604d23791de5248523a0c7b16e9b215ac1d"
+    },
+    {
+      "id": 12601820712,
+      "sha256": "5478571612b04e4c055124037ae5c6a5b011514e6d25c3551929df799e30a9a7"
+    },
+    {
+      "id": 12600803343,
+      "sha256": "a317c262b19471eae7e4248e8ac59ef278abba7d2f7d381b38fd94bb8acff23c"
+    },
+    {
+      "id": 12600434723,
+      "sha256": "16dd356d30ce8082bf6b4632d6c82b8d5aa8b54eb54487146c4e8400b19a1cd5"
+    }
+  ]
+}

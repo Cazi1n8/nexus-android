@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="AndroidBundledFirstChat" tests="1" failures="0" errors="0" skipped="0"><testcase classname="br.com.nexus.assistant.BundledChatFirstRunTest" name="firstChatPreparesBundledModelAndRespondsOffline" time="33.272" /></testsuite>
