@@ -59,7 +59,7 @@ class VisionUiTest {
 
         val question = "Leia este rótulo, por favor."
         compose.onNode(hasSetTextAction()).performScrollTo().performTextReplacement(question)
-        compose.onNodeWithText("Analisar com a IA").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithText("Levar imagem e pergunta ao Chat").performScrollTo().assertIsNotEnabled()
         compose.activityRule.scenario.recreate()
         compose.waitUntil(10_000) {
             compose.onAllNodes(hasSetTextAction() and hasText(question)).fetchSemanticsNodes().isNotEmpty()
