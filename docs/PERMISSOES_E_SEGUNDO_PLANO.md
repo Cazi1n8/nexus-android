@@ -1,5 +1,9 @@
 # Permissões, Play Protect e sessões fora do app
 
+## Novo bloqueio da alpha.4
+
+O usuário confirmou que a alpha.4 foi bloqueada novamente. O status permanece **não resolvido**. O APK exato, hashes, justificativa das permissões e uma minuta estão em [PLAY_PROTECT_REVISAO.md](PLAY_PROTECT_REVISAO.md); o pedido não foi enviado ao Google. A configuração de assinatura estável foi preparada, mas depende da chave definitiva e dos Secrets do responsável. [Distribuição](ASSINATURA_E_DISTRIBUICAO.md).
+
 ## Aviso relatado
 
 O aviso enviado pelo usuário em 25/10/2026 mostra o Play Protect bloqueando a instalação do NEXUS por possível acesso a dados sensíveis. Ele não informa qual declaração do pacote motivou a decisão. A auditoria do código não equivale a aprovação pelo Google. Esta alteração não garante que o próximo APK seja aceito.

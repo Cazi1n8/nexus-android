@@ -1,0 +1,12 @@
+{
+  "pythonTests": 72,
+  "gradleConfigurationHelp": "passed",
+  "missingCredentialsSignedBuild": "rejected as expected",
+  "temporaryKeySigningValidation": "passed",
+  "temporaryKeyDeleted": true,
+  "productionKeyGenerated": false,
+  "newApkGenerated": false,
+  "signedWorkflowRun": false,
+  "playProtectApproved": false,
+  "appealSubmitted": false
+}

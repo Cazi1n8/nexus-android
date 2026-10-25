@@ -1,0 +1,98 @@
+name: NEXUS — pacote assinado para revisão
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-release-review
+  cancel-in-progress: false
+
+jobs:
+  signed-package:
+    # Never expose signing credentials to a pull request or an untrusted branch.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Preparar chave temporária sem exibir valores
+        env:
+          NEXUS_RELEASE_KEYSTORE_BASE64: ${{ secrets.NEXUS_RELEASE_KEYSTORE_BASE64 }}
+          NEXUS_RELEASE_STORE_PASSWORD: ${{ secrets.NEXUS_RELEASE_STORE_PASSWORD }}
+          NEXUS_RELEASE_KEY_ALIAS: ${{ secrets.NEXUS_RELEASE_KEY_ALIAS }}
+          NEXUS_RELEASE_KEY_PASSWORD: ${{ secrets.NEXUS_RELEASE_KEY_PASSWORD }}
+          NEXUS_RELEASE_STORE_FILE: ${{ runner.temp }}/nexus-release.jks
+        run: python3 scripts/prepare_release_keystore.py
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '13114758'
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
+      - name: Instalar SDK e compilador nativo
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
+      - name: Gradle 8.11.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+          cache-read-only: true
+      - name: Preparar dependências verificadas
+        run: |
+          python3 scripts/fetch_llama_cpp.py
+          python3 scripts/fetch_hand_model.py
+          python3 scripts/fetch_ocr_models.py
+          python3 scripts/fetch_ocr_runtime.py
+          python3 scripts/fetch_bundled_model.py
+      - name: Testes, lint e APK release com assinatura obrigatória
+        env:
+          NEXUS_RELEASE_STORE_PASSWORD: ${{ secrets.NEXUS_RELEASE_STORE_PASSWORD }}
+          NEXUS_RELEASE_KEY_ALIAS: ${{ secrets.NEXUS_RELEASE_KEY_ALIAS }}
+          NEXUS_RELEASE_KEY_PASSWORD: ${{ secrets.NEXUS_RELEASE_KEY_PASSWORD }}
+          NEXUS_RELEASE_STORE_FILE: ${{ runner.temp }}/nexus-release.jks
+        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process -PnexusReleaseSigning=true testDebugUnitTest lintRelease assembleRelease
+      - name: Conferir assinatura e confirmar que o APK é release
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, os, subprocess
+          apk = Path('app/build/outputs/apk/release/app-release.apk')
+          tool = Path(os.environ['ANDROID_HOME']) / 'build-tools/35.0.0'
+          signature = subprocess.check_output([str(tool / 'apksigner'), 'verify', '--verbose', '--print-certs', str(apk)], text=True)
+          assert 'Verified using v2 scheme (APK Signature Scheme v2): true' in signature
+          assert 'CN=Android Debug' not in signature, 'Use uma chave de release própria.'
+          badging = subprocess.check_output([str(tool / 'aapt2'), 'dump', 'badging', str(apk)], text=True)
+          assert 'application-debuggable' not in badging, 'Um APK debug não é uma entrega release.'
+          subprocess.run([str(tool / 'zipalign'), '-c', '-P', '16', '4', str(apk)], check=True)
+          target = Path('signed-review')
+          target.mkdir()
+          # Move only the public APK and audit data. The private keystore is outside this folder.
+          apk.rename(target / 'NEXUS-release-review.apk')
+          digest = hashlib.file_digest((target / 'NEXUS-release-review.apk').open('rb'), 'sha256').hexdigest()
+          (target / 'SHA256SUMS.txt').write_text(digest + '  NEXUS-release-review.apk\n')
+          (target / 'CERTIFICADO.txt').write_text(signature)
+          PY
+      - name: Disponibilizar pacote para revisão, sem publicar na Play Store
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-signed-review-${{ github.run_number }}
+          path: signed-review/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remover chave temporária
+        if: always()
+        env:
+          NEXUS_RELEASE_STORE_FILE: ${{ runner.temp }}/nexus-release.jks
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          Path(os.environ['NEXUS_RELEASE_STORE_FILE']).unlink(missing_ok=True)
+          PY

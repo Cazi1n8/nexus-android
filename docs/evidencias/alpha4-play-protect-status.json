@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "updatedAtUtc": "2026-10-25T14:06:11Z",
+  "status": "user_reported_blocked_again",
+  "packageName": "br.com.nexus.assistant",
+  "versionName": "2.0.0-alpha.4",
+  "versionCode": 23,
+  "apkUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.4-build-13/NEXUS-2.0.0-alpha.4.apk",
+  "apkBytes": 615085340,
+  "apkSha256": "0c7059c77d07bc7eed40d5d7701a36e98ca3495a1d77a74c2500f7c7e85286df",
+  "certificateSha256": "65297709dfb7a0149397313c1249cf40b3392913a4050f0af0c8a5951c394c1f",
+  "signingType": "Android Debug",
+  "deviceReportedByUser": "Samsung Galaxy S9+",
+  "userConfirmedRepeatedBlock": true,
+  "latestReportHasNewScreenshot": false,
+  "blockReproducedByDevelopmentEnvironment": false,
+  "exactBlockingCauseKnown": false,
+  "playProtectApproved": false,
+  "appeal": {
+    "officialUrl": "https://support.google.com/googleplay/android-developer/contact/protectappeals",
+    "draftPrepared": "docs/PLAY_PROTECT_REVISAO.md",
+    "submitted": false,
+    "caseNumber": null,
+    "googleResponseReceived": false
+  },
+  "distributionLimitations": [
+    "Current published artifact uses an Android Debug certificate.",
+    "Published test builds have different certificates; a stable release signing identity still needs configuration.",
+    "Functional tests and APK integrity checks do not establish Play Protect approval.",
+    "Changing signing configuration alone does not prove the blocking cause or guarantee acceptance."
+  ],
+  "capabilityDisclosure": {
+    "accessibilityGestureDispatch": true,
+    "canRetrieveWindowContent": false,
+    "accessibilityEventTypes": 0,
+    "isAccessibilityToolDeclared": false,
+    "cameraForegroundServiceExported": false,
+    "globalMouseUserConsentRequired": true,
+    "foregroundNotificationAndStopAction": true,
+    "backgroundVoiceImplemented": false
+  },
+  "protectiveChangesBypassed": false
+}

@@ -9,6 +9,12 @@ plugins {
 
 val bundleModel = providers.gradleProperty("nexusBundleModel").map(String::toBoolean).getOrElse(true)
 val bundledAssets = rootProject.file(".build-deps/bundled-assets")
+// Explicit opt-in: release credentials come only from the developer/CI environment.
+// A missing value must stop a requested signed build, never fall back to a debug key.
+val releaseSigningRequested = providers.gradleProperty("nexusReleaseSigning").map(String::toBoolean).getOrElse(false)
+fun releaseCredential(name: String): String = providers.environmentVariable(name).orNull
+    ?.takeIf { it.isNotEmpty() } ?: error("Assinatura de release incompleta: configure $name no ambiente seguro.")
+
 
 android {
     namespace = "br.com.nexus.assistant"
@@ -56,8 +62,19 @@ android {
         compose = true
         buildConfig = true
     }
+    signingConfigs {
+        if (releaseSigningRequested) create("nexusRelease") {
+            storeFile = rootProject.file(releaseCredential("NEXUS_RELEASE_STORE_FILE"))
+            storePassword = releaseCredential("NEXUS_RELEASE_STORE_PASSWORD")
+            keyAlias = releaseCredential("NEXUS_RELEASE_KEY_ALIAS")
+            keyPassword = releaseCredential("NEXUS_RELEASE_KEY_PASSWORD")
+            enableV1Signing = true
+            enableV2Signing = true
+        }
+    }
     buildTypes {
         release {
+            if (releaseSigningRequested) signingConfig = signingConfigs.getByName("nexusRelease")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

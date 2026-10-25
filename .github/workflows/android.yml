@@ -76,7 +76,9 @@ jobs:
           retention-days: 14
 
   publish-test-apk:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Public debug distribution is paused while the installation block is reviewed.
+    # The build and downloadable Actions artifact continue normally.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.NEXUS_PUBLICAR_APK_DEBUG == 'true'
     needs: build
     runs-on: ubuntu-24.04
     permissions:

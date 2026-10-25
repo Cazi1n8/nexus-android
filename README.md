@@ -2,6 +2,10 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
+**Instalação bloqueada novamente pelo Play Protect no celular do usuário. A alpha.4 não está liberada para uso nesse aparelho.** Os testes funcionais aprovados não são aprovação do Google. [Pedido de revisão preparado](docs/PLAY_PROTECT_REVISAO.md); nenhuma solicitação foi enviada por este ambiente. [Assinatura e distribuição](docs/ASSINATURA_E_DISTRIBUICAO.md). Não remova a instalação atual nem desative a proteção para tentar instalar.
+
+A compilação automática e os artefatos do Actions continuam disponíveis. A publicação automática de novos APKs de depuração nas Releases foi pausada; ela só ocorre com a variável explícita `NEXUS_PUBLICAR_APK_DEBUG=true`. O workflow manual `signed-release-review.yml` prepara um APK de release usando a mesma chave privada do responsável, configurada em quatro Secrets. Essa chave definitiva ainda não foi configurada; não há novo APK assinado ou aprovação do Play Protect.
+
 **Versão de teste disponível: 2.0.0-alpha.4, versão 23.** A versão completa inclui a IA compacta no APK. Build, 129 testes JVM e a prova de Chat/OCR/cálculo sem internet passaram; o APK público foi baixado e inspecionado. A alpha.3 e suas evidências continuam no [relatório histórico](docs/RELATORIO_ALPHA_3.md).
 
 ## Mudanças desta etapa
@@ -19,7 +23,7 @@ Voz, Libras, mãos livres e 3D **ainda não operam fora do app**. Preservar uma 
 
 O usuário relatou que o **Play Protect bloqueou a instalação**. O aviso não identifica a causa exata. A acessibilidade usada no controle global é uma capacidade sensível; revisar o código não equivale à aprovação pelo Google. Não há garantia de liberação desta versão. Antes de distribuição pública, faltam assinatura de lançamento estável e revisão das capacidades/políticas. Não desative as proteções do aparelho para testar.
 
-**[Baixar NEXUS 2.0.0-alpha.4.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.4-build-13/NEXUS-2.0.0-alpha.4.apk)** — **586,6 MiB**, download direto sem ZIP ou login. SHA-256 `0c7059c77d07bc7eed40d5d7701a36e98ca3495a1d77a74c2500f7c7e85286df`. O arquivo publicado foi baixado e conferido com o digest do GitHub, assinatura v2, ZIP 16 KB, quatro ABIs, 40 bibliotecas ELF e integridade do GGUF/OCR. Instalar e preparar a IA exige espaço adicional; reserve cerca de 2 GB livres para download, instalação e preparo.
+**[APK alpha.4 para auditoria e revisão](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.4-build-13/NEXUS-2.0.0-alpha.4.apk)** — **586,6 MiB**, download direto sem ZIP ou login. SHA-256 `0c7059c77d07bc7eed40d5d7701a36e98ca3495a1d77a74c2500f7c7e85286df`. O arquivo publicado foi baixado e conferido com o digest do GitHub, assinatura v2, ZIP 16 KB, quatro ABIs, 40 bibliotecas ELF e integridade do GGUF/OCR. Instalar e preparar a IA exige espaço adicional; reserve cerca de 2 GB livres para download, instalação e preparo.
 
 1. Abra o APK somente se a verificação do Android permitir a instalação.
 2. Abra **Chat IA** e aguarde **IA local pronta para conversar**. A preparação copia dados do APK; não baixa outro modelo.

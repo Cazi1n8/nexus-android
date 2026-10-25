@@ -1,3 +1,13 @@
+# Seguimento — instalação bloqueada novamente
+
+O usuário confirmou novo bloqueio pelo Play Protect na alpha.4. O problema **não foi resolvido** pelos testes emulados ou pela inspeção do APK. Não foi produzido outro APK nesta etapa nem enviada uma solicitação ao Google.
+
+- Preparados [pedido oficial de revisão](docs/PLAY_PROTECT_REVISAO.md), identificadores do APK/certificado e [registro do novo relato](docs/evidencias/alpha4-play-protect-status.json).
+- Adicionada configuração de assinatura release por ambiente e [workflow manual](.github/workflows/signed-release-review.yml), restrito à main, sem fallback para debug. A chave definitiva e os quatro Secrets ainda precisam ser configurados pelo responsável; a integração atual não permite gravá-los.
+- Publicação automática de novos APKs debug pausada por padrão. Builds e artefatos de teste continuam; `NEXUS_PUBLICAR_APK_DEBUG=true` é a opção explícita para publicar debug.
+- **72 testes Python aprovados**, Gradle `help` aprovado, configuração de assinatura sem credenciais recusada como esperado e `validateSigningRelease` aprovado com chave temporária de teste, já apagada. Nenhuma chave de produção foi criada; o workflow assinado ainda não foi executado. [Evidência](docs/evidencias/release-signing-validation.json).
+- A assinatura identifica atualizações; não comprova a causa do bloqueio nem garante liberação do Google. Acessibilidade continua explicitamente declarada para o mouse global; não foi disfarçada ou removida para contornar a proteção.
+
 # Etapa atual — 2.0.0-alpha.4 (versão 23)
 
 Etapa compilada, testada e publicada: IA compacta incluída no APK, cópia e verificação local sem download no celular, perfil base estável com processamento adaptativo; calculadora real; OCR integrado ao chat local; preview opcional oculto; mouse global continua fora do app/inrecentes; Libras sem encerramento automático após acerto, alvo no canto e modo livre de configurações geométricas; diagnóstico mínimo e detalhes por escolha.

@@ -6,6 +6,8 @@ local.properties
 *.iml
 *.jks
 *.keystore
+*.p12
+*.pfx
 .env
 .env.*
 !.env.example

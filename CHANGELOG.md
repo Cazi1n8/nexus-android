@@ -1,3 +1,11 @@
+# Seguimento de distribuição — 25/10/2026
+
+- Registrado o novo bloqueio da alpha.4 relatado pelo usuário; liberação pelo Play Protect continua não resolvida.
+- Preparada minuta para revisão oficial, com APK, certificado, hashes e permissões explícitas. Nenhum pedido foi enviado ao Google.
+- Configurada assinatura release por ambiente, workflow manual e preparação temporária da chave sem versão pública de segredos. A chave definitiva e os Secrets continuam pendentes.
+- Publicação automática de novos APKs debug pausada por padrão; compilação e artefatos de teste continuam disponíveis.
+- 72 testes Python aprovados e validação local da configuração de assinatura; nenhum novo APK gerado.
+
 # 2.0.0-alpha.4 — APK de teste publicado
 
 - IA compacta incluída no APK completo e preparação local verificada sem rede.
