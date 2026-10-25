@@ -4,11 +4,13 @@ Atualizado em **25/10/2026 (UTC)**. Este documento compara o texto enviado pelo 
 
 **Resposta direta: não, todas as correções do texto grande ainda não estão prontas e comprovadas.** Há código real implementado e partes testadas; outras dependem de implementação adicional ou de testes físicos. O Samsung Galaxy S9+ informado pelo usuário não foi testado fisicamente pelo ambiente de desenvolvimento.
 
-## Bloqueio atual: o modelo chega ao tamanho completo e não termina
+## Correção do bloqueio em 100% — alpha.3
 
-O usuário relatou que o download chega ao final, mas a preparação não termina. Esse relato é um problema aberto; não foi reproduzido no aparelho pelo ambiente. A alpha.3 implementa conclusão por tamanho exato e SHA-256, progresso de verificação e retomada. Os 14 testes HTTPS do downloader passaram na JVM, dentro de uma suíte de 90 aprovados; a validação Android e a publicação ainda precisam ser registradas em [RELATORIO_ALPHA_3.md](RELATORIO_ALPHA_3.md).
+O usuário relatou “Baixando” com o tamanho completo e sem conclusão. A alpha.3 encerra a leitura ao receber os bytes fixados e verifica o SHA-256 do arquivo antes de liberar o chat. Ela também preserva parciais, valida retomada por intervalo e mostra progresso da verificação.
 
-Na alpha.2, havia verificações de catálogo e SHA-256, mas os testes de IA transferiam o GGUF ao emulador por ADB. **Eles comprovam inferência com um modelo real já instalado, não o download feito pelo aplicativo.** A alpha.2 também descartava o arquivo parcial ao reiniciar e não mostrava fases detalhadas de conexão/verificação. Novos resultados dessa correção só devem ser marcados como aprovados depois da execução dos testes correspondentes.
+A revisão `887da8abae76d2730f5ff228ea0e575808de414e` passou em 90 testes JVM, incluindo 14 de transporte HTTPS. No Android 10 emulado passaram 15 testes comuns (dois casos opt-in ignorados), incluindo o arquivo completo com conexão aberta e a pausa/retomada. Na prova dedicada, o próprio app baixou os dois GGUFs reais, retornou `READY`, conferiu seus hashes e gerou `42` com o compacto. [Relatório alpha.3](RELATORIO_ALPHA_3.md).
+
+Isso valida a correção nesses cenários, sem afirmar que o problema específico foi reproduzido ou já confirmado como resolvido no S9+ físico. Na alpha.2, a prova anterior transferia o modelo por ADB e não testava o downloader; suas evidências permanecem históricas.
 
 ## Como ler os estados
 
@@ -49,7 +51,7 @@ Um teste de geometria com landmarks sintéticos não comprova reconhecimento de 
 | **11. Privacidade, segurança e encerramento** | Permissões sob demanda, consentimento para servidor, token no Keystore, backup automático desativado, serviços visíveis com parada e acessibilidade sem coleta de árvore de telas. Ações restritas/confirmadas e rastreamento local. | **Implementado, aguardando validação adicional.** O banco Room não tem criptografia extra; exportações contêm dados pessoais. Ainda falta revisar o conjunto para distribuição e testar negação/revogação de permissões e encerramento no aparelho. Não foi feita uma certificação de segurança. |
 | **12. Prioridades em etapas verificáveis** | Histórico Git preservado e desenvolvimento incremental; primeiro IA local/voz, depois controladores, 3D e exercícios, com relatórios separados. | **Parcialmente implementado.** A existência de código em etapas posteriores não fecha os critérios de aceitação físicos das anteriores. O bloqueio de preparação da IA volta a ser a prioridade atual. |
 | **13. Critérios de aceitação por função** | Há evidência de inferência local, OCR, dados, regras de controladores e partes da interface. | **Parcialmente implementado.** Ainda não existe comprovação de ponta a ponta para todos os critérios no celular: download/primeiro chat, conversa pt-BR, mouse interno/global, mãos livres, duas mãos e exercício de Libras com câmera. |
-| **14. Compilar, testar e disponibilizar APK no mesmo repositório** | Alpha.2 compilada e publicada no mesmo GitHub, com assinatura/empacotamento/checksums conferidos e workflows de build, Android emulado e inferência real. [Relatório alpha.2](RELATORIO_ALPHA_2.md). | **Concluído e testado para a entrega alpha.2 descrita.** A versão corretiva seguinte ainda precisa de sua própria compilação, testes, publicação e verificação de download. Um APK anterior não comprova a correção nova. |
+| **14. Compilar, testar e disponibilizar APK no mesmo repositório** | Alpha.2 compilada e publicada no mesmo GitHub, com assinatura/empacotamento/checksums conferidos e workflows de build, Android emulado e inferência real. [Relatório alpha.2](RELATORIO_ALPHA_2.md). | **Concluído e testado para a entrega alpha.2 descrita.** A alpha.3 também foi compilada, publicada e verificada com testes próprios; consulte o relatório atual. A comprovação é limitada aos cenários registrados e não certifica todos os aparelhos. |
 | **15. Relatórios e progresso verdadeiros** | [PROGRESSO_NEXUS_2.md](../PROGRESSO_NEXUS_2.md), auditoria, changelog e evidências separadas por versão. | **Implementado, com atualização contínua.** O relato atual de falha precisa permanecer aberto até uma prova apropriada. Os resultados novos não devem ser inferidos dos resultados antigos. |
 
 ## Evidências existentes e seus limites
@@ -62,7 +64,7 @@ Os números abaixo pertencem à **alpha.2**, fonte `b7a5c1b52186fd5ad014c74dafec
 | Android comum | 13 aprovados, zero falhas/erros e um teste opcional ignorado sem fixture. Inclui quatro testes do leitor OCR, uma tela Vision e oito regressões de dados/UI/runtime. [JUnit](evidencias/alpha2-final-android10-junit.xml). |
 | IA real no Android | Um teste dedicado aprovado, quatro respostas reais; o GGUF foi colocado por ADB antes da instrumentação. Isso não testa o download feito pelo aplicativo nem a qualidade geral da IA. [Observações](evidencias/alpha2-final-ai-local-ai-observations.json). |
 | Preparação/build e servidor opcional | 44 testes Python de scripts e 44 do servidor aprovados. Esses testes não fazem o download Android no S9+. |
-| Testes físicos do S9+ | Não executados pelo ambiente. O usuário forneceu um relato real de bloqueio da preparação do modelo; causa específica e correção precisam de validação. |
+| Testes físicos do S9+ | Não executados pelo ambiente. O usuário forneceu um relato real de bloqueio da preparação do modelo; a correção passou nos cenários emulados, mas ainda precisa de confirmação física nesse aparelho. |
 
 ## Próximos critérios para fechar as pendências
 

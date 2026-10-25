@@ -50,6 +50,8 @@ A configuração do workflow não comprova execução: confira o resultado e os 
 
 A configuração de KVM segue a documentação de https://github.com/ReactiveCircus/android-emulator-runner e só altera o executor Linux descartável. Não exige qualquer mudança no celular.
 
-Uma execução alpha.2 esgotou o heap de 3 GB do Gradle ao empacotar o APK; a repetição passou. Se ocorrer `Java heap space` no computador, feche outros processos e limite os workers. Em uma máquina com RAM disponível suficiente, o heap pode ser aumentado para `-Xmx4g` em `gradle.properties`. Isso altera o ambiente de compilação, não a memória exigida pelo aplicativo instalado.
+Uma execução alpha.2 esgotou o heap de 3 GB do Gradle ao empacotar o APK; a repetição passou. A alpha.3 usa `-Xmx4g` em `gradle.properties` e limita os workers nos comandos de CI. Se o computador não tiver memória livre suficiente, ajuste esse heap e o número de workers antes de compilar. Isso altera o ambiente de compilação, não a memória exigida pelo aplicativo instalado.
 
 Na alpha.2, `LocalAiInferenceTest` fica explicitamente ignorado na suíte comum sem a fixture. O workflow separado `local-ai-smoke.yml` baixa o GGUF compacto fixado, transfere-o ao diretório privado do app no emulador e executa inferência real. Respostas e tempos ficam no relatório; os pesos temporários são excluídos e não são publicados. Consulte [os resultados da alpha.2](RELATORIO_ALPHA_2.md).
+
+Na alpha.3, `ProductionModelDownloadTest` também fica ignorado na suíte comum. O novo workflow `model-download-smoke.yml` executa o próprio downloader Android para os dois modelos reais e depois usa o compacto para gerar uma resposta. Essa prova não transfere os pesos por ADB. Ela exige escolha explícita de teste por baixar cerca de 1,6 GB; os arquivos são removidos do emulador após coletar as evidências. [Resultados alpha.3](RELATORIO_ALPHA_3.md).

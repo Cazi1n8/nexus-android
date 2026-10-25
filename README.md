@@ -2,15 +2,15 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
 
-**Código atual: 2.0.0-alpha.3, versão 22 — em validação.** Esta correção trata o relato de download que continua em “Baixando” depois de receber o tamanho completo. O código conclui a transferência pelo tamanho fixado, verifica o SHA-256 e só então libera o modelo. Também preserva arquivos parciais para retomada e mostra conexão, transferência e verificação separadamente. A compilação local passou com **90 testes JVM**, incluindo 14 testes HTTPS do downloader, e lint sem erros. Os testes Android e a publicação desta versão ainda precisam de resultado registrado. [Relatório da alpha.3](docs/RELATORIO_ALPHA_3.md).
+**Versão de teste disponível: 2.0.0-alpha.3, versão 22.** Corrige a conclusão do download que permanecia em “Baixando” com o tamanho completo. Passaram **90 testes JVM**, **15 testes comuns no Android emulado** e uma prova em que o próprio aplicativo baixou os dois modelos reais, verificou os arquivos e executou o compacto. A suíte comum informou dois casos opcionais ignorados, ambos cobertos em execuções dedicadas. O APK foi publicado, baixado e inspecionado. [Relatório da alpha.3](docs/RELATORIO_ALPHA_3.md).
 
-**Última publicação verificada: 2.0.0-alpha.2, versão 21.** Passou por 76 testes JVM, 13 testes comuns no Android emulado e uma prova dedicada de IA real; essa prova colocava o modelo no emulador por ADB e não validava o downloader do aplicativo. O usuário relatou o bloqueio em 100% nessa versão. Seus resultados anteriores permanecem no [relatório alpha.2](docs/RELATORIO_ALPHA_2.md).
+**Base anterior preservada: 2.0.0-alpha.2, versão 21.** Passou por 76 testes JVM, 13 testes comuns no Android emulado e uma prova dedicada de IA real; essa prova colocava o modelo no emulador por ADB e não validava o downloader do aplicativo. O usuário relatou o bloqueio em 100% nessa versão. Seus resultados anteriores permanecem no [relatório alpha.2](docs/RELATORIO_ALPHA_2.md).
 
 **Base anterior preservada: 2.0.0-alpha.1.** Essa versão passou por **76 testes JVM**, lint sem erros e **8 testes no Android 10 emulado**. O download público, a assinatura v2 e o alinhamento de suas bibliotecas foram verificados. As evidências permanecem em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
 ## O que mudou
 
-A alpha.3 separa “arquivo recebido” de “modelo pronto”, oferece pausa/retomada, progresso da verificação e descarte apenas do download parcial. A correção ainda aguarda a execução dos novos testes. Os modelos de conversa continuam exigindo um primeiro download autorizado; não há conta ou chave obrigatória.
+A alpha.3 separa “arquivo recebido” de “modelo pronto”, oferece pausa/retomada, progresso da verificação e descarte apenas do download parcial. Os testes HTTPS e a prova real de download passaram no Android emulado; falta confirmar o comportamento no S9+ físico. Os modelos de conversa continuam exigindo um primeiro download autorizado; não há conta ou chave obrigatória.
 
 NEXUS AI pode executar um modelo de texto no próprio aparelho compatível, sem URL, chave ou conta de IA. O perfil personalizado HTTPS continua disponível separadamente. A evolução também adiciona verificação do aparelho, ajustes de processamento, correções de voz pt-BR, mouse persistente, controles independentes de gestos/3D e exercícios preparatórios de Libras.
 
@@ -20,23 +20,21 @@ Ainda há pedidos do texto grande pendentes: Libras completa, compreensão local
 
 ## Instalar pelo celular
 
-**APK alpha.2 de referência, com o bloqueio de download relatado; a correção alpha.3 ainda não tem publicação verificada aqui.**
+**[Baixar NEXUS 2.0.0-alpha.3.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.3-build-10/NEXUS-2.0.0-alpha.3.apk)** — aproximadamente **117,9 MiB**. Download direto, sem ZIP ou login no GitHub.
 
-**[Baixar NEXUS 2.0.0-alpha.2.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.2-build-9/NEXUS-2.0.0-alpha.2.apk)** — aproximadamente **117,9 MiB**. Download direto, sem ZIP ou login no GitHub.
+**Se já instalou a alpha.2 publicada:** os certificados dos dois APKs são diferentes, e o Android não permite atualizar essa instalação diretamente. Antes de remover a versão antiga, abra **Memória e histórico → Exportar conversas e memórias (JSON)** e guarde os dados importantes. A exportação contém textos; imagens e token não são incluídos. Depois desinstale a alpha.2 e instale a alpha.3. **Desinstalar apaga modelos e downloads parciais privados**, então esse arquivo do modelo precisará ser baixado novamente. A retomada nova preserva arquivos que continuam na mesma instalação; não recupera dados apagados por desinstalação.
 
-1. Toque no link acima e abra o APK no gerenciador de arquivos. Autorize instalar aplicativos pela origem utilizada se o Android solicitar.
-2. Para ler texto sem baixar IA, abra **NEXUS Vision → Escolher imagem → Ler texto no aparelho**. A leitura OCR funciona offline; câmera e microfone só são ativados por suas ações.
-3. Para conversar com IA local, abra **Configurações → NEXUS AI**, confira **Ajustar ao aparelho** e autorize o download do modelo recomendado. Prefira Wi-Fi e mantenha o app aberto.
-4. Após a verificação do modelo, abra **Chat IA** e envie uma mensagem.
+1. Baixe o APK e abra-o no gerenciador de arquivos. Autorize instalar aplicativos pela origem utilizada se o Android solicitar.
+2. Abra **Configurações → NEXUS AI**, confira **Ajustar ao aparelho** e autorize baixar o modelo recomendado. Prefira Wi-Fi e mantenha o app aberto.
+3. Acompanhe as fases de conexão, transferência e verificação. Abra **Chat IA** quando aparecer **“Modelo pronto para conversar. Abra o Chat IA.”**
+4. Para OCR sem baixar IA de conversa: **NEXUS Vision → Escolher imagem → Ler texto no aparelho**.
 5. Para voz, permita o microfone quando solicitado e instale uma voz **Português (Brasil)** no mecanismo de fala do Android, se necessário.
 
-O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.2-build-9) foi publicado e verificado: **123.631.398 bytes**, assinatura v2 válida e SHA-256 `6185c50c7dd75d6c2b160d9933f37e0c23cd3717ae9007a0183faadda663e422`, conferido contra o digest do GitHub e `SHA256SUMS.txt`. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
-
-Builds de ambientes diferentes podem usar certificados de depuração diferentes. Se o Android recusar atualizar por assinatura, exporte dados importantes antes de desinstalar a versão anterior. Desinstalar apaga conversas, modelos e downloads parciais privados; a retomada implementada não preserva arquivos através de uma desinstalação.
+O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.3-build-10) foi publicado e verificado: **123.631.398 bytes**, assinatura v2 válida e SHA-256 `779b42cd94980a6eea489d20db4d51be5f65829a6241c54e793ae9de8d7eecd1`, conferido contra o digest do GitHub e `SHA256SUMS.txt`. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. O [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) também oferece o artefato em ZIP, com retenção limitada. Um caminho local `/workspace/...` não é um endereço público de download.
 
 ## Compatibilidade automática
 
-A base requer **Android 8.0/API 26 ou superior**. O APK alpha.2 publicado foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. São 40 bibliotecas nativas, com alinhamento ELF ≥16 KB nas 22 de 64 bits e ≥4 KB nas 18 de 32 bits; ZIP alinhado a 16 KB. Os modelos OCR estão presentes e verificados, e não há pesos GGUF no APK.
+A base requer **Android 8.0/API 26 ou superior**. O APK alpha.3 publicado foi inspecionado com quatro arquiteturas: ARM64, ARM32, x86_64 e x86. São 40 bibliotecas nativas, com alinhamento ELF ≥16 KB nas 22 de 64 bits e ≥4 KB nas 18 de 32 bits; ZIP alinhado a 16 KB. Os modelos OCR estão presentes e verificados, e não há pesos GGUF no APK.
 
 O aplicativo verifica arquitetura, RAM, armazenamento, CPU, câmeras, microfone e GLES. O perfil automático ajusta recomendação de modelo, contexto, threads, resolução e frequência de análise; efeitos visuais são reduzidos em aparelhos modestos. Downloads e envio remoto sempre exigem escolha explícita.
 
@@ -79,15 +77,13 @@ python3 -m unittest discover -s server/tests -v
 ./gradlew connectedDebugAndroidTest
 ```
 
-O último comando exige aparelho ou emulador conectado. O teste `LocalAiInferenceTest` é ignorado explicitamente quando o GGUF de teste não é fornecido; o [workflow de IA local](.github/workflows/local-ai-smoke.yml) prepara esse arquivo e executa a inferência separadamente. Ele registra respostas reais, tempos e observações de cálculo, contexto e UTF-8; aprovação de transporte não certifica qualidade geral do modelo. Os pesos temporários não são publicados como artefato nem incluídos no APK. A [prova final de IA real no Android](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216702) passou com quatro respostas geradas; as observações estão [neste JSON](docs/evidencias/alpha2-final-ai-local-ai-observations.json).
-
-O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [rodada final, tentativa 2](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216728/attempts/2) passou: **13 testes aprovados, 0 falhas/erros e 1 ignorado** sem fixture, em 53 s de instrumentação comum. A IA real passou separadamente. Esses testes não certificam câmera, voz ou mãos físicas. O [workflow principal aprovado](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216752) gera APK e relatórios em alterações na branch `main`.
+O último comando exige aparelho ou emulador conectado. Sem autorização/fixture, os casos `LocalAiInferenceTest` e `ProductionModelDownloadTest` são explicitamente ignorados na suíte comum. A [rodada Android alpha.3](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770843) passou com **15 aprovados, 0 falhas/erros e 2 ignorados**, em 55 s. Os dois casos opcionais passaram separadamente: [inferência com fixture](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770987) e [download real pelo aplicativo](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770826). O [build e publicação](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770859) também passaram, com 90 testes JVM e zero erros de lint. Essas provas não certificam câmera, voz, mãos físicas ou desempenho no S9+.
 
 ## Validação nova do download
 
 Na alpha.3, testes HTTPS controlados exercitam o próprio `LocalModelManager`: tamanho completo sem fechamento da conexão, verificação, cancelamento, retomada por `Range` e respostas inválidas. Eles usam arquivos sintéticos pequenos para testar transporte; não avaliam a qualidade de um modelo de linguagem.
 
-O novo [workflow de download real no Android](.github/workflows/model-download-smoke.yml) foi preparado para o próprio aplicativo baixar os dois modelos públicos e executar o compacto depois de chegar a `READY`. Ele não instala o GGUF por ADB. A execução e seus resultados ainda precisam ser registrados no [relatório alpha.3](docs/RELATORIO_ALPHA_3.md). Sem o argumento de autorização do teste, `ProductionModelDownloadTest` é explicitamente ignorado na suíte comum; isso se soma ao caso de inferência que exige sua própria fixture.
+O [workflow de download real no Android](.github/workflows/model-download-smoke.yml) passou: o próprio aplicativo baixou os dois modelos públicos, retornou de `download()`, chegou a `READY` e revalidou seus hashes. Depois, o compacto gerou `42` para 17 + 25. Nenhum GGUF foi instalado por ADB nessa prova. O compacto baixou em 37,789 s e o equilibrado em 82,455 s; esses tempos pertencem ao emulador/runner e não estimam a velocidade no celular. [Relatório e evidências alpha.3](docs/RELATORIO_ALPHA_3.md). Sem o argumento de autorização do teste, `ProductionModelDownloadTest` é explicitamente ignorado na suíte comum; isso se soma ao caso de inferência que exige sua própria fixture.
 
 ## Privacidade e limites
 

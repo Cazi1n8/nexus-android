@@ -1,5 +1,18 @@
 # Evidências da evolução 2.0
 
+## Alpha.3 — download que não terminava
+
+A revisão `887da8abae76d2730f5ff228ea0e575808de414e` passou no build, no Android emulado e no download real dos dois modelos pelo próprio aplicativo. [Relatório e limites](../RELATORIO_ALPHA_3.md).
+
+- [Resumo CI](alpha3-ci-final.json): 90 testes JVM, 51 Python de scripts, 44 do servidor e zero erros de lint.
+- [Download HTTPS na JVM](alpha3-jvm-download.xml): 14 testes do gerenciador real com servidor controlado, incluindo recebimento completo sem encerramento da conexão, corrupção e retomada.
+- [Android 10](alpha3-android10-junit.xml): 15 aprovados, zero falhas/erros e dois opt-in ignorados na suíte comum; os dois casos são exercitados separadamente.
+- [Downloads reais e inferência](alpha3-production-production-download-observations.json), [instrumentação](alpha3-production-instrumentation.txt) e [JUnit](alpha3-production-junit.xml): os dois modelos chegaram a `READY`, retornaram ao chamador e mantiveram SHA-256 correto; o compacto gerou uma resposta após o download. Não há injeção de GGUF por ADB nessa prova.
+- [APK publicado](alpha3-published-apk.json): download, tamanho, checksums, assinatura v2, ZIP 16 KB, quatro ABIs, 40 ELFs e modelos OCR conferidos. Inclui a comparação dos certificados de teste com a alpha.2; os certificados são diferentes.
+- [Build local](alpha3-local-verification.json) e arquivos `alpha3-native-ai-*`: evidências locais e regressão separada de inferência/contexto/UTF-8 com modelo previamente transferido. Essas provas têm escopos distintos.
+
+Nenhuma prova usa sensores físicos do S9+. A confirmação nesse aparelho e as demais pendências do [pedido original](../PEDIDOS_E_STATUS.md) continuam separadas.
+
 ## Alpha.2
 
 A revisão `b7a5c1b52186fd5ad014c74dafec4649d62c7bb5` passou no build GitHub, na suíte comum Android 10 e na prova separada com GGUF real. [Relatório e limites](../RELATORIO_ALPHA_2.md).

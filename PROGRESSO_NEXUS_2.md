@@ -1,26 +1,32 @@
 # NEXUS 2.0 — progresso verificável
 
-Atualizado em **25/10/2026 (UTC)**. Código atual: **2.0.0-alpha.3**, código de versão 22, em validação. O último APK publicado e verificado é a alpha.2, com o bloqueio de download em 100% relatado pelo usuário. O projeto, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ informado pelo usuário ainda não foi testado fisicamente pelo ambiente.
+Atualizado em **25/10/2026 (UTC)**. Código atual: **2.0.0-alpha.3**, código de versão 22, com APK de teste publicado, baixado e verificado. A alpha.2 permanece documentada como versão anterior com o bloqueio de download relatado pelo usuário. O projeto, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ informado pelo usuário ainda não foi testado fisicamente pelo ambiente.
 
 Esta atualização inclui o pedido de verificar o aparelho e ajustar recursos automaticamente. Compatibilidade do aplicativo, disponibilidade de uma função e teste físico aprovado são resultados diferentes.
 
 
-## Correção alpha.3 em validação
+## Correção alpha.3 entregue para testes
 
 O usuário confirmou que a tela permanece em **“Baixando” com o tamanho completo recebido**. A alpha.3 altera a finalização: o downloader recebe somente o orçamento de bytes fixado do modelo, encerra a chamada sem esperar um EOF adicional, confere o SHA-256 do arquivo privado e promove o modelo a `READY`. Isso trata um cenário reproduzível de servidor que mantém a conexão aberta; a causa específica no S9+ ainda precisa de confirmação física.
 
 | Item alpha.3 | Estado registrado |
 | --- | --- |
-| Finalizar transferência sem espera extra em 100% | Implementado; 14 testes HTTPS do downloader aprovados na JVM, incluindo tamanho completo sem EOF; execução Android pendente |
-| Retomar arquivo parcial | Implementado com `Range`, validação de `Content-Range` e reinício avisado quando o servidor retorna o arquivo inteiro; teste Android pendente |
+| Finalizar transferência sem espera extra em 100% | 14 testes HTTPS aprovados na JVM e dois testes controlados aprovados no Android; tamanho completo sem EOF e retomada verificados |
+| Retomar arquivo parcial | Implementado com `Range`, validação de `Content-Range` e reinício avisado quando o servidor retorna o arquivo inteiro; retomada aprovada em HTTPS controlado na JVM e no Android |
 | Verificar arquivo completo já recebido | Implementado sem repetir o download; modelo só fica pronto após SHA-256 válido |
-| Interface do download | Fases de conexão, transferência, verificação, pausa e pronto; bytes, velocidade e progresso de verificação; aguardando validação integrada |
+| Interface do download | Fases de conexão, transferência, verificação, pausa e pronto; bytes, velocidade e progresso de verificação implementados e compilados. O fluxo completo até `READY` foi aprovado no Android emulado; interação física no S9+ pendente |
 | Pausar ou descartar parcial | Ações implementadas; descarte exige confirmação e preserva conversas/outro perfil. Desinstalar o app apaga seus arquivos privados |
 | Testes Python dos scripts | **51 aprovados** na execução informada nesta etapa; não comprovam o download no Android |
-| Download real no Android | Novo teste opt-in e workflow preparados para baixar os dois GGUFs pelo próprio app e inferir com o compacto; ainda sem resultado registrado |
-| Compilação, JVM, lint e APK local alpha.3 | **BUILD SUCCESSFUL in 2m 5s**, 90 testes JVM aprovados sem falhas/erros/ignorados; lint 0 erros, 37 avisos e 1 informação. APK local gerado e inspecionado; publicação/Android ainda pendentes |
+| Download real no Android | Aprovado: os dois GGUFs foram baixados pelo próprio app, verificados e revalidados em `READY`; compacto gerou `42` após o download, sem instalar modelo por ADB |
+| Compilação, JVM, lint e APK local alpha.3 | **BUILD SUCCESSFUL in 2m 5s**, 90 testes JVM aprovados sem falhas/erros/ignorados; lint 0 erros, 37 avisos e 1 informação. APK local e publicado gerados e inspecionados; CI com 90 JVM aprovados e Android comum com 15 aprovados, 0 falhas/erros e 2 opcionais ignorados, executados separadamente |
 
-APK local alpha.3: **123.615.014 bytes**, SHA-256 `11a8a1b2fabd712dd346fe95e6a470cf27a34aa70a87ec29c3587ace2ff9bf09`. Assinatura v2 válida, ZIP 16 KB, quatro ABIs, 40 bibliotecas ELF e modelos OCR conferidos; sem GGUF no APK. A verificação local não substitui a execução no Android ou a inspeção da publicação.
+APK local alpha.3: **123.615.014 bytes**, SHA-256 `11a8a1b2fabd712dd346fe95e6a470cf27a34aa70a87ec29c3587ace2ff9bf09`. Assinatura v2 válida, ZIP 16 KB, quatro ABIs, 40 bibliotecas ELF e modelos OCR conferidos; sem GGUF no APK. A publicação foi inspecionada separadamente, e os resultados Android estão no relatório.
+
+**[Baixar o APK alpha.3](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.3-build-10/NEXUS-2.0.0-alpha.3.apk)** — **123.631.398 bytes**, SHA-256 `779b42cd94980a6eea489d20db4d51be5f65829a6241c54e793ae9de8d7eecd1`. Assinatura v2, ZIP 16 KB, quatro ABIs, 40 ELFs e modelos OCR conferidos; nenhum GGUF. Fonte `887da8abae76d2730f5ff228ea0e575808de414e`. [Build/publicação](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770859), [Android comum](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770843), [download real](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770826), [inferência com fixture](https://github.com/Cazi1n8/nexus-android/actions/runs/40151770987).
+
+A prova de produção baixou o compacto em 37,789 s e o equilibrado em 82,455 s, ambos com `downloadReturned=true`, `READY`, SHA-256 correto e revalidação aprovada. A inferência do compacto respondeu `42` em 5.305 ms. A instrumentação inteira levou 134,447 s. São tempos desse emulador, sem teste físico no S9+.
+
+Os APKs alpha.2/alpha.3 publicados têm certificados diferentes e não permitem atualização direta entre si. Exporte conversas antes de desinstalar a versão antiga; desinstalar apaga modelos e parciais privados. A retomada não recupera arquivos removidos pela desinstalação. Assinatura de release estável continua pendente.
 
 O teste anterior de IA real instalava o GGUF por ADB. Sua aprovação validou inferência, não o caminho de download relatado pelo usuário. [Relatório alpha.3](docs/RELATORIO_ALPHA_3.md) e [matriz completa dos pedidos](docs/PEDIDOS_E_STATUS.md).
 

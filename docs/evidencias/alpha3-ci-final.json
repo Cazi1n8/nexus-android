@@ -1,0 +1,97 @@
+{
+  "sourceCommit": "887da8abae76d2730f5ff228ea0e575808de414e",
+  "dateUtc": "2026-10-25",
+  "build": {
+    "runId": 40151770859,
+    "result": "success",
+    "jvm": {
+      "tests": 90,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "scriptsPython": {
+      "tests": 51,
+      "failures": 0,
+      "skipped": 0,
+      "seconds": 0.059
+    },
+    "serverPython": {
+      "tests": 44,
+      "failures": 0,
+      "skipped": 0,
+      "seconds": 17.056
+    },
+    "lint": {
+      "errors": 0,
+      "warnings": 38,
+      "information": 1
+    },
+    "seconds": 307
+  },
+  "commonAndroid": {
+    "runId": 40151770843,
+    "result": "success",
+    "api": 29,
+    "abi": "x86_64",
+    "connectedSeconds": 55,
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 15,
+    "scope": "Includes two new downloader transport tests using controlled HTTPS; optional production-download and preinstalled-model cases explicitly skipped here."
+  },
+  "preinstalledModelInference": {
+    "runId": 40151770987,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "Regresses JNI/context/UTF-8; model is injected before this separate test."
+  },
+  "productionDownloadsAndInference": {
+    "runId": 40151770826,
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "instrumentationSeconds": 134.447,
+    "evidence": "alpha3-production-production-download-observations.json",
+    "downloadSource": "Production LocalModelManager over Android HTTPS; no ADB model fixture",
+    "models": [
+      {
+        "profile": "compact",
+        "bytes": 491400032,
+        "sha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+        "downloadReturned": true,
+        "terminalState": "READY",
+        "refreshState": "READY",
+        "downloadMilliseconds": 37789
+      },
+      {
+        "profile": "balanced",
+        "bytes": 1117320736,
+        "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+        "downloadReturned": true,
+        "terminalState": "READY",
+        "refreshState": "READY",
+        "downloadMilliseconds": 82455
+      }
+    ],
+    "inference": {
+      "answer": "42",
+      "milliseconds": 5305,
+      "arithmeticMatchedExpected42": true
+    }
+  },
+  "publishedApk": {
+    "releaseTag": "v2.0.0-alpha.3-build-10",
+    "bytes": 123631398,
+    "sha256": "779b42cd94980a6eea489d20db4d51be5f65829a6241c54e793ae9de8d7eecd1",
+    "publicDownloadVerified": true,
+    "releaseDigestAndSha256SumsVerified": true,
+    "inspection": "alpha3-published-apk.json"
+  },
+  "physicalDeviceTests": "Not executed; the Samsung Galaxy S9+ report still needs confirmation after installation."
+}

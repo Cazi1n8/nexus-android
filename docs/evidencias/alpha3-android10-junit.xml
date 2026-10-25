@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="br.com.nexus.assistant.ConversationCancellationTest" tests="17" failures="0" errors="0" skipped="2" time="20.144" timestamp="2026-10-25T01:50:36" hostname="localhost">
+  <properties>
+    <property name="device" value="emulator-5554 - 10" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="deletingDataWaitsForAnExistingMemorySaveAndRejectsEditsDuringDeletion" classname="br.com.nexus.assistant.ConversationCancellationTest" time="0.56" />
+  <testcase name="interruptingTheFirstAnswerKeepsItsMessageAndNextSendInTheSameConversation" classname="br.com.nexus.assistant.ConversationCancellationTest" time="0.091" />
+  <testcase name="sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer" classname="br.com.nexus.assistant.FirstRunFlowsTest" time="5.874" />
+  <testcase name="anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated" classname="br.com.nexus.assistant.FirstRunFlowsTest" time="4.418" />
+  <testcase name="realModelProducesUtf8TextOnAndroidAndRecordsObservations" classname="br.com.nexus.assistant.LocalAiInferenceTest" time="0.155">
+    <skipped />
+  </testcase>
+  <testcase name="cancellationAndManagerRecreationResumeTheVerifiedTransfer" classname="br.com.nexus.assistant.LocalModelDownloadDeviceTest" time="1.314" />
+  <testcase name="allBytesReceivedCanFinishAndReachReadyWithoutWaitingForEof" classname="br.com.nexus.assistant.LocalModelDownloadDeviceTest" time="0.293" />
+  <testcase name="boundedDecodeHonorsExifRotationAndBlankImageReturnsNoText" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.635" />
+  <testcase name="rejectsOutsidePrivateFilesAndOversizedInput" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.005" />
+  <testcase name="closedReaderDoesNotStartRecognition" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.0" />
+  <testcase name="bundledPortugueseAndEnglishModelsReadPrintedText" classname="br.com.nexus.assistant.LocalTextReaderTest" time="0.278" />
+  <testcase name="localAiJniLoadsOnlyInSupportedProcessAndRejectsMissingWeights" classname="br.com.nexus.assistant.NativeCapabilitiesSmokeTest" time="0.003" />
+  <testcase name="packagedHandTrackerProcessesABlankVideoFrame" classname="br.com.nexus.assistant.NativeCapabilitiesSmokeTest" time="0.333" />
+  <testcase name="bothProductionModelsDownloadAndCompactCanInfer" classname="br.com.nexus.assistant.ProductionModelDownloadTest" time="0.002">
+    <skipped />
+  </testcase>
+  <testcase name="galleryAndQuestionWorkWithoutActivatingSensorsOrSendingAnImage" classname="br.com.nexus.assistant.VisionUiTest" time="3.881" />
+  <testcase name="deletingConversationRemovesMessagesButPreservesAuthorizedMemories" classname="br.com.nexus.assistant.data.LocalDataTest" time="0.278" />
+  <testcase name="exportContainsConversationAndMemoriesButOmitsPrivateImagePaths" classname="br.com.nexus.assistant.data.LocalDataTest" time="0.078" />
+</testsuite>

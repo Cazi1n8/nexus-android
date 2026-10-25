@@ -1,17 +1,17 @@
 # Alterações do NEXUS
 
-## 2.0.0-alpha.3 — em validação, 25/10/2026
+## 2.0.0-alpha.3 — versão de teste publicada, 25/10/2026
 
-Versão Android 22. Correção do relato de download que permanece em “Baixando” com o tamanho completo. Build local aprovado em 2m 5s, com 90 testes JVM, 51 testes Python dos scripts e lint sem erros; APK local gerado e inspecionado. Os testes Android e a publicação alpha.3 ainda estão pendentes. [Relatório da etapa](docs/RELATORIO_ALPHA_3.md).
+Versão Android 22. Correção do relato de download que permanece em “Baixando” com o tamanho completo. Build local aprovado em 2m 5s, com 90 testes JVM, 51 testes Python dos scripts e lint sem erros; APK local gerado e inspecionado. O APK publicado foi baixado e inspecionado. A suíte comum Android aprovou 15 testes e ignorou dois casos opcionais, ambos aprovados em execuções dedicadas. A prova de produção baixou os dois modelos pelo próprio app e executou o compacto; teste físico no S9+ permanece pendente. [Relatório da etapa](docs/RELATORIO_ALPHA_3.md).
 
 - Finalização pelo número exato de bytes fixados, sem aguardar fechamento da conexão depois do tamanho completo. Verificação SHA-256 do arquivo antes de liberar o chat.
 - Arquivo parcial preservado em pausa/interrupção e retomada HTTPS com `Range`; validação do intervalo e reinício informado se o servidor ignorar a retomada.
 - Fases de conexão, transferência e verificação separadas, com quantidade recebida, velocidade e progresso real de verificação.
 - Retomada de arquivo completo para verificar sem baixar novamente; descarte confirmado apenas do parcial para recomeçar.
 - Liberação explícita do job de download no ViewModel para permitir nova tentativa depois de concluir ou pausar.
-- 14 novos testes HTTPS do downloader aprovados na JVM; dois testes Android controlados preparados e workflow opt-in que baixa os modelos reais pelo próprio aplicativo e executa o compacto. Resultados Android ainda pendentes de registro.
+- 14 novos testes HTTPS do downloader aprovados na JVM e dois testes controlados aprovados no Android. O workflow opt-in baixou os dois modelos reais pelo próprio aplicativo, verificou/revalidou `READY` e executou o compacto sem injeção de GGUF por ADB.
 - Heap de desenvolvimento do Gradle ajustado para 4 GB, sem alterar os critérios de RAM do aplicativo instalado.
-- Matriz dos pedidos originais adicionada, com implementações e pendências separadas. Retomada não preserva dados através de uma desinstalação.
+- Matriz dos pedidos originais adicionada, com implementações e pendências separadas. Certificados diferentes entre os APKs alpha.2/alpha.3 impedem atualização direta; exportar conversas antes de remover a instalação antiga. Desinstalar apaga os parciais; a retomada não os recupera.
 
 ## 2.0.0-alpha.2 — versão de teste publicada, 24/10/2026
 
