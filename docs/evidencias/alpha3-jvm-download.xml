@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="br.com.nexus.assistant.data.local.LocalModelDownloadTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-10-25T01:39:03" hostname="17490e21fd26" time="5.465">
+  <properties/>
+  <testcase name="cancellationKeepsProgressAndANewManagerResumesWithTheExactRange" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="1.562"/>
+  <testcase name="deletingAnInterruptedDownloadPreservesOtherModelFiles" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.097"/>
+  <testcase name="completePartialFromAnInterruptedFinalizationIsVerifiedWithoutRedownloading" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.039"/>
+  <testcase name="completePinnedBytesDoNotWaitForAnUnknownLengthConnectionToClose" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.177"/>
+  <testcase name="aServerIgnoringRangeRestartsSafelyWithoutAppendingTheFileTwice" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.194"/>
+  <testcase name="aStalledBodyPreservesTheBytesAlreadyReceivedAndStopsTheActiveState" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="2.139"/>
+  <testcase name="fixedLengthDownloadReturnsAfterVerifyingAndReleasesTheJob" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.171"/>
+  <testcase name="aDisconnectedTransferPreservesItsPrefixWithoutMarkingItReady" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.201"/>
+  <testcase name="anOversizedDeclaredFileIsRejectedBeforeItCanBecomeAModel" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.104"/>
+  <testcase name="aSameLengthCorruptedFileIsNeverPromotedToReady" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.132"/>
+  <testcase name="noResponseHeadersEndsWithAnActionableFailureInsteadOfAnInfiniteSpinner" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.293"/>
+  <testcase name="refusesPlainHttpBeforeSendingARequest" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.043"/>
+  <testcase name="httpsRedirectAndChunkedTransferReachTheSameVerifiedFile" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.2"/>
+  <testcase name="aMismatchedContentRangeCannotOverwriteOrAppendToTheExistingPrefix" classname="br.com.nexus.assistant.data.local.LocalModelDownloadTest" time="0.111"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 25, 2026 1:39:07 AM okhttp3.mockwebserver.MockWebServer$SocketHandler handle
+WARNING: MockWebServer[45599] connection from /127.0.0.1 didn't make a request
+Oct 25, 2026 1:39:08 AM okhttp3.mockwebserver.MockWebServer$SocketHandler handle
+WARNING: MockWebServer[48989] connection from /127.0.0.1 didn't make a request
+]]></system-err>
+</testsuite>

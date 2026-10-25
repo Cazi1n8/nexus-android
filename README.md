@@ -2,19 +2,25 @@
 
 Assistente Android nativo em Kotlin e Jetpack Compose, com interface preta, azul e ciano. Este é o mesmo projeto existente: o identificador Android e o banco de conversas foram preservados.
 
-**Versão de teste disponível: 2.0.0-alpha.2, versão 21.** APK compilado, publicado e baixado para verificação. Passaram **76 testes JVM**, **13 testes comuns no Android 10 emulado** e **1 teste dedicado de IA com modelo real**; a suíte comum informa separadamente um caso opcional ignorado. Também passaram 44 testes Python dos scripts e 44 do servidor opcional. Lint sem erros. Resultados e limites: [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md).
+**Código atual: 2.0.0-alpha.3, versão 22 — em validação.** Esta correção trata o relato de download que continua em “Baixando” depois de receber o tamanho completo. O código conclui a transferência pelo tamanho fixado, verifica o SHA-256 e só então libera o modelo. Também preserva arquivos parciais para retomada e mostra conexão, transferência e verificação separadamente. A compilação local passou com **90 testes JVM**, incluindo 14 testes HTTPS do downloader, e lint sem erros. Os testes Android e a publicação desta versão ainda precisam de resultado registrado. [Relatório da alpha.3](docs/RELATORIO_ALPHA_3.md).
+
+**Última publicação verificada: 2.0.0-alpha.2, versão 21.** Passou por 76 testes JVM, 13 testes comuns no Android emulado e uma prova dedicada de IA real; essa prova colocava o modelo no emulador por ADB e não validava o downloader do aplicativo. O usuário relatou o bloqueio em 100% nessa versão. Seus resultados anteriores permanecem no [relatório alpha.2](docs/RELATORIO_ALPHA_2.md).
 
 **Base anterior preservada: 2.0.0-alpha.1.** Essa versão passou por **76 testes JVM**, lint sem erros e **8 testes no Android 10 emulado**. O download público, a assinatura v2 e o alinhamento de suas bibliotecas foram verificados. As evidências permanecem em [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md).
 
 ## O que mudou
 
+A alpha.3 separa “arquivo recebido” de “modelo pronto”, oferece pausa/retomada, progresso da verificação e descarte apenas do download parcial. A correção ainda aguarda a execução dos novos testes. Os modelos de conversa continuam exigindo um primeiro download autorizado; não há conta ou chave obrigatória.
+
 NEXUS AI pode executar um modelo de texto no próprio aparelho compatível, sem URL, chave ou conta de IA. O perfil personalizado HTTPS continua disponível separadamente. A evolução também adiciona verificação do aparelho, ajustes de processamento, correções de voz pt-BR, mouse persistente, controles independentes de gestos/3D e exercícios preparatórios de Libras.
 
 Na alpha.2, **NEXUS Vision → Ler texto offline** usa Tesseract4Android e modelos português/inglês incluídos no APK. O fluxo recebe foto ou imagem da galeria, sem depender de câmera para importar; oferece copiar, ouvir e salvar o texto como memória por escolha explícita. O ditado preenche uma pergunta editável; o envio para IA continua manual. [Funcionamento e limites do OCR](docs/OCR_LOCAL.md). Os quatro testes do leitor OCR e o teste da tela Vision passaram na rodada final em emulador. O seletor de imagens do Android, as câmeras e a voz ainda precisam de validação física.
 
-A implementação ainda precisa das verificações registradas no progresso. Não houve teste físico pelo ambiente no Samsung Galaxy S9+ informado pelo usuário.
+Ainda há pedidos do texto grande pendentes: Libras completa, compreensão local geral de imagens, resumo persistente de conversas e validação física de voz, mouse e gestos. A [matriz de pedidos e estado real](docs/PEDIDOS_E_STATUS.md) detalha cada ponto. Não houve teste físico pelo ambiente no Samsung Galaxy S9+ informado pelo usuário.
 
 ## Instalar pelo celular
+
+**APK alpha.2 de referência, com o bloqueio de download relatado; a correção alpha.3 ainda não tem publicação verificada aqui.**
 
 **[Baixar NEXUS 2.0.0-alpha.2.apk](https://github.com/Cazi1n8/nexus-android/releases/download/v2.0.0-alpha.2-build-9/NEXUS-2.0.0-alpha.2.apk)** — aproximadamente **117,9 MiB**. Download direto, sem ZIP ou login no GitHub.
 
@@ -26,7 +32,7 @@ A implementação ainda precisa das verificações registradas no progresso. Nã
 
 O [APK da release de teste](https://github.com/Cazi1n8/nexus-android/releases/tag/v2.0.0-alpha.2-build-9) foi publicado e verificado: **123.631.398 bytes**, assinatura v2 válida e SHA-256 `6185c50c7dd75d6c2b160d9933f37e0c23cd3717ae9007a0183faadda663e422`, conferido contra o digest do GitHub e `SHA256SUMS.txt`. O workflow publica o APK diretamente nas releases após um build aprovado da branch `main`. Como alternativa, [GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/workflows/android.yml) oferece o artefato `nexus-debug-...`: entre na conta, baixe o ZIP, extraia e abra `app-debug.apk`. Artefatos do Actions expiram após 30 dias. Um caminho local como `/workspace/...` não é um endereço público de download.
 
-Builds de ambientes diferentes podem usar certificados de depuração diferentes. Se o Android recusar atualizar por assinatura, exporte dados importantes antes de desinstalar a versão anterior; desinstalar apaga dados locais.
+Builds de ambientes diferentes podem usar certificados de depuração diferentes. Se o Android recusar atualizar por assinatura, exporte dados importantes antes de desinstalar a versão anterior. Desinstalar apaga conversas, modelos e downloads parciais privados; a retomada implementada não preserva arquivos através de uma desinstalação.
 
 ## Compatibilidade automática
 
@@ -55,7 +61,7 @@ A IA pode propor ações de uma lista restrita. Argumentos são validados e a in
 
 ## Compilar no computador
 
-Instale Android Studio ou JDK 17 e Android SDK. O projeto usa Gradle Wrapper 8.11.1, SDK 35, build-tools 35.0.0, NDK 28.2.13676358 e CMake 3.22.1. Instale os componentes no SDK Manager e defina `ANDROID_HOME` ou o caminho do SDK em `local.properties`, que não é versionado.
+Instale Android Studio ou JDK 17 e Android SDK. O projeto usa Gradle Wrapper 8.11.1, SDK 35, build-tools 35.0.0, NDK 28.2.13676358 e CMake 3.22.1. Instale os componentes no SDK Manager e defina `ANDROID_HOME` ou o caminho do SDK em `local.properties`, que não é versionado. O heap do Gradle foi ajustado para 4 GB para a compilação no computador/CI, após uma falha de empacotamento observada com 3 GB. Esse valor não é a memória exigida pelo aplicativo no celular.
 
 ```bash
 python3 scripts/fetch_llama_cpp.py
@@ -77,6 +83,12 @@ O último comando exige aparelho ou emulador conectado. O teste `LocalAiInferenc
 
 O [workflow de emulador](.github/workflows/android-device-smoke.yml) prepara Android 10/API 29 no GitHub automaticamente quando alterações relevantes chegam à branch `main`, e também pode ser iniciado manualmente. A [rodada final, tentativa 2](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216728/attempts/2) passou: **13 testes aprovados, 0 falhas/erros e 1 ignorado** sem fixture, em 53 s de instrumentação comum. A IA real passou separadamente. Esses testes não certificam câmera, voz ou mãos físicas. O [workflow principal aprovado](https://github.com/Cazi1n8/nexus-android/actions/runs/40106216752) gera APK e relatórios em alterações na branch `main`.
 
+## Validação nova do download
+
+Na alpha.3, testes HTTPS controlados exercitam o próprio `LocalModelManager`: tamanho completo sem fechamento da conexão, verificação, cancelamento, retomada por `Range` e respostas inválidas. Eles usam arquivos sintéticos pequenos para testar transporte; não avaliam a qualidade de um modelo de linguagem.
+
+O novo [workflow de download real no Android](.github/workflows/model-download-smoke.yml) foi preparado para o próprio aplicativo baixar os dois modelos públicos e executar o compacto depois de chegar a `READY`. Ele não instala o GGUF por ADB. A execução e seus resultados ainda precisam ser registrados no [relatório alpha.3](docs/RELATORIO_ALPHA_3.md). Sem o argumento de autorização do teste, `ProductionModelDownloadTest` é explicitamente ignorado na suíte comum; isso se soma ao caso de inferência que exige sua própria fixture.
+
 ## Privacidade e limites
 
 O OCR da alpha.2 funciona no aparelho com Tesseract4Android, sem API, conta, download durante a leitura ou envio da imagem a um servidor. Resultados só entram na memória por uma ação explícita de salvar. A síntese e o reconhecimento de fala seguem as condições dos serviços Android instalados.
@@ -94,7 +106,9 @@ Room fica no sandbox do Android, sem criptografia adicional do banco; backup aut
 - [Progresso verificável 2.0](PROGRESSO_NEXUS_2.md)
 - [Auditoria anterior às mudanças](AUDITORIA_NEXUS.md)
 - [Compatibilidade e ajuste automático](docs/COMPATIBILIDADE.md)
-- [Relatório de testes alpha.2](docs/RELATORIO_ALPHA_2.md)
+- [Pedidos do texto grande e estado real](docs/PEDIDOS_E_STATUS.md)
+- [Relatório de testes alpha.3](docs/RELATORIO_ALPHA_3.md)
+- [Relatório histórico alpha.2](docs/RELATORIO_ALPHA_2.md)
 - [OCR local do NEXUS Vision](docs/OCR_LOCAL.md)
 - [Relatório de testes alpha.1](docs/RELATORIO_NEXUS_2.md)
 - [Arquitetura 2.0](docs/ARQUITETURA_NEXUS_2.md)

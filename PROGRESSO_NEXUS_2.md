@@ -1,11 +1,32 @@
 # NEXUS 2.0 — progresso verificável
 
-Atualizado em **24/10/2026 (UTC)**. Código atual: **2.0.0-alpha.2**, código de versão 21, com APK de teste publicado e verificado. A alpha.1, versão 20, permanece documentada como versão anterior. O projeto existente, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ foi informado pelo usuário, mas não foi testado fisicamente pelo ambiente de desenvolvimento.
+Atualizado em **25/10/2026 (UTC)**. Código atual: **2.0.0-alpha.3**, código de versão 22, em validação. O último APK publicado e verificado é a alpha.2, com o bloqueio de download em 100% relatado pelo usuário. O projeto, o identificador Android e o schema Room v1 foram preservados. O Samsung Galaxy S9+ informado pelo usuário ainda não foi testado fisicamente pelo ambiente.
 
 Esta atualização inclui o pedido de verificar o aparelho e ajustar recursos automaticamente. Compatibilidade do aplicativo, disponibilidade de uma função e teste físico aprovado são resultados diferentes.
 
 
-## Etapa alpha.2 entregue para testes
+## Correção alpha.3 em validação
+
+O usuário confirmou que a tela permanece em **“Baixando” com o tamanho completo recebido**. A alpha.3 altera a finalização: o downloader recebe somente o orçamento de bytes fixado do modelo, encerra a chamada sem esperar um EOF adicional, confere o SHA-256 do arquivo privado e promove o modelo a `READY`. Isso trata um cenário reproduzível de servidor que mantém a conexão aberta; a causa específica no S9+ ainda precisa de confirmação física.
+
+| Item alpha.3 | Estado registrado |
+| --- | --- |
+| Finalizar transferência sem espera extra em 100% | Implementado; 14 testes HTTPS do downloader aprovados na JVM, incluindo tamanho completo sem EOF; execução Android pendente |
+| Retomar arquivo parcial | Implementado com `Range`, validação de `Content-Range` e reinício avisado quando o servidor retorna o arquivo inteiro; teste Android pendente |
+| Verificar arquivo completo já recebido | Implementado sem repetir o download; modelo só fica pronto após SHA-256 válido |
+| Interface do download | Fases de conexão, transferência, verificação, pausa e pronto; bytes, velocidade e progresso de verificação; aguardando validação integrada |
+| Pausar ou descartar parcial | Ações implementadas; descarte exige confirmação e preserva conversas/outro perfil. Desinstalar o app apaga seus arquivos privados |
+| Testes Python dos scripts | **51 aprovados** na execução informada nesta etapa; não comprovam o download no Android |
+| Download real no Android | Novo teste opt-in e workflow preparados para baixar os dois GGUFs pelo próprio app e inferir com o compacto; ainda sem resultado registrado |
+| Compilação, JVM, lint e APK local alpha.3 | **BUILD SUCCESSFUL in 2m 5s**, 90 testes JVM aprovados sem falhas/erros/ignorados; lint 0 erros, 37 avisos e 1 informação. APK local gerado e inspecionado; publicação/Android ainda pendentes |
+
+APK local alpha.3: **123.615.014 bytes**, SHA-256 `11a8a1b2fabd712dd346fe95e6a470cf27a34aa70a87ec29c3587ace2ff9bf09`. Assinatura v2 válida, ZIP 16 KB, quatro ABIs, 40 bibliotecas ELF e modelos OCR conferidos; sem GGUF no APK. A verificação local não substitui a execução no Android ou a inspeção da publicação.
+
+O teste anterior de IA real instalava o GGUF por ADB. Sua aprovação validou inferência, não o caminho de download relatado pelo usuário. [Relatório alpha.3](docs/RELATORIO_ALPHA_3.md) e [matriz completa dos pedidos](docs/PEDIDOS_E_STATUS.md).
+
+Todas as correções do texto grande ainda não estão concluídas ou comprovadas. Permanecem pendentes Libras completa e conteúdo validado, visão multimodal local geral, resumo persistente de conversas, validação física de voz/gestos/mouse e preparação final para a Play Store.
+
+## Etapa alpha.2 — entrega histórica
 
 A etapa atual acrescenta OCR local no NEXUS Vision com Tesseract4Android 4.9.0 e modelos português/inglês incluídos no APK. A interface permite escolher imagem da galeria, ler, copiar, ouvir e salvar uma memória por autorização explícita. O ditado de uma pergunta somente preenche o campo editável; nenhuma imagem é enviada automaticamente.
 

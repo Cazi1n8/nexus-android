@@ -19,6 +19,7 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -48,6 +49,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         }
     })
     private var modelDownloadJob: Job? = null
+    private val _localModelDownloadActive = MutableStateFlow(false)
+    val localModelDownloadActive = _localModelDownloadActive.asStateFlow()
     private var modifyingLocalModel = false
     private val _assistantReplies = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val assistantReplies = _assistantReplies.asSharedFlow()
@@ -331,7 +334,9 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun downloadLocalModel() {
-        if (deletingData || modifyingLocalModel || modelDownloadJob?.isActive == true) return
+        // A cancelled job can still be closing its socket and file. Keep the
+        // barrier until completion rather than queuing a second download.
+        if (deletingData || modifyingLocalModel || modelDownloadJob != null) return
         val profile = effectiveProfile(settings.value)
         if (!DevicePolicy.canRunProfile(deviceCapabilities.value, profile)) {
             report(if (!devicePolicy.value.localAiSupported) devicePolicy.value.reason
@@ -339,7 +344,25 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         val manager = localModels.getValue(profile)
-        modelDownloadJob = guarded { manager.download() }
+        val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            try { manager.download() }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (failure: Exception) { report(failure.message ?: "Não foi possível concluir o download do modelo.") }
+        }
+        modelDownloadJob = job
+        _localModelDownloadActive.value = true
+        job.invokeOnCompletion {
+            // Completion can arrive from an IO cancellation. Keep both the
+            // reference and its UI flag on Main so an old job cannot clear a
+            // newer operation's active flag between two assignments.
+            viewModelScope.launch(Dispatchers.Main.immediate) {
+                if (modelDownloadJob === job) {
+                    modelDownloadJob = null
+                    _localModelDownloadActive.value = false
+                }
+            }
+        }
+        job.start()
     }
 
     fun cancelLocalModelDownload() { modelDownloadJob?.cancel() }

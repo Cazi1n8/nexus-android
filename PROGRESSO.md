@@ -1,6 +1,6 @@
 # Progresso histórico do NEXUS 0.1
 
-**Estado atual 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md). A alpha.2 tem APK de teste publicado e verificado, build aprovado e testes reais de IA/OCR em Android emulado. Resultados finais e limites estão em [RELATORIO_ALPHA_2.md](docs/RELATORIO_ALPHA_2.md). Os downloads verificados estão identificados na documentação atual. As evidências abaixo pertencem à versão 0.1.
+**Estado atual 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md). A alpha.3 teve compilação local e 90 testes JVM aprovados para corrigir o download que permanece em 100%; execução Android e publicação ainda estão em validação. O último APK publicado é a alpha.2; seus testes de inferência usavam modelo instalado por ADB e não testavam o downloader do app. Resultados novos: [RELATORIO_ALPHA_3.md](docs/RELATORIO_ALPHA_3.md). A [matriz dos pedidos](docs/PEDIDOS_E_STATUS.md) registra o que ainda falta. As evidências abaixo pertencem à versão 0.1.
 
 Atualizado em **23/10/2026**, horário de São Paulo. O APK foi compilado e pode ser instalado para testes. A primeira fase ainda precisa de validação de uso em celular; não há declaração de que todas as funções ou fases estejam concluídas.
 

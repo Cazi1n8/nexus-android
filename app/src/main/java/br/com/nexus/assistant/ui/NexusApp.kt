@@ -935,8 +935,10 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
     val policy by model.devicePolicy.collectAsStateWithLifecycle()
     val effectiveProfile by model.effectiveLocalProfile.collectAsStateWithLifecycle()
     val busy by model.busy.collectAsStateWithLifecycle()
+    val downloadActive by model.localModelDownloadActive.collectAsStateWithLifecycle()
     val selecting = spec != LocalModelCatalog.forProfile(effectiveProfile) || state.totalBytes != spec.bytes
-    val preparing = selecting || state.status in setOf(LocalModelStatus.CHECKING, LocalModelStatus.DOWNLOADING, LocalModelStatus.VERIFYING)
+    val preparing = selecting || downloadActive || state.status in setOf(LocalModelStatus.CHECKING, LocalModelStatus.CONNECTING,
+        LocalModelStatus.DOWNLOADING, LocalModelStatus.VERIFYING)
     val compatible = policy.localAiSupported && DevicePolicy.canRunProfile(capabilities, effectiveProfile)
     var confirmDownload by remember(spec.fileName) { mutableStateOf(false) }
     var confirmDelete by remember(spec.fileName) { mutableStateOf(false) }
@@ -951,7 +953,7 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
         Text("O ajuste escolhe um perfil, mas não baixa arquivos nem usa um servidor automaticamente. A RAM livre pode mudar durante o uso.", style = MaterialTheme.typography.bodySmall)
     } else if (preparing || busy) {
         Text("Modelo selecionado: ${spec.displayName}")
-        Text("Interrompa a resposta ou aguarde a preparação terminar para trocar de modelo.", style = MaterialTheme.typography.bodySmall)
+        Text("Pause o download, interrompa a resposta ou aguarde a verificação terminar para trocar de modelo.", style = MaterialTheme.typography.bodySmall)
     } else ChoiceField("Escolha o modelo local", if (effectiveProfile == LocalModelProfile.COMPACT) compactLabel else balancedLabel,
         listOf(compactLabel, balancedLabel)) { label ->
         val profile = if (label == compactLabel) LocalModelProfile.COMPACT else LocalModelProfile.BALANCED
@@ -965,39 +967,81 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
         OutlinedButton(onClick = onUseCustom, enabled = !busy) { Text("Usar provedor personalizado opcional") }
         Text("O provedor exige um servidor real e sua autorização. O NEXUS não enviará mensagens automaticamente.", style = MaterialTheme.typography.bodySmall)
     }
+    val receivedFraction = if (state.totalBytes > 0) (state.downloadedBytes.toFloat() / state.totalBytes).coerceIn(0f, 1f) else 0f
+    val verifiedFraction = if (state.totalBytes > 0) (state.verifiedBytes.toFloat() / state.totalBytes).coerceIn(0f, 1f) else 0f
+    val completePartial = state.status !in setOf(LocalModelStatus.ABSENT, LocalModelStatus.FAILED, LocalModelStatus.CHECKING) &&
+        state.totalBytes > 0 && state.downloadedBytes >= state.totalBytes
     Text(if (selecting) "Preparando modelo selecionado…" else when (state.status) {
         LocalModelStatus.CHECKING -> "Verificando modelo instalado…"
         LocalModelStatus.ABSENT -> "Modelo ainda não instalado"
-        LocalModelStatus.DOWNLOADING -> "Baixando: ${modelSize(state.downloadedBytes)} / ${modelSize(state.totalBytes)}"
-        LocalModelStatus.VERIFYING -> "Verificando integridade do arquivo…"
-        LocalModelStatus.READY -> "Modelo local verificado"
+        LocalModelStatus.CONNECTING -> if (state.downloadedBytes > 0) "Conectando para continuar o download…" else "Conectando ao servidor do modelo…"
+        LocalModelStatus.DOWNLOADING -> if (completePartial) "Arquivo recebido. Preparando a verificação…"
+            else "Baixando: ${modelSize(state.downloadedBytes)} / ${modelSize(state.totalBytes)} · ${downloadPercent(receivedFraction)}"
+        LocalModelStatus.VERIFYING -> "Verificando integridade: ${downloadPercent(verifiedFraction)}"
+        LocalModelStatus.PAUSED -> if (completePartial) "Arquivo recebido; falta concluir a verificação"
+            else "Download pausado: ${modelSize(state.downloadedBytes)} / ${modelSize(state.totalBytes)}"
+        LocalModelStatus.READY -> "Modelo pronto para conversar. Abra o Chat IA."
         LocalModelStatus.FAILED -> "Não foi possível preparar o modelo"
     }, color = NexusCyan)
     if (!selecting) state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
     if (selecting && compatible) LinearProgressIndicator(Modifier.fillMaxWidth())
     else when (state.status) {
-        LocalModelStatus.DOWNLOADING -> {
-            LinearProgressIndicator(progress = { if (state.totalBytes > 0) (state.downloadedBytes.toFloat() / state.totalBytes).coerceIn(0f, 1f) else 0f }, modifier = Modifier.fillMaxWidth())
-            OutlinedButton(onClick = model::cancelLocalModelDownload) { Text("Cancelar download") }
+        LocalModelStatus.CONNECTING -> {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (state.downloadedBytes > 0) Text("Já salvo neste aparelho: ${modelSize(state.downloadedBytes)}.", style = MaterialTheme.typography.bodySmall)
+            if (downloadActive) OutlinedButton(onClick = model::cancelLocalModelDownload) { Text("Pausar download") }
         }
-        LocalModelStatus.CHECKING, LocalModelStatus.VERIFYING -> if (compatible) LinearProgressIndicator(Modifier.fillMaxWidth())
+        LocalModelStatus.DOWNLOADING -> {
+            LinearProgressIndicator(progress = { receivedFraction }, modifier = Modifier.fillMaxWidth())
+            if (state.bytesPerSecond > 0) Text("Velocidade nesta transferência: ${modelSize(state.bytesPerSecond)}/s", style = MaterialTheme.typography.bodySmall)
+            Text("Receber 100% do arquivo é a primeira etapa. O chat é liberado quando a verificação termina.", style = MaterialTheme.typography.bodySmall)
+            if (downloadActive) OutlinedButton(onClick = model::cancelLocalModelDownload) { Text("Pausar download") }
+        }
+        LocalModelStatus.VERIFYING -> {
+            LinearProgressIndicator(progress = { verifiedFraction }, modifier = Modifier.fillMaxWidth())
+            Text("Conferindo ${modelSize(state.verifiedBytes)} / ${modelSize(state.totalBytes)} no aparelho. Esta etapa não baixa outro arquivo.", style = MaterialTheme.typography.bodySmall)
+            if (downloadActive) OutlinedButton(onClick = model::cancelLocalModelDownload) { Text("Pausar verificação") }
+        }
+        LocalModelStatus.CHECKING -> if (compatible) LinearProgressIndicator(Modifier.fillMaxWidth())
+        LocalModelStatus.PAUSED -> {
+            LinearProgressIndicator(progress = { receivedFraction }, modifier = Modifier.fillMaxWidth())
+            Text("Os dados recebidos foram preservados. Continuar verifica o arquivo completo ou pede ao servidor os bytes que faltam; se ele não aceitar retomada, a transferência recomeça com aviso.", style = MaterialTheme.typography.bodySmall)
+            Button(onClick = { confirmDownload = true }, enabled = !busy && compatible && !selecting && !downloadActive) {
+                Text(if (completePartial) "Concluir verificação" else "Continuar download")
+            }
+            OutlinedButton(onClick = { confirmDelete = true }, enabled = !busy && !downloadActive) {
+                Text("Descartar download parcial")
+            }
+        }
         LocalModelStatus.READY -> OutlinedButton(onClick = { confirmDelete = true }, enabled = !busy) { Text("Excluir este modelo baixado") }
-        else -> Button(onClick = { confirmDownload = true }, enabled = !busy && compatible && !selecting) { Text("Baixar este modelo gratuito") }
+        else -> Button(onClick = { confirmDownload = true }, enabled = !busy && compatible && !selecting && !downloadActive) { Text("Baixar este modelo gratuito") }
     }
     if (confirmDownload && !selecting && compatible) AlertDialog(onDismissRequest = { confirmDownload = false },
-        title = { Text("Baixar ${spec.displayName}?") },
-        text = { Text("O NEXUS baixará aproximadamente ${modelSize(spec.bytes)} do Hugging Face (${Uri.parse(spec.downloadUrl).host}), que receberá uma conexão de download. Suas conversas não serão enviadas. Prefira Wi-Fi e mantenha o app aberto. O arquivo será verificado antes do uso. Memória e desempenho dependem do aparelho.") },
-        confirmButton = { TextButton(onClick = { confirmDownload = false; model.downloadLocalModel() }) { Text("Autorizar download") } },
+        title = { Text(if (completePartial) "Concluir a preparação do modelo?" else "Baixar ${spec.displayName}?") },
+        text = { Text(if (completePartial) "O arquivo completo já está neste aparelho. O NEXUS verificará sua integridade antes de liberar o chat. Não é necessário baixar o mesmo arquivo novamente."
+            else "O modelo completo tem ${modelSize(spec.bytes)}. O NEXUS tentará aproveitar os ${modelSize(state.downloadedBytes)} já salvos e baixar o restante do Hugging Face (${Uri.parse(spec.downloadUrl).host}); se o servidor não aceitar a retomada, precisará recomeçar. Suas conversas não serão enviadas. Prefira Wi-Fi e mantenha o app aberto. O arquivo será verificado antes do uso. Memória e desempenho dependem do aparelho.") },
+        confirmButton = { TextButton(onClick = { confirmDownload = false; model.downloadLocalModel() }) { Text(if (completePartial) "Verificar arquivo" else "Autorizar download") } },
         dismissButton = { TextButton(onClick = { confirmDownload = false }) { Text("Cancelar") } })
     if (confirmDelete && !selecting) AlertDialog(onDismissRequest = { confirmDelete = false },
-        title = { Text("Excluir ${spec.displayName}?") }, text = { Text("Suas conversas serão preservadas. Para usar este modelo novamente, será necessário baixá-lo outra vez.") },
+        title = { Text(if (state.status == LocalModelStatus.PAUSED) "Descartar download incompleto?" else "Excluir ${spec.displayName}?") },
+        text = { Text("Suas conversas e o outro modelo serão preservados. O arquivo selecionado será removido e precisará ser baixado novamente.") },
         confirmButton = { TextButton(onClick = { confirmDelete = false; model.deleteLocalModel() }) { Text("Excluir modelo") } },
         dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancelar") } })
 }
 
-private fun modelSize(bytes: Long): String = if (bytes >= 1_073_741_824L) {
-    String.format(java.util.Locale.forLanguageTag("pt-BR"), "%.2f GiB", bytes.toDouble() / 1_073_741_824)
-} else "${bytes / 1_048_576} MiB"
+private fun modelSize(bytes: Long): String {
+    val value = bytes.coerceAtLeast(0)
+    val locale = java.util.Locale.forLanguageTag("pt-BR")
+    return when {
+        value >= 1_073_741_824L -> String.format(locale, "%.2f GiB", value.toDouble() / 1_073_741_824)
+        value >= 1_048_576L -> String.format(locale, "%.1f MiB", value.toDouble() / 1_048_576)
+        value >= 1_024L -> String.format(locale, "%.1f KiB", value.toDouble() / 1_024)
+        else -> "$value bytes"
+    }
+}
+
+private fun downloadPercent(fraction: Float): String =
+    String.format(java.util.Locale.forLanguageTag("pt-BR"), "%.1f%%", fraction.coerceIn(0f, 1f) * 100)
 
 @Composable
 private fun VoiceLanguageHelp(language: String, missing: Boolean = true) {
