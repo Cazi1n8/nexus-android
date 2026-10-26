@@ -1,0 +1,20 @@
+{
+  "runId": 40303339463,
+  "jobId": 121506293468,
+  "artifactId": 12643319841,
+  "sourceCommit": "4228a54f09fcba3a55e0231f182d24db4707cb66",
+  "appMainSourceTree": "8dde24ce23b4b7b6d545bdd350fb4acc4b774390",
+  "executionStatus": "failed_timeout",
+  "junitTimeoutMilliseconds": 2400000,
+  "completedCases": 10,
+  "recordedResponses": 28,
+  "modelResponses": 26,
+  "calculatorResponses": 1,
+  "actionProposals": 1,
+  "case11CompletedTurns": 16,
+  "case12HasAnswer": false,
+  "cases13To15Executed": false,
+  "roomReopenVerified": false,
+  "allFifteenPassed": false,
+  "humanReviewRequired": true
+}

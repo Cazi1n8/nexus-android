@@ -26,7 +26,8 @@ REMOTE_MODEL = f"files/ci-models/{MODEL_NAME}"
 MODEL_ARGUMENT = f"ci-models/{MODEL_NAME}"
 REMOTE_REPORT = "files/ci-reports/local-ai-observations.json"
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_CASES = {"arithmetic", "context_acknowledgement", "context_follow_up", "unicode"}
+EXPECTED_CASES = {"arithmetic", "same_prompt_warm_cache", "after_idle_cancellation",
+                  "context_acknowledgement", "context_follow_up", "unicode"}
 
 
 def validate_observations(instrumentation_output: str, report: dict) -> None:
@@ -50,6 +51,19 @@ def validate_observations(instrumentation_output: str, report: dict) -> None:
         raise ValueError("O relatório contém casos inesperados ou incompletos.")
     if any(not isinstance(case.get("answer"), str) or not case["answer"].strip() for case in cases):
         raise ValueError("Uma inferência não devolveu texto.")
+    for case in cases:
+        prompt, cached, evaluated = (case.get(key) for key in
+                                     ("promptTokens", "cachedPromptTokens", "evaluatedPromptTokens"))
+        if (any(type(count) is not int for count in (prompt, cached, evaluated)) or
+                not 0 <= cached < prompt <= 512 or evaluated != prompt - cached):
+            raise ValueError("As contagens do cache de contexto são inconsistentes.")
+    by_name = {case["name"]: case for case in cases}
+    cold, warm, cancelled = (by_name[name] for name in
+                             ("arithmetic", "same_prompt_warm_cache", "after_idle_cancellation"))
+    if (cold["cachedPromptTokens"] != 0 or warm["cachedPromptTokens"] <= 0 or
+            cancelled["cachedPromptTokens"] != 0 or
+            not cold["answer"] == warm["answer"] == cancelled["answer"]):
+        raise ValueError("Falta comprovar reutilização idêntica e limpeza após cancelamento.")
     # A small model's mistakes remain visible. These flags may honestly be false.
     for key in ("arithmeticMatchedExpected42", "contextMatchedExpectedCiano", "unicodeMatchedRequestedText"):
         if type(report.get(key)) is not bool:

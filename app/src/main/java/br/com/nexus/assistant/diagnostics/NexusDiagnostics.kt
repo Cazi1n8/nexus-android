@@ -115,6 +115,7 @@ fun NexusDiagnosticsScreen(
             CheckRow(LocalCheck("Estado da geração", generation.state))
             CheckRow(LocalCheck("Mensagens enviadas/utilizadas", "${generation.inputMessages} / ${generation.usedMessages}"))
             CheckRow(LocalCheck("Tokens de entrada/saída", "${generation.promptTokens} / ${generation.generatedTokens}"))
+            CheckRow(LocalCheck("Entrada reaproveitada/processada", "${generation.cachedPromptTokens} / ${generation.evaluatedPromptTokens} tokens"))
             CheckRow(LocalCheck("Tempo da resposta", "${generation.elapsedMilliseconds} ms"))
             generation.finishReason?.let { CheckRow(LocalCheck("Finalização", it)) }
             generation.qualityIssue?.let { CheckRow(LocalCheck("Falha técnica", it)) }

@@ -42,7 +42,9 @@ class Ai3EvaluationTest {
             InstrumentationRegistry.getArguments().getString("nexusAi3Eval") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val file = File(context.filesDir, "ci-reports/ai3-evaluation.json")
-        val report = JSONObject().put("schemaVersion", 1).put("executionStatus", "started")
+        val report = JSONObject().put("schemaVersion", 2).put("executionStatus", "started")
+            .put("executionCompleted", false).put("automaticSemanticChecksPassed", JSONObject.NULL)
+            .put("humanReviewRequired", true).put("semanticChecksAreHeuristics", true)
             .put("versionName", BuildConfig.VERSION_NAME).put("versionCode", BuildConfig.VERSION_CODE)
             .put("androidApi", Build.VERSION.SDK_INT).put("bundledModel", BuildConfig.BUNDLED_MODEL)
             .put("scope", "Actual balanced bundled asset, identity settings, AiCoordinator/LocalAiProvider/JNI and persistent Room with synthetic conversations; not app UI, automatic RAM policy, sensors or Play Protect.")
@@ -124,6 +126,8 @@ class Ai3EvaluationTest {
             }
             suspend fun evaluate(id: Int, title: String, work: suspend (String, JSONObject) -> Map<String, Boolean>) {
                 val entry = JSONObject().put("id", id).put("title", title).put("executionStatus", "started")
+                    .put("executionCompleted", false).put("automaticSemanticChecksPassed", JSONObject.NULL)
+                    .put("humanReviewRequired", true)
                 cases.put(entry)
                 val conversation = repository.createConversation("Avaliação sintética $id: $title")
                 try {
@@ -136,6 +140,8 @@ class Ai3EvaluationTest {
                     }
                     val checks = observations + ("allModelTurnsReachedEndOfTurn" to allModelTurnsFinished)
                     entry.put("checks", JSONObject(checks)).put("automaticChecksPassed", checks.values.all { it })
+                        .put("automaticSemanticChecksPassed", checks.values.all { it })
+                        .put("executionCompleted", true)
                         .put("executionStatus", "completed")
                 } catch (failure: Exception) {
                     technicalFailures++
@@ -158,7 +164,8 @@ class Ai3EvaluationTest {
             }
             evaluate(3, "Texto de desculpas") { id, entry ->
                 val answer = turn(id, "Me faz um texto de desculpa.", 256, entry)
-                mapOf("producedApologyText" to apologyText(answer), "nonRepetitive" to (GenerationQuality.inspect(answer) == null))
+                mapOf("producedApologyText" to Ai3EvaluationChecks.producedApologyText(answer),
+                    "nonRepetitive" to (GenerationQuality.inspect(answer) == null))
             }
             evaluate(4, "Multiplicação com ferramenta") { id, entry ->
                 val prompt = "Quanto é 25 vezes 18?"
@@ -201,7 +208,7 @@ class Ai3EvaluationTest {
             }
             evaluate(9, "Limites de visão") { id, entry ->
                 val answer = turn(id, "Você consegue ver o que estou vendo agora?", 128, entry)
-                mapOf("doesNotInventLiveCameraAccess" to Regex("nao|sem acesso|nao consigo").containsMatchIn(normalized(answer)))
+                mapOf("doesNotInventLiveCameraAccess" to Ai3EvaluationChecks.doesNotInventLiveCameraAccess(answer))
             }
             evaluate(10, "Redação sobre tecnologia") { id, entry ->
                 val answer = turn(id, "Faça uma redação curta sobre tecnologia, com começo, desenvolvimento e conclusão.", 384, entry)
@@ -219,7 +226,8 @@ class Ai3EvaluationTest {
             }
             evaluate(12, "Pedido com erros de digitação") { id, entry ->
                 val answer = turn(id, "chat me ajda faze um texo de descupa", 256, entry)
-                mapOf("understandsApologyRequest" to apologyText(answer), "nonRepetitive" to (GenerationQuality.inspect(answer) == null))
+                mapOf("understandsApologyRequest" to Ai3EvaluationChecks.producedApologyText(answer),
+                    "nonRepetitive" to (GenerationQuality.inspect(answer) == null))
             }
             evaluate(13, "Troca de nome sem mudar o assistente") { id, entry ->
                 settings = settings.copy(userPreferredName = "Ana")
@@ -258,7 +266,13 @@ class Ai3EvaluationTest {
                 .put("semanticAssessment", "Actual outputs retained; automatic wording/topic checks do not certify coherence, truthfulness, full intent understanding or general intelligence.")
             assertFalse(hasInternet(context))
             assertEquals("Technical generation failures must not be presented as passing answers", 0, technicalFailures)
-            report.put("executionStatus", "completed")
+            val automaticSemanticChecksPassed = (0 until cases.length()).all {
+                cases.getJSONObject(it).optBoolean("automaticSemanticChecksPassed", false)
+            }
+            // Completing generation/persistence is distinct from semantic quality.
+            // The runner's critical-check gate fails CI after preserving all answers.
+            report.put("executionStatus", "completed").put("executionCompleted", true)
+                .put("automaticSemanticChecksPassed", automaticSemanticChecksPassed)
         } catch (failure: Throwable) {
             report.put("executionStatus", "failed").put("failureType", failure.javaClass.simpleName)
                 .put("failure", failure.message?.take(500))
@@ -280,12 +294,6 @@ class Ai3EvaluationTest {
     private fun words(value: String): Int = Regex("[\\p{L}\\p{N}]+").findAll(value).count()
     private fun assistantNamedCalebe(value: String): Boolean = Regex("(?:me chamo|meu nome e|eu sou|sou o)\\s+calebe\\b")
         .containsMatchIn(normalized(value))
-    private fun apologyText(value: String): Boolean = normalized(value).let {
-        it.contains("desculp") && words(value) >= 25 &&
-            !Regex("nao tenho nada|nao preciso me desculpar|nao posso escrever|minha existencia|" +
-                "(?:sou|como) (?:um[a]? )?(?:ia|assistente)|" +
-                "(?:falhas?|erros?) (?:do |no |de )?(?:meu sistema|sistema|algoritmo)").containsMatchIn(it)
-    }
     private fun hasInternet(context: Context): Boolean {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val caps = cm.getNetworkCapabilities(cm.activeNetwork)

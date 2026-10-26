@@ -1,0 +1,88 @@
+{
+  "mainAppSourceTree": "8dde24ce23b4b7b6d545bdd350fb4acc4b774390",
+  "latestSourceCommit": "e98027c2aa0b07fdaaf366db6d94a42fd09c3f2b",
+  "build": {
+    "run": 40305428821,
+    "job": 121513234724,
+    "status": "success",
+    "jvmPassed": 189,
+    "lintErrors": 0,
+    "lintWarnings": 48,
+    "lintInformation": 1
+  },
+  "common": {
+    "run": 40305428792,
+    "job": 121513234949,
+    "status": "success",
+    "total": 23,
+    "passed": 19,
+    "skipped": 4,
+    "failures": 0,
+    "errors": 0
+  },
+  "bundled": {
+    "run": 40305428815,
+    "job": 121513234698,
+    "status": "success",
+    "tests": 1,
+    "preparationMilliseconds": 4726,
+    "answer": "Azul.",
+    "answerMilliseconds": 36250,
+    "mathAnswer": "10+10÷10×10 = 20",
+    "ocrAnswer": "Texto lido localmente por OCR:\nOLA NEXUS 2026",
+    "persistedAssistantMessages": 3,
+    "manualProfileRespected": true,
+    "autoProfileRecommended": "COMPACT",
+    "offlineBeforeAfter": true
+  },
+  "native": {
+    "run": 40303339754,
+    "job": 121506295058,
+    "status": "success",
+    "tests": 1,
+    "loadMilliseconds": 150,
+    "arithmetic": "42",
+    "context": "Ciano.",
+    "unicode": "Olá, coração! 🚀"
+  },
+  "legacyDownload": {
+    "run": 40303339485,
+    "job": 121506293902,
+    "status": "success",
+    "tests": 1,
+    "compactMilliseconds": 38760,
+    "balancedMilliseconds": 84767,
+    "bothReadyAndHashesVerified": true,
+    "inference": "42"
+  },
+  "ai3Evaluation": {
+    "runId": 40303339463,
+    "jobId": 121506293468,
+    "artifactId": 12643319841,
+    "sourceCommit": "4228a54f09fcba3a55e0231f182d24db4707cb66",
+    "appMainSourceTree": "8dde24ce23b4b7b6d545bdd350fb4acc4b774390",
+    "executionStatus": "failed_timeout",
+    "junitTimeoutMilliseconds": 2400000,
+    "completedCases": 10,
+    "recordedResponses": 28,
+    "modelResponses": 26,
+    "calculatorResponses": 1,
+    "actionProposals": 1,
+    "case11CompletedTurns": 16,
+    "case12HasAnswer": false,
+    "cases13To15Executed": false,
+    "roomReopenVerified": false,
+    "allFifteenPassed": false,
+    "humanReviewRequired": true
+  },
+  "apkArtifact": {
+    "run": 40305428821,
+    "id": 12642117269,
+    "name": "nexus-debug-15",
+    "zipBytes": 1645769724,
+    "url": "https://github.com/Cazi1n8/nexus-android/actions/runs/40305428821/artifacts/12642117269",
+    "requiresGithubLogin": true,
+    "publicDebugReleaseSkipped": true
+  },
+  "physicalSensorsAndPlayProtect": "not_verified"
+}

@@ -1,0 +1,12 @@
+{
+  "lint": {
+    "Error": 0,
+    "Warning": 48,
+    "Information": 1
+  },
+  "tests": 189,
+  "passed": 189,
+  "skipped": 0,
+  "failures": 0,
+  "errors": 0
+}

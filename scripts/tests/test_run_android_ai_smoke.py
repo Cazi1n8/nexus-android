@@ -22,7 +22,9 @@ PASSED = "INSTRUMENTATION_RESULT: stream=\nTime: 3.4\n\nOK (1 test)\n\nINSTRUMEN
 def report():
     return {"executionStatus": "passed", "modelSha256": runner.MODEL_SHA256,
             "modelBytes": runner.MODEL_BYTES, "contextTokens": 512, "threads": 1,
-            "cases": [{"name": name, "answer": "Observação real em português"}
+            "cases": [{"name": name, "answer": "Observação sintética do teste do executor",
+                       "promptTokens": 20, "cachedPromptTokens": 19 if name == "same_prompt_warm_cache" else 0,
+                       "evaluatedPromptTokens": 1 if name == "same_prompt_warm_cache" else 20}
                       for name in sorted(runner.EXPECTED_CASES)],
             "arithmeticMatchedExpected42": False,
             "contextMatchedExpectedCiano": True,
@@ -62,6 +64,19 @@ class ObservationValidationTest(unittest.TestCase):
         del invalid["unicodeMatchedRequestedText"]
         with self.assertRaisesRegex(ValueError, "observação explícita"):
             runner.validate_observations(PASSED, invalid)
+
+    def test_rejects_missing_reuse_stale_cache_after_cancel_and_changed_output(self):
+        for name, changes in (
+            ("same_prompt_warm_cache", {"cachedPromptTokens": 0, "evaluatedPromptTokens": 20}),
+            ("after_idle_cancellation", {"cachedPromptTokens": 19, "evaluatedPromptTokens": 1}),
+            ("same_prompt_warm_cache", {"answer": "Outra resposta"}),
+            ("unicode", {"cachedPromptTokens": 7, "evaluatedPromptTokens": 20}),
+        ):
+            with self.subTest(name=name, changes=changes):
+                invalid = report()
+                next(case for case in invalid["cases"] if case["name"] == name).update(changes)
+                with self.assertRaises(ValueError):
+                    runner.validate_observations(PASSED, invalid)
 
 
 class DeviceRunnerTest(unittest.TestCase):

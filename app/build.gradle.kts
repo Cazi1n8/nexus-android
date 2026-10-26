@@ -25,8 +25,8 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 24
-        versionName = "3.0.0-alpha.1"
+        versionCode = 25
+        versionName = "3.0.0-alpha.2"
         buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

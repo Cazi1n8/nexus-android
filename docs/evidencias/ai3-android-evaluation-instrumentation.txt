@@ -1,0 +1,56 @@
+INSTRUMENTATION_STATUS: class=br.com.nexus.assistant.Ai3EvaluationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stream=
+br.com.nexus.assistant.Ai3EvaluationTest:
+INSTRUMENTATION_STATUS: test=evaluateTheFifteenRequestedCasesWithTheBundledModel
+INSTRUMENTATION_STATUS_CODE: 1
+INSTRUMENTATION_STATUS: class=br.com.nexus.assistant.Ai3EvaluationTest
+INSTRUMENTATION_STATUS: current=1
+INSTRUMENTATION_STATUS: id=AndroidJUnitRunner
+INSTRUMENTATION_STATUS: numtests=1
+INSTRUMENTATION_STATUS: stack=org.junit.runners.model.TestTimedOutException: test timed out after 2400000 milliseconds
+	at sun.misc.Unsafe.park(Native Method)
+	at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:230)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:97)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at br.com.nexus.assistant.Ai3EvaluationTest.evaluateTheFifteenRequestedCasesWithTheBundledModel(Ai3EvaluationTest.kt:40)
+
+INSTRUMENTATION_STATUS: stream=
+Error in evaluateTheFifteenRequestedCasesWithTheBundledModel(br.com.nexus.assistant.Ai3EvaluationTest):
+org.junit.runners.model.TestTimedOutException: test timed out after 2400000 milliseconds
+	at sun.misc.Unsafe.park(Native Method)
+	at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:230)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:97)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at br.com.nexus.assistant.Ai3EvaluationTest.evaluateTheFifteenRequestedCasesWithTheBundledModel(Ai3EvaluationTest.kt:40)
+
+INSTRUMENTATION_STATUS: test=evaluateTheFifteenRequestedCasesWithTheBundledModel
+INSTRUMENTATION_STATUS_CODE: -2
+INSTRUMENTATION_RESULT: stream=
+
+Time: 2,400.289
+There was 1 failure:
+1) evaluateTheFifteenRequestedCasesWithTheBundledModel(br.com.nexus.assistant.Ai3EvaluationTest)
+org.junit.runners.model.TestTimedOutException: test timed out after 2400000 milliseconds
+	at sun.misc.Unsafe.park(Native Method)
+	at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:230)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:97)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking(Builders.kt:70)
+	at kotlinx.coroutines.BuildersKt.runBlocking(Unknown Source:1)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlocking$default(Builders.kt:48)
+	at kotlinx.coroutines.BuildersKt.runBlocking$default(Unknown Source:1)
+	at br.com.nexus.assistant.Ai3EvaluationTest.evaluateTheFifteenRequestedCasesWithTheBundledModel(Ai3EvaluationTest.kt:40)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
+
+
+INSTRUMENTATION_CODE: -1

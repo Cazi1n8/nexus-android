@@ -1,0 +1,323 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-10-26T19:38:18.691965+00:00",
+  "scope": "Real host CPU inference, not Android device or Play Protect validation; no semantic quality approval",
+  "runtime": "llama.cpp b11838 / 4231b23dc2c46661d01157aac5245bdcf03ce4b1",
+  "hostContextTokens": 1024,
+  "hostThreads": 4,
+  "samplerSeed": 42,
+  "allComparedOutputsByteEqual": true,
+  "models": [
+    {
+      "profile": "compact",
+      "modelSha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+      "comparisons": [
+        {
+          "name": "cold",
+          "byteEqual": true,
+          "text": "Verde",
+          "promptTokens": 247,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 1674,
+          "prototypeMilliseconds": 1427,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        },
+        {
+          "name": "same_query_warm",
+          "byteEqual": true,
+          "text": "Verde",
+          "promptTokens": 247,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 1716,
+          "prototypeMilliseconds": 84,
+          "cachedPromptTokens": 246,
+          "evaluatedPromptTokens": 1
+        },
+        {
+          "name": "new_turn",
+          "byteEqual": true,
+          "text": "Verde",
+          "promptTokens": 268,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 2037,
+          "prototypeMilliseconds": 213,
+          "cachedPromptTokens": 249,
+          "evaluatedPromptTokens": 19
+        },
+        {
+          "name": "changed_last_user",
+          "byteEqual": true,
+          "text": "10",
+          "promptTokens": 275,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 1956,
+          "prototypeMilliseconds": 256,
+          "cachedPromptTokens": 254,
+          "evaluatedPromptTokens": 21
+        },
+        {
+          "name": "changed_system",
+          "byteEqual": true,
+          "text": "18",
+          "promptTokens": 28,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 287,
+          "prototypeMilliseconds": 207,
+          "cachedPromptTokens": 4,
+          "evaluatedPromptTokens": 24
+        },
+        {
+          "name": "pruned_history",
+          "byteEqual": true,
+          "text": "4",
+          "promptTokens": 985,
+          "generatedTokens": 1,
+          "droppedMessages": 22,
+          "baselineMilliseconds": 7132,
+          "prototypeMilliseconds": 10808,
+          "cachedPromptTokens": 3,
+          "evaluatedPromptTokens": 982
+        },
+        {
+          "name": "pruned_history_repeat",
+          "byteEqual": true,
+          "text": "4",
+          "promptTokens": 985,
+          "generatedTokens": 1,
+          "droppedMessages": 22,
+          "baselineMilliseconds": 6651,
+          "prototypeMilliseconds": 382,
+          "cachedPromptTokens": 984,
+          "evaluatedPromptTokens": 1
+        },
+        {
+          "name": "after_invalid_json",
+          "byteEqual": true,
+          "text": "Verde",
+          "promptTokens": 247,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 1510,
+          "prototypeMilliseconds": 5928,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        },
+        {
+          "name": "after_idle_cancel",
+          "byteEqual": true,
+          "text": "Verde",
+          "promptTokens": 247,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 1495,
+          "prototypeMilliseconds": 5577,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        },
+        {
+          "name": "after_active_cancel",
+          "byteEqual": true,
+          "text": "Verde",
+          "promptTokens": 247,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 1475,
+          "prototypeMilliseconds": 5123,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        }
+      ],
+      "checks": {
+        "activeCancelResult": "cancelled",
+        "cancelElapsedMs": 4,
+        "closedHandleRejected": true,
+        "invalidJsonRejected": true,
+        "repeatByteEqual": true
+      },
+      "baselineChecks": {
+        "activeCancelResult": "cancelled",
+        "cancelElapsedMs": 0,
+        "closedHandleRejected": true,
+        "invalidJsonRejected": true,
+        "repeatByteEqual": true
+      }
+    },
+    {
+      "profile": "balanced",
+      "modelSha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+      "comparisons": [
+        {
+          "name": "cold",
+          "byteEqual": true,
+          "text": "blue",
+          "promptTokens": 247,
+          "generatedTokens": 1,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3384,
+          "prototypeMilliseconds": 3576,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        },
+        {
+          "name": "same_query_warm",
+          "byteEqual": true,
+          "text": "blue",
+          "promptTokens": 247,
+          "generatedTokens": 1,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3224,
+          "prototypeMilliseconds": 110,
+          "cachedPromptTokens": 246,
+          "evaluatedPromptTokens": 1
+        },
+        {
+          "name": "new_turn",
+          "byteEqual": true,
+          "text": "blue",
+          "promptTokens": 267,
+          "generatedTokens": 1,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3576,
+          "prototypeMilliseconds": 424,
+          "cachedPromptTokens": 248,
+          "evaluatedPromptTokens": 19
+        },
+        {
+          "name": "changed_last_user",
+          "byteEqual": true,
+          "text": "10",
+          "promptTokens": 274,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3899,
+          "prototypeMilliseconds": 546,
+          "cachedPromptTokens": 253,
+          "evaluatedPromptTokens": 21
+        },
+        {
+          "name": "changed_system",
+          "byteEqual": true,
+          "text": "18",
+          "promptTokens": 28,
+          "generatedTokens": 2,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 587,
+          "prototypeMilliseconds": 566,
+          "cachedPromptTokens": 4,
+          "evaluatedPromptTokens": 24
+        },
+        {
+          "name": "pruned_history",
+          "byteEqual": true,
+          "text": "2 + 2 é igual a 4.",
+          "promptTokens": 985,
+          "generatedTokens": 10,
+          "droppedMessages": 22,
+          "baselineMilliseconds": 14701,
+          "prototypeMilliseconds": 16324,
+          "cachedPromptTokens": 3,
+          "evaluatedPromptTokens": 982
+        },
+        {
+          "name": "pruned_history_repeat",
+          "byteEqual": true,
+          "text": "2 + 2 é igual a 4.",
+          "promptTokens": 985,
+          "generatedTokens": 10,
+          "droppedMessages": 22,
+          "baselineMilliseconds": 16830,
+          "prototypeMilliseconds": 644,
+          "cachedPromptTokens": 984,
+          "evaluatedPromptTokens": 1
+        },
+        {
+          "name": "after_invalid_json",
+          "byteEqual": true,
+          "text": "blue",
+          "promptTokens": 247,
+          "generatedTokens": 1,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3636,
+          "prototypeMilliseconds": 3480,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        },
+        {
+          "name": "after_idle_cancel",
+          "byteEqual": true,
+          "text": "blue",
+          "promptTokens": 247,
+          "generatedTokens": 1,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3665,
+          "prototypeMilliseconds": 3639,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        },
+        {
+          "name": "after_active_cancel",
+          "byteEqual": true,
+          "text": "blue",
+          "promptTokens": 247,
+          "generatedTokens": 1,
+          "droppedMessages": 0,
+          "baselineMilliseconds": 3589,
+          "prototypeMilliseconds": 3185,
+          "cachedPromptTokens": 0,
+          "evaluatedPromptTokens": 247
+        }
+      ],
+      "checks": {
+        "activeCancelResult": "cancelled",
+        "cancelElapsedMs": 1,
+        "closedHandleRejected": true,
+        "invalidJsonRejected": true,
+        "repeatByteEqual": true
+      },
+      "baselineChecks": {
+        "activeCancelResult": "cancelled",
+        "cancelElapsedMs": 6,
+        "closedHandleRejected": true,
+        "invalidJsonRejected": true,
+        "repeatByteEqual": true
+      }
+    }
+  ],
+  "timingCaveat": "Single host observations, not controlled hardware benchmarks. The compact run had other CPU inference during later cases; no phone speed guarantee. The balanced runs were coordinated without the other model agent; cloud CPU scheduling can still vary.",
+  "productionSourceSha256": "af923714e755a94f59e7a705d3f0e4ab8af70d0acf5e41ffe3ccdde877aa34f6",
+  "prototypeVsProduction": "Production adds conservative contiguous sequence position validation and changes/adds technical counter names; token-prefix algorithm and sampling are unchanged. The production JNI regression was run separately.",
+  "productionJniChecks": {
+    "executed": true,
+    "modelProfile": "compact",
+    "threads": 2,
+    "cacheRetryByteEqual": true,
+    "cachedPromptTokens": 28,
+    "evaluatedPromptTokens": 1,
+    "idleCancelReset": true,
+    "invalidJsonRejected": true,
+    "invalidTokenLimitRejected": true,
+    "activeCancel": "CancellationException",
+    "activeCancelSeconds": 0.00632322,
+    "concurrentClose": "CancellationException",
+    "concurrentCloseSeconds": 0.026444602,
+    "closedHandleRejected": true,
+    "actualArithmetic": "42",
+    "actualFollowUp": "Ciano",
+    "actualUnicode": "Olá, coração! 🚀"
+  },
+  "privacy": "Only deliberately synthetic fixture inputs/outputs. No user prompt, path, name, credential or image was logged by the native runtime.",
+  "limitations": [
+    "The synthetic blue-item question still produced Verde in the compact model. Cache equality is not factual correctness or intelligence approval.",
+    "No Android execution of the modified cache test has completed at report creation.",
+    "Fallback for memory implementations rejecting partial seq_rm is implemented and reviewed; no recurrent model validated in this cache comparison.",
+    "Background services, physical camera/microphone, Samsung firmware and Play Protect were not exercised by these host tests."
+  ],
+  "comparedPairs": 20,
+  "actualBaselineAndPrototypeGenerations": 40
+}

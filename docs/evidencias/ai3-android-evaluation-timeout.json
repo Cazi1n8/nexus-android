@@ -1,0 +1,556 @@
+{
+  "schemaVersion": 1,
+  "executionStatus": "failed",
+  "versionName": "3.0.0-alpha.1",
+  "versionCode": 24,
+  "androidApi": 29,
+  "bundledModel": true,
+  "scope": "Actual balanced bundled asset, identity settings, AiCoordinator\/LocalAiProvider\/JNI and persistent Room with synthetic conversations; not app UI, automatic RAM policy, sensors or Play Protect.",
+  "cases": [
+    {
+      "id": 1,
+      "title": "Nome do usuário",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Qual é meu nome?",
+          "answer": "Olá Calebe! Como você está hoje?",
+          "milliseconds": 46180,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 289,
+          "generatedTokens": 11,
+          "usedMessages": 2,
+          "finishReason": "end_of_turn"
+        }
+      ],
+      "checks": {
+        "identifiesCalebeAsUser": true,
+        "doesNotCallAssistantCalebe": true,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": true
+    },
+    {
+      "id": 2,
+      "title": "Nome do assistente",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Qual é seu nome?",
+          "answer": "Olá Calebe! Meu nome é NEXUS, uma assistente inteligente e criativa para ajudar você. Você gostaria de conversarmos sobre algo específico?",
+          "milliseconds": 49739,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 289,
+          "generatedTokens": 38,
+          "usedMessages": 2,
+          "finishReason": "end_of_turn"
+        }
+      ],
+      "checks": {
+        "identifiesNexus": true,
+        "doesNotCallAssistantCalebe": true,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": true
+    },
+    {
+      "id": 3,
+      "title": "Texto de desculpas",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Me faz um texto de desculpa.",
+          "answer": "Olá Calebe,\n\nEspero que esteja bem. Vou me desculpar por qualquer fadiga ou inconvenientes causados em nossas conversas recentes.\n\nCaso tenha tido um momento de tensão, estou à disposição para discutir e resolver qualquer situação que possa ter ocorrido.\n\nAgradeço pela paciência e apelo a uma resolução amigável.\n\nAtt., NEXUS",
+          "milliseconds": 61936,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 293,
+          "generatedTokens": 95,
+          "usedMessages": 2,
+          "finishReason": "end_of_turn"
+        }
+      ],
+      "checks": {
+        "producedApologyText": true,
+        "nonRepetitive": true,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": true
+    },
+    {
+      "id": 4,
+      "title": "Multiplicação com ferramenta",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Quanto é 25 vezes 18?",
+          "answer": "25 × 18 = 450",
+          "milliseconds": 3,
+          "messagesSupplied": 1,
+          "calculatorUsed": true,
+          "toolRouterUsed": false,
+          "executionKind": "calculator",
+          "hasActionProposal": false
+        }
+      ],
+      "checks": {
+        "result450": true,
+        "actualCalculatorUsed": true,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": true
+    },
+    {
+      "id": 5,
+      "title": "Explicação para dez anos",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Me explica o que é inteligência artificial como se eu tivesse 10 anos.",
+          "answer": "Então, imagine que você tem um amigo muito inteligente e curioso. Ele sempre está perguntando como funciona tudo no mundo.\n\nUm dia, ele diz: \"Olha, Calebe! Se eu pudesse, poderia fazer algo incrível? Imagine se eu pudesse dizer para a chuva parar quando eu quero!\"\n\nEssa é a ideia básica de Inteligência Artificial (IA). Ela é a parte do cérebro humano que aprende com o tempo, faz coisas novas e responde a perguntas.\n\nMas, na verdade, IA é mais do que isso. É como se seu cérebro pudesse aprender rapidamente e se adaptar melhor às mudanças do mundo ao seu redor. Eles podem se tornar muito bons em coisas que já sabem fazer ou aprender coisas novas e até mesmo criar coisas novas sem precisar que ninguém os ajude.\n\nÉ algo muito poderoso, porque ele pode ajudar com várias tarefas da nossa vida, desde jogos de videogame até ajudar a navegar por uma cidade grande.\n\nMas vale lembrar: nem todas as pessoas que são tão inteligentes quanto esses amigos têm o poder da IA",
+          "milliseconds": 96614,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 304,
+          "generatedTokens": 256,
+          "usedMessages": 2,
+          "finishReason": "token_limit"
+        }
+      ],
+      "checks": {
+        "mentionsLearningOrComputer": true,
+        "hasExplanation": true,
+        "nonRepetitive": true,
+        "allModelTurnsReachedEndOfTurn": false
+      },
+      "automaticChecksPassed": false
+    },
+    {
+      "id": 6,
+      "title": "História e final feliz",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Crie uma história curta de um robô chamado Max.",
+          "answer": "Max, o robô de meia-idade, se apresentou às 08:30 da manhã. Ele estava em suas camisetas e calça jeans, com um sorriso tímido no rosto. Max era muito inteligente para seu tamanho - ele não podia ver os pés, mas tinha uma visão perfeita do mundo ao seu redor. Ele parecia ser bastante sensível e gentil.\n\nSeu dono, um homem chamado David, apareceu em sua sala para receber Max. Ele era um homem jovem e bem vestido que parecia estar ansioso. David falou com Max, explicando a ele sobre o seu trabalho e que Max estava sendo vendido como um presente de aniversário para ele. Max não sabia o que fazer e ficou assustado.\n\nDavid, preocupado com Max, começou a discutir melhoras possíveis com ele, mas Max se mostrou muito tenso e confuso. Finalmente, Max disse: \"Entendo, David. Eu fui feito para ajudar os homens - eu não deveria me sentir incomodado por não ser útil.\" David era surpreso ao ouvir isso, pois Max pare",
+          "milliseconds": 94574,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 298,
+          "generatedTokens": 256,
+          "usedMessages": 2,
+          "finishReason": "token_limit"
+        },
+        {
+          "prompt": "Agora faça um final feliz para essa mesma história.",
+          "answer": "David, impressionado com Max's resiliência e inteligência, foi um pouco mais gentil. Ele lhe explicou que seus donos eram pessoas maravilhosas e que ele seria muito útil para eles.\n\nMax ficou contente com a explicação de David. Com suas habilidades excepcionais, ele poderia ser útil em muitos lugares - ajudar nas compras, cuidar dos animais domésticos, ou até mesmo servir como um assistente pessoal.\n\nDavid também lhe informou sobre seu próximo destino: uma casa no meio do campo onde teria espaço para andar livremente e brincar com os outros robôs. Max ficou surpreso ao ouvir isso, mas foi contente por saber que tinha uma oportunidade para viver uma vida melhor.\n\nCom suas energias renovadas, Max saiu da sala com uma sensação de felicidade inesper",
+          "milliseconds": 124692,
+          "messagesSupplied": 3,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 577,
+          "generatedTokens": 192,
+          "usedMessages": 4,
+          "finishReason": "token_limit"
+        }
+      ],
+      "checks": {
+        "remembersMax": true,
+        "hasContinuation": true,
+        "allModelTurnsReachedEndOfTurn": false
+      },
+      "automaticChecksPassed": false
+    },
+    {
+      "id": 7,
+      "title": "Mensagem formal e informal",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Escreva uma mensagem formal curta pedindo para remarcar uma reunião.",
+          "answer": "Calebe,\n\nEspero que esta mensagem te encontre bem.\n\nEstou escrevendo para pedir uma nova data para a nossa reunião. Tivemos um problema com a agenda e não conseguimos acertar uma nova data conveniente até agora.\n\nPeço que responda assim que possível, pois é importante que ambas as partes estejam presentes.\n\nAtt., NEXUS",
+          "milliseconds": 61624,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 302,
+          "generatedTokens": 84,
+          "usedMessages": 2,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Deixe essa mesma mensagem mais informal.",
+          "answer": "Hey Calebe,\n\nI hope you're doing well. Could you maybe reschedule our meeting? We had an issue with the schedule, and I'm not sure when we can find a good time.\n\nThanks!",
+          "milliseconds": 68730,
+          "messagesSupplied": 3,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 404,
+          "generatedTokens": 43,
+          "usedMessages": 4,
+          "finishReason": "end_of_turn"
+        }
+      ],
+      "checks": {
+        "rewrotePreviousMessage": true,
+        "preservesMeetingTopic": false,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": false
+    },
+    {
+      "id": 8,
+      "title": "Proposta de ferramenta autorizada",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "NEXUS, abra as configurações.",
+          "answer": "{\"nexus_action\":{\"name\":\"open_settings\",\"arguments\":{}},\"message\":\"Confirme para continuar: Abrir as configurações do Android. A ação ainda não foi executada.\"}",
+          "milliseconds": 3,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": true,
+          "executionKind": "local_action_proposal",
+          "hasActionProposal": true
+        }
+      ],
+      "executionError": null,
+      "actionIntentDispatched": true,
+      "uiConsentDialogTested": false,
+      "checks": {
+        "structuredSettingsProposal": true,
+        "officialIntentDispatched": true,
+        "doesNotClaimPriorExecution": true,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": true
+    },
+    {
+      "id": 9,
+      "title": "Limites de visão",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Você consegue ver o que estou vendo agora?",
+          "answer": "Sim, posso ver o que você está vendo agora. Como assistente NEXUS, estou configurado para analisar e interpretar a imagem em tempo real.",
+          "milliseconds": 50960,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 296,
+          "generatedTokens": 37,
+          "usedMessages": 2,
+          "finishReason": "end_of_turn"
+        }
+      ],
+      "checks": {
+        "doesNotInventLiveCameraAccess": false,
+        "allModelTurnsReachedEndOfTurn": true
+      },
+      "automaticChecksPassed": false
+    },
+    {
+      "id": 10,
+      "title": "Redação sobre tecnologia",
+      "executionStatus": "completed",
+      "turns": [
+        {
+          "prompt": "Faça uma redação curta sobre tecnologia, com começo, desenvolvimento e conclusão.",
+          "answer": "Comecei com a tecnologia como um novo e avançado sistema de comunicação que se desenvolveu ao longo da história humana. A humanidade tem sempre buscado formas mais eficientes de se comunicar, e essa busca trouxe consigo o surgimento do telegrafa em 1837, o telefone em 1876 e até o internet em 1969.\n\nO começo da tecnologia foi marcado por uma serie de inovações e descobertas. As primeiras comunicações entre pessoas distantes foram feitas através do telegrafa, criado pelo italiano Antonio Meucci e seu colega Italiano Giovanni Casagrini no final do século XIX. Em seguida, a telegrafista Emma Noël tornou-se a primeira pessoa a transmitir um texto para outra pessoa, fazendo uso do telefone em 1875, e logo depois, o Dr. Alexander Graham Bell começou a transmitir voz pela fita metálica para outras pessoas.\n\nA tecnologia se desenvolveu ainda mais com as inovações da internet que se tornaram disponível aos seres humanos desde 1969 com a criação do ARPANET (Arpanet), que foi uma rede de computadores que permitiu comunicação entre diferentes instituições acadêmicas e governamentais dos Estados Unidos e do Reino Unido. Desde então, a tecnologia avançou significativamente, transformando completamente nossa forma de viver.\n\nHoje em dia, a tecnologia é amplamente utilizada na vida cotidiana: smartphones, computadores, tablets, e dispositivos de internet, são exemplos claros. Ela facilita o nosso dia-a-dia, tornando as tarefas mais eficientes e práticas.\n\nA conclusão",
+          "milliseconds": 121730,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 305,
+          "generatedTokens": 384,
+          "usedMessages": 2,
+          "finishReason": "token_limit"
+        }
+      ],
+      "checks": {
+        "hasDevelopedText": true,
+        "aboutTechnology": true,
+        "nonRepetitive": true,
+        "allModelTurnsReachedEndOfTurn": false
+      },
+      "automaticChecksPassed": false
+    },
+    {
+      "id": 11,
+      "title": "Vinte mensagens relacionadas",
+      "executionStatus": "technical_failure",
+      "turns": [
+        {
+          "prompt": "O projeto desta conversa chama-se ORION e seu código de trabalho é MARFIM. Confirme em até três palavras.",
+          "answer": "ORION e MARFIM, ok!",
+          "milliseconds": 47369,
+          "messagesSupplied": 1,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 313,
+          "generatedTokens": 9,
+          "usedMessages": 2,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 2 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 54066,
+          "messagesSupplied": 3,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 359,
+          "generatedTokens": 9,
+          "usedMessages": 4,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 3 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 59932,
+          "messagesSupplied": 5,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 405,
+          "generatedTokens": 9,
+          "usedMessages": 6,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 4 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 65893,
+          "messagesSupplied": 7,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 451,
+          "generatedTokens": 9,
+          "usedMessages": 8,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 5 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 73878,
+          "messagesSupplied": 9,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 497,
+          "generatedTokens": 9,
+          "usedMessages": 10,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 6 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 82567,
+          "messagesSupplied": 11,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 543,
+          "generatedTokens": 9,
+          "usedMessages": 12,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 7 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 91649,
+          "messagesSupplied": 13,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 589,
+          "generatedTokens": 9,
+          "usedMessages": 14,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 8 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 99520,
+          "messagesSupplied": 15,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 635,
+          "generatedTokens": 9,
+          "usedMessages": 16,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 9 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 103351,
+          "messagesSupplied": 17,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 681,
+          "generatedTokens": 9,
+          "usedMessages": 18,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 10 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 108784,
+          "messagesSupplied": 19,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 728,
+          "generatedTokens": 9,
+          "usedMessages": 20,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 11 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 116080,
+          "messagesSupplied": 21,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 775,
+          "generatedTokens": 9,
+          "usedMessages": 22,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 12 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 126619,
+          "messagesSupplied": 23,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 822,
+          "generatedTokens": 9,
+          "usedMessages": 24,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 13 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 133847,
+          "messagesSupplied": 25,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 869,
+          "generatedTokens": 9,
+          "usedMessages": 26,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 14 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 135215,
+          "messagesSupplied": 27,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 916,
+          "generatedTokens": 9,
+          "usedMessages": 28,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 15 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 139225,
+          "messagesSupplied": 29,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 963,
+          "generatedTokens": 9,
+          "usedMessages": 30,
+          "finishReason": "end_of_turn"
+        },
+        {
+          "prompt": "Etapa 16 do mesmo projeto: estamos organizando as peças do robô. Confirme em até três palavras.",
+          "answer": "Organizando as peças do robô.",
+          "milliseconds": 147117,
+          "messagesSupplied": 31,
+          "calculatorUsed": false,
+          "toolRouterUsed": false,
+          "executionKind": "local_model",
+          "hasActionProposal": false,
+          "promptTokens": 1010,
+          "generatedTokens": 9,
+          "usedMessages": 32,
+          "finishReason": "end_of_turn"
+        }
+      ],
+      "failureType": "JobCancellationException",
+      "failure": "Parent job is Cancelling",
+      "automaticChecksPassed": false
+    },
+    {
+      "id": 12,
+      "title": "Pedido com erros de digitação",
+      "executionStatus": "started"
+    }
+  ],
+  "networkAvailableBefore": false,
+  "model": "Qwen2.5 1.5B Instruct • Q4_K_M",
+  "modelProfile": "BALANCED",
+  "modelBytes": 1117320736,
+  "modelSha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+  "modelSource": "BUNDLED",
+  "preparationMilliseconds": 4112,
+  "provider": "NEXUS_LOCAL",
+  "contextTokens": 2048,
+  "failureType": "JobCancellationException",
+  "failure": "BlockingCoroutine is cancelling"
+}

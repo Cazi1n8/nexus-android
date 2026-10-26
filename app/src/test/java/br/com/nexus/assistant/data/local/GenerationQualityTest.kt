@@ -27,6 +27,20 @@ class GenerationQualityTest {
         assertEquals("Texto interrompido antes do fim", parsed.text)
     }
 
+    @Test fun cachedTokensAreAccountedForWithoutChangingModelText() {
+        val payload = result("Resposta exata").put("cachedPromptTokens", 420).put("evaluatedPromptTokens", 80)
+        val parsed = LocalGenerationResult.parse(payload.toString().toByteArray())
+        assertEquals(420, parsed.cachedPromptTokens)
+        assertEquals(80, parsed.evaluatedPromptTokens)
+        assertEquals("Resposta exata", parsed.text)
+        assertEquals(500, LocalGenerationResult.parse(result().toString().toByteArray()).evaluatedPromptTokens)
+        for (invalid in listOf(payload.put("evaluatedPromptTokens", 81).toString(),
+            result().put("cachedPromptTokens", -1).toString(),
+            result().put("cachedPromptTokens", 501).toString())) {
+            assertThrows(IllegalArgumentException::class.java) { LocalGenerationResult.parse(invalid.toByteArray()) }
+        }
+    }
+
     @Test fun rejectsInvalidUtf8InsteadOfDisplayingReplacementCharacters() {
         assertThrows(CharacterCodingException::class.java) {
             LocalGenerationResult.strictUtf8(byteArrayOf(0xc3.toByte(), 0x28))

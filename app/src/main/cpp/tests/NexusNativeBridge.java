@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Host JNI verification only; this Java class is outside Android source sets. */
 public final class NexusNativeBridge {
@@ -60,6 +62,36 @@ public final class NexusNativeBridge {
         return answer;
     }
 
+    private static int metadataInteger(String json, String field) {
+        Matcher match = Pattern.compile("\"" + field + "\":(\\d+)").matcher(json);
+        if (!match.find()) throw new AssertionError("Metadado ausente: " + field);
+        return Integer.parseInt(match.group(1));
+    }
+
+    private static void prefixCacheRegression(NexusNativeBridge bridge, long handle) throws Exception {
+        // Synthetic requests only. This checks cache state and exact retries,
+        // not whether the small language model is semantically competent.
+        byte[] request = messages("system", "Reply only with a number.", "user", "What is 17 plus 25?");
+        String cold = decode(bridge.nativeGenerate(handle, request, 24));
+        String warm = decode(bridge.nativeGenerate(handle, request, 24));
+        if (!cold.equals(warm)) throw new AssertionError("Cache alterou a resposta do retry determinístico.");
+        String result = decode(bridge.nativeGenerateResult(handle, request, 24));
+        int cached = metadataInteger(result, "cachedPromptTokens");
+        int evaluated = metadataInteger(result, "evaluatedPromptTokens");
+        if (cached <= 0 || evaluated < 1 || cached + evaluated != metadataInteger(result, "promptTokens")) {
+            throw new AssertionError("Contadores do cache de prefixo inconsistentes.");
+        }
+        bridge.nativeCancel(handle);
+        String afterCancel = decode(bridge.nativeGenerateResult(handle, request, 24));
+        if (metadataInteger(afterCancel, "cachedPromptTokens") != 0) {
+            throw new AssertionError("Cancelamento ocioso manteve o cache anterior.");
+        }
+        System.out.println("prefix_cache_retry_byte_equal=true");
+        System.out.println("prefix_cache_reused_tokens=" + cached);
+        System.out.println("prefix_cache_evaluated_tokens=" + evaluated);
+        System.out.println("prefix_cache_idle_cancel_resets=true");
+    }
+
     private static void quality(NexusNativeBridge bridge, long handle) throws Exception {
         // Exact default LocalChatContext.build system with pt-BR, Amigável,
         // Equilibrado, empty userName and no authorized memories (23/10/2026).
@@ -97,6 +129,7 @@ public final class NexusNativeBridge {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             if (args.length == 3) { quality(bridge, handle); return; }
+            prefixCacheRegression(bridge, handle);
             String system = "Você é NEXUS. Responda em português brasileiro e seja breve.";
             run(bridge, handle, "calculo", messages("system", system, "user", "Quanto é 17 mais 25? Responda somente com o número."), 64);
             String context = "Meu objeto preferido é um cubo ciano. Lembre apenas nesta conversa.";

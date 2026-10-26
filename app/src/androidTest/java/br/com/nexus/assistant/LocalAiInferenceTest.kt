@@ -7,8 +7,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import br.com.nexus.assistant.data.local.LocalModelCatalog
 import br.com.nexus.assistant.data.local.NexusNativeBridge
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.charset.CodingErrorAction
 import java.security.MessageDigest
 import org.json.JSONArray
 import org.json.JSONObject
@@ -68,20 +66,32 @@ class LocalAiInferenceTest {
                 put(JSONObject().put("role", "system").put("content", "Você é NEXUS. Responda em português brasileiro. Seja breve."))
                 turns.forEach { (role, text) -> put(JSONObject().put("role", role).put("content", text)) }
             }
+            var lastCachedPromptTokens = 0
             fun infer(name: String, conversation: JSONArray, limit: Int): String {
                 val started = SystemClock.elapsedRealtime()
-                val raw = NexusNativeBridge.generate(handle, conversation.toString(), limit)
-                val decoder = Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                val text = decoder.decode(ByteBuffer.wrap(raw)).toString().trim()
+                // generateResult strictly decodes UTF-8 before parsing metadata.
+                val result = NexusNativeBridge.generateResult(handle, conversation.toString(), limit)
+                val text = result.text.trim()
                 assertTrue("The runtime must return generated text for $name", text.isNotBlank())
+                lastCachedPromptTokens = result.cachedPromptTokens
+                assertEquals(result.promptTokens - result.cachedPromptTokens, result.evaluatedPromptTokens)
+                assertTrue("At least the final input token must be evaluated for fresh logits", result.evaluatedPromptTokens > 0)
                 observations.put(JSONObject().put("name", name).put("answer", text)
-                    .put("milliseconds", SystemClock.elapsedRealtime() - started).put("outputTokenLimit", limit))
+                    .put("milliseconds", SystemClock.elapsedRealtime() - started).put("outputTokenLimit", limit)
+                    .put("promptTokens", result.promptTokens).put("cachedPromptTokens", result.cachedPromptTokens)
+                    .put("evaluatedPromptTokens", result.evaluatedPromptTokens))
                 return text
             }
 
-            val arithmetic = infer("arithmetic", messages("user" to "Quanto é 17 mais 25? Responda só com o número."), 16)
+            val arithmeticHistory = messages("user" to "Quanto é 17 mais 25? Responda só com o número.")
+            val arithmetic = infer("arithmetic", arithmeticHistory, 16)
             report.put("arithmeticMatchedExpected42", arithmetic.trim().trimEnd('.', '!') == "42")
+            val repeated = infer("same_prompt_warm_cache", arithmeticHistory, 16)
+            assertEquals("A deterministic retry must preserve the exact model text", arithmetic, repeated)
+            assertTrue("The pinned Qwen fixture must reuse its exact prompt prefix", lastCachedPromptTokens > 0)
+            NexusNativeBridge.cancel(handle)
+            assertEquals(arithmetic, infer("after_idle_cancellation", arithmeticHistory, 16))
+            assertEquals("A cancelled epoch must not reuse earlier context", 0, lastCachedPromptTokens)
             val introduction = "Meu objeto preferido é um cubo ciano. Lembre apenas nesta conversa."
             val acknowledgement = infer("context_acknowledgement", messages("user" to introduction), 32)
             val color = infer("context_follow_up", messages("user" to introduction,

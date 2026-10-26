@@ -1,0 +1,103 @@
+--- baseline_runtime.cpp
++++ cached_runtime.cpp
+@@ -28,6 +28,8 @@
+     std::atomic<bool> closed{false};
+     std::atomic<std::uint64_t> cancellation_epoch{0};
+     int context_tokens = 1024;
++    std::vector<llama_token> cached_tokens;
++    std::uint64_t cache_epoch = 0;
+ 
+     ~Engine() {
+         if (context != nullptr) llama_free(context);
+@@ -187,9 +189,15 @@
+     return std::string(output.data(), static_cast<std::size_t>(count));
+ }
+ 
+-struct ClearContextOnExit {
++struct ClearContextOnFailure {
+     Engine & engine;
+-    ~ClearContextOnExit() { llama_memory_clear(llama_get_memory(engine.context), true); }
++    bool completed = false;
++    ~ClearContextOnFailure() {
++        if (!completed) {
++            llama_memory_clear(llama_get_memory(engine.context), true);
++            engine.cached_tokens.clear();
++        }
++    }
+ };
+ 
+ void trim_incomplete_utf8_tail(std::string & text) {
+@@ -267,6 +275,7 @@
+     int used_messages = 0;
+     int context_tokens = 0;
+     int maximum_tokens = 0;
++    int reused_prompt_tokens = 0;
+ };
+ 
+ Generation generate_internal(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
+@@ -279,12 +288,29 @@
+     std::unique_lock<std::mutex> lock(engine->generation_mutex);
+     engine->cancel_requested.store(false, std::memory_order_relaxed);
+     if (engine->closed.load(std::memory_order_relaxed) || engine->cancellation_epoch.load(std::memory_order_relaxed) != epoch) throw Cancelled();
+-    ClearContextOnExit cleanup{*engine};
+-    llama_memory_clear(llama_get_memory(engine->context), true);
++    ClearContextOnFailure cleanup{*engine};
+     auto prompt = fit_context(*engine, parse_messages(chat_json), maximum_tokens);
+     auto & tokens = prompt.tokens;
+-    for (std::size_t start = 0; start < tokens.size(); start += 128) {
+-        decode(*engine, tokens, start, std::min<std::size_t>(128, tokens.size() - start));
++    auto memory = llama_get_memory(engine->context);
++    if (engine->cache_epoch != epoch) {
++        llama_memory_clear(memory, true);
++        engine->cached_tokens.clear();
++        engine->cache_epoch = epoch;
++    }
++    std::size_t reused = 0;
++    // Re-decode at least the final input token: a sequence removal does not
++    // restore logits for the prefix. Compare actual tokens, not message count.
++    const auto maximum_reuse = std::min(engine->cached_tokens.size(), tokens.size() - 1);
++    while (reused < maximum_reuse && engine->cached_tokens[reused] == tokens[reused]) ++reused;
++    if (reused == 0 || !llama_memory_seq_rm(memory, 0, static_cast<llama_pos>(reused), -1)) {
++        llama_memory_clear(memory, true);
++        reused = 0;
++    }
++    engine->cached_tokens.resize(reused);
++    for (std::size_t start = reused; start < tokens.size(); start += 128) {
++        auto count = std::min<std::size_t>(128, tokens.size() - start);
++        decode(*engine, tokens, start, count);
++        engine->cached_tokens.insert(engine->cached_tokens.end(), tokens.begin() + start, tokens.begin() + start + count);
+     }
+     using Sampler = std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)>;
+     auto sampling_parameters = llama_sampler_chain_default_params();
+@@ -304,6 +330,7 @@
+     llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(42));
+     Generation result;
+     result.prompt_tokens = static_cast<int>(tokens.size());
++    result.reused_prompt_tokens = static_cast<int>(reused);
+     result.input_messages = prompt.input_messages;
+     result.used_messages = prompt.used_messages;
+     result.context_tokens = engine->context_tokens;
+@@ -321,6 +348,7 @@
+         if (generated + 1 < maximum_tokens) {
+             std::vector<llama_token> next{token};
+             decode(*engine, next, 0, 1);
++            engine->cached_tokens.push_back(token);
+         }
+     }
+     check_cancelled(*engine);
+@@ -328,6 +356,7 @@
+     // does not remove repeated words, paragraphs or change generated content.
+     trim_incomplete_utf8_tail(result.text);
+     if (result.text.empty()) throw std::runtime_error("O modelo local não produziu texto. Tente uma pergunta mais curta.");
++    cleanup.completed = true;
+     return result;
+ }
+ 
+@@ -342,6 +371,7 @@
+     return nlohmann::json({
+         {"text", result.text}, {"finishReason", result.finish_reason},
+         {"promptTokens", result.prompt_tokens}, {"generatedTokens", result.generated_tokens},
++        {"reusedPromptTokens", result.reused_prompt_tokens},
+         {"inputMessages", result.input_messages}, {"usedMessages", result.used_messages},
+         {"droppedMessages", result.input_messages - result.used_messages},
+         {"contextTokens", result.context_tokens}, {"maxOutputTokens", result.maximum_tokens},

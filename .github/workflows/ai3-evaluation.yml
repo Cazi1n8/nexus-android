@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'app/src/main/**'
-      - 'app/src/androidTest/java/br/com/nexus/assistant/Ai3EvaluationTest.kt'
+      - 'app/src/androidTest/java/br/com/nexus/assistant/Ai3Evaluation*.kt'
       - 'app/build.gradle.kts'
       - 'scripts/fetch_bundled_model.py'
       - 'scripts/fetch_language_model.py'

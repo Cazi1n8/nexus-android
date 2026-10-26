@@ -80,6 +80,7 @@ class LocalAiProvider(
                             state = if (issue == null) "completed" else "failed", model = models.spec.displayName,
                             inputMessages = result.inputMessages, usedMessages = result.usedMessages,
                             promptTokens = result.promptTokens, generatedTokens = result.generatedTokens,
+                            cachedPromptTokens = result.cachedPromptTokens, evaluatedPromptTokens = result.evaluatedPromptTokens,
                             contextTokens = result.contextTokens, elapsedMilliseconds = (System.nanoTime() - started) / 1_000_000,
                             finishReason = result.finishReason, qualityIssue = issue?.name,
                         )

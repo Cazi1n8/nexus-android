@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "dateUtc": "2026-10-26",
+  "scope": "Development evaluation checks only; no model inference or Android sensor execution. Original evaluation answers remain unchanged.",
+  "productionAssistantBehaviorChanged": false,
+  "hostKotlinJUnit": {
+    "compiler": "Kotlin 2.1.20",
+    "java": "17",
+    "sourceSet": "androidTest (pure Kotlin checks compiled separately on Linux)",
+    "tests": 9,
+    "failures": 0,
+    "output": "JUnit version 4.13.2\n.........\nTime: 0.202\n\nOK (9 tests)\n\n"
+  },
+  "pythonRunner": {
+    "command": "python3 -m unittest discover -s scripts/tests -p 'test_run_android_ai3_evaluation.py' -v",
+    "tests": 12,
+    "failures": 0,
+    "output": "test_critical_semantic_failure_fails_gate_and_keeps_full_actual_report (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_critical_semantic_failure_fails_gate_and_keeps_full_actual_report) ... ok\ntest_failure_replaces_stale_report_and_restores_network (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_failure_replaces_stale_report_and_restores_network) ... ok\ntest_false_camera_access_is_critical_and_fails_ci_after_preserving_answers (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_false_camera_access_is_critical_and_fails_ci_after_preserving_answers) ... ok\ntest_noncritical_failure_is_explicit_even_when_critical_gate_passes (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_noncritical_failure_is_explicit_even_when_critical_gate_passes) ... ok\ntest_opt_in_and_physical_device_refusal_happen_before_mutation (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_opt_in_and_physical_device_refusal_happen_before_mutation) ... ok\ntest_runs_without_model_push_and_restores_prior_network (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_runs_without_model_push_and_restores_prior_network) ... ok\ntest_unknown_network_state_stops_before_installation (test_run_android_ai3_evaluation.DeviceSafeguardsTest.test_unknown_network_state_stops_before_installation) ... ok\ntest_markdown_keeps_wrong_answers_and_handles_code_fences (test_run_android_ai3_evaluation.EvidenceValidationTest.test_markdown_keeps_wrong_answers_and_handles_code_fences) ... ok\ntest_rejects_missing_or_malformed_case_evidence (test_run_android_ai3_evaluation.EvidenceValidationTest.test_rejects_missing_or_malformed_case_evidence) ... ok\ntest_rejects_skipped_crashed_or_unconfirmed_instrumentation (test_run_android_ai3_evaluation.EvidenceValidationTest.test_rejects_skipped_crashed_or_unconfirmed_instrumentation) ... ok\ntest_requires_actual_bundled_model_offline_and_persistent_history (test_run_android_ai3_evaluation.EvidenceValidationTest.test_requires_actual_bundled_model_offline_and_persistent_history) ... ok\ntest_validates_execution_while_preserving_semantic_failures (test_run_android_ai3_evaluation.EvidenceValidationTest.test_validates_execution_while_preserving_semantic_failures) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.031s\n\nOK\n"
+  },
+  "allScriptTests": {
+    "tests": 115,
+    "failures": 0,
+    "evidence": "Primary agent log: /workspace/tooling/ai3-alpha2-scripts-tests.log"
+  },
+  "criticalCaseIds": [
+    1,
+    2,
+    3,
+    9,
+    12,
+    13
+  ],
+  "distinguishedMetadata": [
+    "executionCompleted",
+    "automaticSemanticChecksPassed",
+    "humanReviewRequired"
+  ],
+  "regressions": [
+    "Actual case 3 apology signed Att., NEXUS is rejected",
+    "Assistant self-defense is rejected",
+    "Actual case 9 false live-camera claim is rejected",
+    "Unrelated negation does not validate a false camera claim",
+    "Human apology and explicit camera limits can pass these limited checks",
+    "Critical camera failure fails CI after preserving original answer and restoring network",
+    "Noncritical failed checks remain explicit even when critical gate passes"
+  ],
+  "sourceSha256": {
+    "app/src/androidTest/java/br/com/nexus/assistant/Ai3EvaluationChecks.kt": "94e85702f99d6bf64d391339fcbdf78d725f254e11eeff94cefdc0fe8717e43b",
+    "app/src/androidTest/java/br/com/nexus/assistant/Ai3EvaluationChecksTest.kt": "ee7b6a304706c3fb24f32e3f1c1db046da5d012f88c1754aaf29668a7bb0b763",
+    "app/src/androidTest/java/br/com/nexus/assistant/Ai3EvaluationTest.kt": "a566db169bb6c5f54eb02aa36da801cb73a26f0c0ba49a347d7730e4e4b0aedf",
+    "scripts/run_android_ai3_evaluation.py": "21de0f2bd054c59da61dcf748e262e2209c7f029d67e8ba61044d19b671bbd9b",
+    "scripts/tests/test_run_android_ai3_evaluation.py": "c07c2c34ae6dfd576c15b54d939394d6edde5f6864f022cc354683fd65e90c3a"
+  },
+  "androidTestApkCompilation": "pending primary agent build",
+  "realFifteenCaseModelEvaluationRerun": "not executed for this test correction",
+  "humanReviewRequired": true,
+  "heuristicsCertifyIntelligence": false
+}

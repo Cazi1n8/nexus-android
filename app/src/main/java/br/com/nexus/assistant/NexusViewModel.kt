@@ -132,8 +132,11 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
 
     fun report(message: String) { _error.value = message }
     fun clearError() { _error.value = null }
-    fun newConversation() { _chatDraft.value = null; conversationGeneration++; cancelResponse(); _selected.value = null; removeAttachment() }
-    fun openConversation(id: String) { conversationGeneration++; cancelResponse(); _selected.value = id; removeAttachment() }
+    fun newConversation() { _chatDraft.value = null; conversationGeneration++; cancelResponse(); releaseLocalContext(); _selected.value = null; removeAttachment() }
+    fun openConversation(id: String) { conversationGeneration++; cancelResponse(); releaseLocalContext(); _selected.value = id; removeAttachment() }
+    // KV state belongs only to the selected conversation. Never retain it when
+    // the user changes the conversation or revokes personal context.
+    private fun releaseLocalContext() { localProviders.values.forEach { it.release() } }
     fun cancelResponse() {
         _pendingAction.value = null
         responseJob?.cancel()
@@ -447,12 +450,19 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         }
         val previous = preferences.settings.first()
         val changingAi = normalized.aiMode != previous.aiMode || effectiveProfile(normalized) != effectiveProfile(previous)
-        if (changingAi) modifyingLocalModel = true
+        val changingPrompt = normalized.userPreferredName != previous.userPreferredName ||
+            normalized.assistantPersonality != previous.assistantPersonality ||
+            normalized.assistantInstructions != previous.assistantInstructions ||
+            normalized.userPreferences != previous.userPreferences || normalized.language != previous.language ||
+            normalized.detail != previous.detail
+        if (changingAi || changingPrompt) modifyingLocalModel = true
         try {
-            if (changingAi) {
+            if (changingAi || changingPrompt) {
                 cancelResponse()
-                modelDownloadJob?.cancel()
-                modelDownloadJob?.join()
+                if (changingAi) {
+                    modelDownloadJob?.cancel()
+                    modelDownloadJob?.join()
+                }
                 runningResponses.toList().forEach { it.join() }
                 localProviders.values.forEach { it.releaseAndAwait() }
             }
@@ -469,16 +479,24 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             onSaved?.invoke()
             report("Configurações salvas neste aparelho.")
         } finally {
-            if (changingAi) modifyingLocalModel = false
+            if (changingAi || changingPrompt) modifyingLocalModel = false
         }
     }
-    fun saveMemory(content: String, id: String? = null) = mutate { repository.saveMemory(content, id) }
-    fun deleteMemory(id: String) = mutate { repository.deleteMemory(id) }
+    fun saveMemory(content: String, id: String? = null) = mutate { resetPersonalContext { repository.saveMemory(content, id) } }
+    fun deleteMemory(id: String) = mutate { resetPersonalContext { repository.deleteMemory(id) } }
+    private suspend fun resetPersonalContext(change: suspend () -> Unit) {
+        modifyingLocalModel = true
+        try {
+            cancelResponse()
+            runningResponses.toList().forEach { it.join() }
+            localProviders.values.forEach { it.releaseAndAwait() }
+            change()
+        } finally { modifyingLocalModel = false }
+    }
     fun renameConversation(id: String, title: String) = mutate { repository.renameConversation(id, title) }
     fun deleteConversation(id: String) = mutate {
         if (_selected.value == id) newConversation()
-        runningResponses.filter { it.isCancelled }.forEach { it.join() }
-        repository.deleteConversation(id)
+        resetPersonalContext { repository.deleteConversation(id) }
     }
     fun deleteAllData() = guarded {
         if (deletingData) return@guarded

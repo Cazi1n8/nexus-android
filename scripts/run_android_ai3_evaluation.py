@@ -23,7 +23,7 @@ REMOTE_REPORT = "files/ci-reports/ai3-evaluation.json"
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_BYTES = 1_117_320_736
 MODEL_SHA256 = "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"
-CRITICAL_CASE_IDS = frozenset((1, 2, 3, 12, 13))
+CRITICAL_CASE_IDS = frozenset((1, 2, 3, 9, 12, 13))
 
 
 def validate_observations(output: str, report: dict) -> None:
@@ -36,6 +36,9 @@ def validate_observations(output: str, report: dict) -> None:
         raise ValueError("A instrumentação relatou uma falha.")
     if not isinstance(report, dict) or report.get("executionStatus") != "completed":
         raise ValueError("A bateria Android não foi concluída.")
+    if (report.get("schemaVersion") != 2 or report.get("executionCompleted") is not True or
+            report.get("humanReviewRequired") is not True):
+        raise ValueError("Falta separar execução técnica concluída de verificações semânticas e revisão humana.")
     if report.get("bundledModel") is not True or report.get("modelSource") != "BUNDLED":
         raise ValueError("A prova exige o modelo incluído no APK, sem transferência por ADB.")
     if report.get("provider") != "NEXUS_LOCAL" or report.get("modelProfile") != "BALANCED":
@@ -59,6 +62,8 @@ def validate_observations(output: str, report: dict) -> None:
     for case in cases:
         if case.get("executionStatus") != "completed":
             raise ValueError("Um caso não concluiu geração real.")
+        if case.get("executionCompleted") is not True or case.get("humanReviewRequired") is not True:
+            raise ValueError("Um caso não distingue conclusão técnica de revisão humana.")
         turns = case.get("turns")
         if not isinstance(turns, list) or not turns:
             raise ValueError("Faltam as mensagens/respostas sintéticas de um caso.")
@@ -79,6 +84,12 @@ def validate_observations(output: str, report: dict) -> None:
             raise ValueError("As verificações semânticas precisam ser observações booleanas explícitas.")
         if type(case.get("automaticChecksPassed")) is not bool or case["automaticChecksPassed"] != all(checks.values()):
             raise ValueError("O resultado automático diverge das observações registradas.")
+        if (type(case.get("automaticSemanticChecksPassed")) is not bool or
+                case["automaticSemanticChecksPassed"] != case["automaticChecksPassed"]):
+            raise ValueError("O resultado semântico de um caso diverge das observações registradas.")
+    if (type(report.get("automaticSemanticChecksPassed")) is not bool or
+            report["automaticSemanticChecksPassed"] != all(case["automaticChecksPassed"] for case in cases)):
+        raise ValueError("O resultado semântico agregado diverge dos casos, sem alterar sua conclusão técnica.")
     case_twenty = next(case for case in cases if case["id"] == 11)
     if case_twenty.get("actualUserMessages") != 20 or len(case_twenty["turns"]) != 20:
         raise ValueError("O caso de contexto precisa gerar vinte turnos de verdade.")
@@ -185,12 +196,17 @@ def run(output: Path, *, allow_reset_emulator: bool = False, require_critical_ch
         write_markdown(report, output / "TESTES_NEXUS_AI.md")
         failed_critical = critical_failures(report)
         summary = {"executionStatus": "completed", "casesExecuted": len(report["cases"]),
+                   "executionCompleted": True,
+                   "automaticSemanticChecksPassed": report["automaticSemanticChecksPassed"],
+                   "humanReviewRequired": True,
                    "automaticChecksSatisfied": sum(case["automaticChecksPassed"] for case in report["cases"]),
                    "criticalCaseIds": sorted(CRITICAL_CASE_IDS), "criticalFailedCaseIds": failed_critical,
+                   "criticalGateRequired": require_critical_checks,
+                   "criticalGatePassed": not failed_critical if require_critical_checks else None,
                    "heuristicsAreNotQualityCertification": True}
         (output / "semantic-summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
         if require_critical_checks and failed_critical:
-            raise ValueError("A geração executou, mas falharam verificações críticas de identidade/redação nos casos: " +
+            raise ValueError("A geração executou, mas falharam verificações críticas de identidade/redação/limites de visão nos casos: " +
                              ", ".join(map(str, failed_critical)) + ". As respostas reais foram preservadas.")
         status = "passed"
         return report
@@ -230,7 +246,7 @@ def main() -> int:
     parser.add_argument("--allow-reset-emulator", action="store_true",
                         help="Autoriza o teste a limpar dados do app e desligar a rede apenas em emulador.")
     parser.add_argument("--require-critical-checks", action="store_true",
-                        help="Falha também se as verificações críticas de identidade e redação não forem atendidas; preserva todas as respostas.")
+                        help="Falha se verificações críticas de identidade, redação ou limites de visão não forem atendidas; preserva todas as respostas.")
     args = parser.parse_args()
     try:
         report = run(args.output, allow_reset_emulator=args.allow_reset_emulator,
@@ -240,6 +256,9 @@ def main() -> int:
         return 1
     print("Bateria real de quinze casos executada; examine as observações e as respostas, inclusive os erros.")
     print(json.dumps({"modelProfile": report["modelProfile"], "casesExecuted": len(report["cases"]),
+                      "executionCompleted": report["executionCompleted"],
+                      "automaticSemanticChecksPassed": report["automaticSemanticChecksPassed"],
+                      "humanReviewRequired": report["humanReviewRequired"],
                       "automaticChecksSatisfied": sum(case["automaticChecksPassed"] for case in report["cases"])}))
     return 0
 

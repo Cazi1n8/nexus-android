@@ -1,0 +1,94 @@
+{
+  "bundled-chat-observations.json": {
+    "schemaVersion": 1,
+    "executionStatus": "passed",
+    "bundledModel": true,
+    "versionName": "3.0.0-alpha.1",
+    "versionCode": 24,
+    "androidApi": 29,
+    "scope": "Actual Chat UI, ViewModel asset preparation, local generation and Room history; no camera or microphone proof.",
+    "stage": "completed",
+    "manualProfileRespected": true,
+    "automaticProfileSelectedFromDevicePolicy": "COMPACT",
+    "networkAvailableBefore": false,
+    "activeNetworkPresentBefore": false,
+    "preparationMilliseconds": 4726,
+    "modelPreparedByViewModel": true,
+    "modelBytes": 491400032,
+    "modelSha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+    "provider": "NEXUS_LOCAL",
+    "modelProfile": "COMPACT",
+    "modelSource": "BUNDLED",
+    "sendObservations": [
+      {
+        "name": "native_reply",
+        "acceptanceObserved": true,
+        "draftCleared": true,
+        "busyAfterSend": true,
+        "hasNewUserMessage": true,
+        "hasUserMessage": true,
+        "selectedConversationAfterSend": "b4f5922a-40b5-4c6e-94a5-a883930223e0",
+        "errorAfterSend": null,
+        "assistantPersisted": true,
+        "busyAtExit": false,
+        "selectedConversationAtExit": "b4f5922a-40b5-4c6e-94a5-a883930223e0",
+        "userMessageCountAtExit": 1,
+        "assistantMessageCountAtExit": 1,
+        "errorAtExit": null
+      },
+      {
+        "name": "arithmetic",
+        "acceptanceObserved": true,
+        "draftCleared": true,
+        "busyAfterSend": false,
+        "hasNewUserMessage": true,
+        "hasUserMessage": true,
+        "selectedConversationAfterSend": "b4f5922a-40b5-4c6e-94a5-a883930223e0",
+        "errorAfterSend": null,
+        "assistantPersisted": true,
+        "busyAtExit": false,
+        "selectedConversationAtExit": "b4f5922a-40b5-4c6e-94a5-a883930223e0",
+        "userMessageCountAtExit": 2,
+        "assistantMessageCountAtExit": 2,
+        "errorAtExit": null
+      },
+      {
+        "name": "image_ocr",
+        "acceptanceObserved": true,
+        "draftCleared": true,
+        "busyAfterSend": true,
+        "hasNewUserMessage": true,
+        "hasUserMessage": true,
+        "selectedConversationAfterSend": "b4f5922a-40b5-4c6e-94a5-a883930223e0",
+        "errorAfterSend": null,
+        "assistantPersisted": true,
+        "busyAtExit": false,
+        "selectedConversationAtExit": "b4f5922a-40b5-4c6e-94a5-a883930223e0",
+        "userMessageCountAtExit": 3,
+        "assistantMessageCountAtExit": 3,
+        "errorAtExit": null
+      }
+    ],
+    "persistedAssistantMessage": true,
+    "reply": {
+      "answer": "Azul.",
+      "milliseconds": 36250,
+      "matchedExpectedWord": true
+    },
+    "mathCorrect": true,
+    "mathAnswer": "10+10÷10×10 = 20",
+    "imageTextReadLocally": true,
+    "imageTextAnswer": "Texto lido localmente por OCR:\nOLA NEXUS 2026",
+    "profileStableAfterRecreation": true,
+    "networkAvailableAfter": false,
+    "activeNetworkPresentAfter": false,
+    "semanticAssessment": "Generated answer retained; this does not certify general model intelligence."
+  },
+  "network-restoration.json": {
+    "original": {
+      "wifi": "1",
+      "data": "1"
+    },
+    "restorationCommandErrors": []
+  }
+}

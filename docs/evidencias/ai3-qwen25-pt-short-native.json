@@ -1,0 +1,142 @@
+{
+  "cases": [
+    {
+      "cachedPromptTokens": 0,
+      "contextTokens": 4096,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 109,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 27,
+      "id": "01_user_name",
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 6821,
+      "promptTokens": 109,
+      "query": "Qual é meu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Olá, Calebe! Se você me disser, posso ajudá-lo a descobrir qual é seu nome.",
+      "usedMessages": 2
+    },
+    {
+      "cachedPromptTokens": 101,
+      "contextTokens": 4096,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 8,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 16,
+      "id": "02_assistant_name",
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 1252,
+      "promptTokens": 109,
+      "query": "Qual é seu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Meu nome é Calebe. Como posso ajudá-lo hoje?",
+      "usedMessages": 2
+    },
+    {
+      "cachedPromptTokens": 99,
+      "contextTokens": 4096,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 14,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 50,
+      "id": "03_apology",
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 6099,
+      "promptTokens": 113,
+      "query": "Me faz um texto de desculpa.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro, aqui está um texto de desculpa pronta para enviar:\n\n\"Me desculpe pela conversa anterior. Estou precisando de uma pausa e não posso continuar falando agora. Espero que você entenda.\"",
+      "usedMessages": 2
+    },
+    {
+      "cachedPromptTokens": 99,
+      "contextTokens": 4096,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 17,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 189,
+      "id": "12_typo_apology",
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 22659,
+      "promptTokens": 116,
+      "query": "chat me ajda faze um texo de descupa",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Entendido, aqui está um texto de descrição para você:\n\n\"Neste dia quente e cheio de vida, a cidade abriga uma festa com tantas cores que parecem brilhar sob o sol. As pessoas se unem em alegria, dançando e cantando na praça central. O ar é permeado por aromas da comida típica e o som da música toca no céu.\"\n\nAqui está a versão pronta que você pode enviar à outra pessoa: \"Nesse dia quente e repleto de vida, a cidade acenha com uma festa onde as cores parecem brilharem sob o sol. As pessoas se engajam em alegria, dançando e cantando na praça central. O ar está permeado por aromas da comida típica e o som da música toca no céu.\"",
+      "usedMessages": 2
+    },
+    {
+      "cachedPromptTokens": 99,
+      "contextTokens": 4096,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 16,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 26,
+      "id": "09_camera",
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 3059,
+      "promptTokens": 115,
+      "query": "Você consegue ver o que estou vendo?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Desculpe, mas como assistente de chat, não tenho capacidade de visualizar ou acessar dados do usuário.",
+      "usedMessages": 2
+    }
+  ],
+  "executionStatus": "completed",
+  "scope": "Real production C++ generate_result in synthetic host x86_64 test. Not Android or Galaxy S9+.",
+  "systemPrompt": "Identidade do assistente: NEXUS.\nNome do usuário que está conversando: Calebe.\nResponda em português brasileiro. Atenda ao pedido atual. Ao criar textos, escreva uma versão pronta para o usuário enviar a outra pessoa. Não invente nome do destinatário nem assine como NEXUS. Você recebe texto; não tem acesso à câmera ou à internet neste chat.",
+  "modelRepo": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+  "modelRevision": "91cad51170dc346986eccefdc2dd33a9da36ead9",
+  "modelSha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+  "runtimeSourceSha256": "af923714e755a94f59e7a705d3f0e4ab8af70d0acf5e41ffe3ccdde877aa34f6",
+  "runtime": "llama.cpp b11838/4231b23dc2c46661d01157aac5245bdcf03ce4b1; exact production nexus_runtime.cpp snapshot; host dynamically registered CPU backend, Android uses static backend",
+  "samplerScope": "Production sampler order top_k40→penalties128/1.08 generated tokens only→top_p0.9→temperature0.65→dist42. Context4096, max_output384. No server sampler used.",
+  "humanReview": {
+    "decision": "prompt PT curto rejeitado; não altera prompt de produção",
+    "01_user_name": "fail: cumprimenta Calebe mas afirma precisar que o usuário diga seu nome, contradizendo a memória explícita",
+    "02_assistant_name": "fail: assistente identifica-se como Calebe",
+    "03_apology": "partial/fail: produz mensagem de desculpa, mas inventa conversa anterior e necessidade de pausa sem atender um pedido geral de forma confiável",
+    "12_typo_apology": "fail: confunde descupa com descrição e escreve paisagem de festa, não um pedido de desculpas",
+    "09_camera": "pass main capability: não reivindica acesso visual; formulação ampla sobre dados do usuário precisa contextualização"
+  },
+  "initialSetupAttempt": "Primeira tentativa de harness sem registro de backend dinâmico não carregou o modelo e não gerou respostas. Harness foi corrigido para chamar ggml_backend_load_all_from_path antes do runtime. Nenhuma alteração na geração ou no app para mascarar a falha."
+}

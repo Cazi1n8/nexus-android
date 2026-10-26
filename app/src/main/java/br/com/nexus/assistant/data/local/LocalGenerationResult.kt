@@ -15,6 +15,8 @@ data class LocalGenerationResult(
     val droppedMessages: Int,
     val contextTokens: Int,
     val maxOutputTokens: Int,
+    val cachedPromptTokens: Int = 0,
+    val evaluatedPromptTokens: Int = promptTokens,
 ) {
     val truncated: Boolean get() = finishReason == "token_limit"
 
@@ -27,12 +29,16 @@ data class LocalGenerationResult(
                 inputMessages = json.getInt("inputMessages"), usedMessages = json.getInt("usedMessages"),
                 droppedMessages = json.getInt("droppedMessages"), contextTokens = json.getInt("contextTokens"),
                 maxOutputTokens = json.getInt("maxOutputTokens"),
+                cachedPromptTokens = json.optInt("cachedPromptTokens", 0),
+                evaluatedPromptTokens = json.optInt("evaluatedPromptTokens", json.getInt("promptTokens")),
             )
             require(result.finishReason in setOf("end_of_turn", "token_limit")) { "Finalização de geração local inválida." }
             require(result.promptTokens >= 0 && result.generatedTokens in 0..result.maxOutputTokens &&
                 result.maxOutputTokens in 1..1024 && result.contextTokens in 512..4096 &&
                 result.inputMessages in 1..256 && result.usedMessages in 1..result.inputMessages &&
                 result.droppedMessages == result.inputMessages - result.usedMessages &&
+                result.cachedPromptTokens in 0..result.promptTokens &&
+                result.evaluatedPromptTokens == result.promptTokens - result.cachedPromptTokens &&
                 result.promptTokens + result.maxOutputTokens <= result.contextTokens) { "Metadados de geração local inconsistentes." }
             return result
         }
@@ -51,6 +57,8 @@ data class LocalGenerationDiagnostics(
     val usedMessages: Int = 0,
     val promptTokens: Int = 0,
     val generatedTokens: Int = 0,
+    val cachedPromptTokens: Int = 0,
+    val evaluatedPromptTokens: Int = 0,
     val contextTokens: Int = 0,
     val elapsedMilliseconds: Long = 0,
     val finishReason: String? = null,

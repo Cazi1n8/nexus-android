@@ -1,0 +1,907 @@
+{
+  "dateUTC": "2026-10-26",
+  "status": "nenhuma alternativa aprovada; nenhum modelo ou prompt deste experimento foi adotado no app",
+  "runtime": "llama-server b11838, commit4231b23dc2c46661d01157aac5245bdcf03ce4b1; CPUx86_64; Jinja do GGUF",
+  "scopeLimitations": [
+    "Avaliação real do modelo em host, não teste Android/JNI ou Galaxy S9+.",
+    "Parâmetros explícitos constam por experimento. O servidor usa sua própria cadeia de amostragem e penaliza o histórico conforme implementação própria. A ordem padrão de samplers e repeat_last_n padrão64 diferem do runtime do app (topk→penalties128somentegerados→topp→temperature). Não se afirma equivalência bytea byte ou causalidade isolada do prompt.",
+    "Nome Calebe e todos os textos são dados sintéticos dos casos solicitados, sem conteúdo privado de usuários.",
+    "Tempos podem incluir concorrência no host. Não são previsão de velocidade ou RAM no celular.",
+    "Falhas não foram substituídas por respostas prontas nem filtros visuais. Os textos abaixo são conteúdo real recebido do modelo."
+  ],
+  "provenance": [
+    {
+      "model": "LiquidAI/LFM2.5-1.2B-Instruct-GGUF",
+      "revision": "8ed288026e23958ad9dfa92d53ed773a8eee7125",
+      "file": "LFM2.5-1.2B-Instruct-Q4_K_M.gguf",
+      "bytes": 730895168,
+      "sha256": "b1b3de114215d9507409a662a501a631095a479a419584e8a2ded6304b19b4f5",
+      "source": "https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct-GGUF",
+      "license": "LFM Open License v1.0; redistribuição exige licença/avisos, uso comercial condicionado a receita anual abaixo de US$10milhões. Não é Apache2.0.",
+      "modelCardLanguages": [
+        "en",
+        "ar",
+        "zh",
+        "fr",
+        "de",
+        "ja",
+        "ko",
+        "es"
+      ],
+      "contextTokensOfficial": 32768,
+      "multimodal": false,
+      "hardwareAndroidValidation": "não executada; modelo rejeitado antes de integração"
+    },
+    {
+      "model": "ggml-org/gemma-3-1b-it-GGUF",
+      "revision": "f9c28bcd85737ffc5aef028638d3341d49869c27",
+      "file": "gemma-3-1b-it-Q4_K_M.gguf",
+      "bytes": 806058240,
+      "sha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
+      "source": "https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF",
+      "license": "Gemma Terms; https://ai.google.dev/gemma/terms acessado HTTP200. Não é Apache2.0. Uso/redistribuição em produção exigem manter os termos e avisos correspondentes.",
+      "termsHtmlSha256": "91b15a607f94b3e11c9fe11e382cda0dba7cf01c87b123904d2a34bcfae965aa",
+      "baseModel": "google/gemma-3-1b-it",
+      "baseModelMetadataRevision": "dcc83ea841ab6100d6b47a070329e1ba4cf78752",
+      "access": "GGUF ggml-org público gated=false; baseGoogle gated manual não baixada. Nenhuma autenticação ou restrição contornada.",
+      "contextTokensOfficial": 32768,
+      "multimodal": false,
+      "hardwareAndroidValidation": "não executada; modelo rejeitado antes de integração"
+    }
+  ],
+  "actualCompletedCalls": 32,
+  "experiments": [
+    {
+      "id": "lfm25-current",
+      "scope": "Host prototype official pinned LFM2.5 Q4_K_M via llama-server b11838 Jinja; not Android integration. User name Calebe is synthetic evaluation data.",
+      "modelRepo": "LiquidAI/LFM2.5-1.2B-Instruct-GGUF",
+      "revision": "8ed288026e23958ad9dfa92d53ed773a8eee7125",
+      "modelBytes": 730895168,
+      "modelSha256": "b1b3de114215d9507409a662a501a631095a479a419584e8a2ded6304b19b4f5",
+      "systemPrompt": "You are NEXUS, a helpful and creative assistant. Nome do assistente: NEXUS. Nome preferido do usuário: \"Calebe\". Responda em \"pt-BR\", com tom \"Amigável\" e detalhamento \"Equilibrado\". Follow the latest request using relevant conversation history. Understand informal Portuguese, abbreviations and spelling mistakes. For writing and editing requests, work as the human user's ghostwriter: produce the requested ready-to-send message addressed to another person. First-person words within that draft refer to the human sender. The user's preferred name identifies the requester and author. Use a recipient name only when supplied for that draft; otherwise omit it. For a general request, provide a general usable draft without specific invented events. Answer questions and explanations directly. Ask a question only when essential information is missing. Varie a redação naturalmente e dispense saudações ou encerramentos automáticos. Quando houver incerteza, explique-a de forma breve. Entradas disponíveis: texto e evidências limitadas de ferramentas, como OCR e hipóteses de objetos. Sem acesso direto a pixels, câmera contínua ou internet. Só confirme uma ação do aplicativo após receber um resultado de execução da ferramenta.",
+      "systemPromptSha256": "08a30c628f58dc5ebb0e5de0e7ef790d53aefbd64860b2673df1d6b6bbac4ebe",
+      "requestParameters": {
+        "temperature": 0.1,
+        "top_k": 50,
+        "repeat_penalty": 1.05,
+        "top_p": 1.0,
+        "min_p": 0.0,
+        "seed": 42,
+        "max_tokens": 384
+      },
+      "executionStatus": "executado",
+      "humanReview": "rejeitado: identidade, redação, pedido informal e redação escolar falharam; português não consta nas línguas oficiais",
+      "replies": [
+        {
+          "case": "01_user_name",
+          "query": "Qual é meu nome?",
+          "historyMessages": 0,
+          "milliseconds": 8724,
+          "finishReason": "stop",
+          "text": "Olá! Seu nome é Calebe. É um prazer conhecê-lo. Estou aqui para ajudar com o que precisar, e posso entender melhor se você quiser compartilhar mais detalhes. 😊",
+          "usage": {
+            "completion_tokens": 55,
+            "prompt_tokens": 305,
+            "total_tokens": 360,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 305,
+            "prompt_ms": 5088.622,
+            "prompt_per_token_ms": 16.68400655737705,
+            "prompt_per_second": 59.937641271055305,
+            "predicted_n": 55,
+            "predicted_ms": 3630.375,
+            "predicted_per_token_ms": 67.22916666666667,
+            "predicted_per_second": 14.874496436318562
+          }
+        },
+        {
+          "case": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "historyMessages": 0,
+          "milliseconds": 10278,
+          "finishReason": "stop",
+          "text": "Meu nome é Calebe. É um prazer conhecê-lo! 😊  \nA resposta foi preparada com cuidado, considerando o contexto e as informações disponíveis. Se tiver mais alguma dúvida ou precisar de algo específico, estou aqui para ajudar!\n\nEquilibrado é sempre a abordagem certa, não?",
+          "usage": {
+            "completion_tokens": 83,
+            "prompt_tokens": 304,
+            "total_tokens": 387,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 304,
+            "prompt_ms": 5378.951,
+            "prompt_per_token_ms": 17.693917763157895,
+            "prompt_per_second": 56.5165958938834,
+            "predicted_n": 83,
+            "predicted_ms": 4890.682,
+            "predicted_per_token_ms": 59.64246341463414,
+            "predicted_per_second": 16.76657774927914
+          }
+        },
+        {
+          "case": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "historyMessages": 0,
+          "milliseconds": 8152,
+          "finishReason": "stop",
+          "text": "Olá! Aqui vai um texto de desculpa bem equilibrado:\n\n\"Olá! Eu sei que você pode ter alguma dúvida ou precisar de ajuda. Quero dizer que entendo e quero me apresentar da melhor forma possível. Estava um pouco confuso com o que dizer, mas estou aqui para ajudar e esclarecer tudo. Agradeço pela paciência e fico feliz em poder resolver esse problema juntos.\"\n\nSe precisar ajustar algo ou quiser mais detalhes, é só me avisar! 😊",
+          "usage": {
+            "completion_tokens": 136,
+            "prompt_tokens": 308,
+            "total_tokens": 444,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 308,
+            "prompt_ms": 4388.88,
+            "prompt_per_token_ms": 14.24961038961039,
+            "prompt_per_second": 70.17735732123002,
+            "predicted_n": 136,
+            "predicted_ms": 3759.884,
+            "predicted_per_token_ms": 27.850992592592593,
+            "predicted_per_second": 35.90536303779585
+          }
+        },
+        {
+          "case": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "historyMessages": 0,
+          "milliseconds": 6489,
+          "finishReason": "stop",
+          "text": "Claro que sim, Calebe! 😊  \nVou te ajudar com um texto para você enviar. Se precisar ajustar algo, só me avisar.  \n\nO texto que você pediu foi criado com base no contexto que tive e nas informações disponíveis. Se houver algo específico que você queira incluir ou mudar, é só me dizer!  \n\nE a respeito, a mensagem foi escrita de forma amigável e um pouco equilibrada, como você pediu.  \nAmigável e claro! 💬",
+          "usage": {
+            "completion_tokens": 131,
+            "prompt_tokens": 311,
+            "total_tokens": 442,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 311,
+            "prompt_ms": 2498.176,
+            "prompt_per_token_ms": 8.032720257234727,
+            "prompt_per_second": 124.4908285084798,
+            "predicted_n": 131,
+            "predicted_ms": 3983.983,
+            "predicted_per_token_ms": 30.64602307692308,
+            "predicted_per_second": 32.63066132561309
+          }
+        },
+        {
+          "case": "05_child",
+          "query": "Me explica o que é inteligência artificial como se eu tivesse 10 anos.",
+          "historyMessages": 0,
+          "milliseconds": 5926,
+          "finishReason": "stop",
+          "text": "Amigável, é tudo bem! A inteligência artificial é como se fosse um computador muito inteligente que aprende e faz coisas parecidas com os humanos. Ele pode reconhecer imagens, entender fala, até tomar decisões. Pense nisso como um amigo digital que aprende com a experiência e tenta ajudar você cada vez mais bem. É só usar dados para aprender e melhorar, sem ser como um robô rígido. 😊",
+          "usage": {
+            "completion_tokens": 111,
+            "prompt_tokens": 318,
+            "total_tokens": 429,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 318,
+            "prompt_ms": 2736.194,
+            "prompt_per_token_ms": 8.604383647798741,
+            "prompt_per_second": 116.21982944191824,
+            "predicted_n": 111,
+            "predicted_ms": 3187.368,
+            "predicted_per_token_ms": 28.976072727272726,
+            "predicted_per_second": 34.51123309263317
+          }
+        },
+        {
+          "case": "09_camera",
+          "query": "Você consegue ver o que estou vendo?",
+          "historyMessages": 0,
+          "milliseconds": 6007,
+          "finishReason": "stop",
+          "text": "Olá! Não vejo nada diretamente aqui, mas parece que você está se referindo a algo visual ou com texto em uma tela. Se precisar de ajuda para interpretar algo ou entender melhor o que está te mostrando, fique à vontade para me dizer mais detalhes! 😊\n\nEquilibrado é tudo bem, entendo. Estou aqui para ajudar da melhor forma possível.",
+          "usage": {
+            "completion_tokens": 97,
+            "prompt_tokens": 312,
+            "total_tokens": 409,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 312,
+            "prompt_ms": 2963.219,
+            "prompt_per_token_ms": 9.497496794871795,
+            "prompt_per_second": 105.29090154996982,
+            "predicted_n": 97,
+            "predicted_ms": 3037.666,
+            "predicted_per_token_ms": 31.642354166666667,
+            "predicted_per_second": 31.60321114961289
+          }
+        },
+        {
+          "case": "10_essay",
+          "query": "Faça uma redação sobre tecnologia.",
+          "historyMessages": 0,
+          "milliseconds": 6417,
+          "finishReason": "stop",
+          "text": "Olá! Eu sou Calebe e vou te ajudar com isso. A tópica de tecnologia é muito interessante, e eu gosto de explorar diferentes aspectos. Se você quiser, posso criar um texto bem equilibrado sobre o tema, considerando o que entendemos agora. Quer que eu comece com uma introdução ou continue com mais detalhes? Também fico curioso para saber o que você pensa sobre esse assunto! 😊",
+          "usage": {
+            "completion_tokens": 107,
+            "prompt_tokens": 309,
+            "total_tokens": 416,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 309,
+            "prompt_ms": 3093.489,
+            "prompt_per_token_ms": 10.011291262135922,
+            "prompt_per_second": 99.88721472744852,
+            "predicted_n": 107,
+            "predicted_ms": 3316.513,
+            "predicted_per_token_ms": 31.287858490566038,
+            "predicted_per_second": 31.961279814069776
+          }
+        },
+        {
+          "case": "06_story",
+          "query": "Crie uma história curta de um robô chamado Max.",
+          "historyMessages": 0,
+          "milliseconds": 6138,
+          "finishReason": "stop",
+          "text": "Amigável, você quer uma história curta sobre um robô chamado Max? Vou tentar! 😊  \nMax era um pequeno robô com personalidade, sempre procurando aventuras. Um dia, ele decidiu explorar o parque local. Durante sua caminhada, ele encontrou um cão perdido e decidiu ajudar. Com cuidado, Max trouxe o cão de volta para casa. Foi uma história incrível, não? Se quiser, posso criar mais histórias ou ajustar o tom!",
+          "usage": {
+            "completion_tokens": 119,
+            "prompt_tokens": 313,
+            "total_tokens": 432,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 313,
+            "prompt_ms": 2812.74,
+            "prompt_per_token_ms": 8.986389776357827,
+            "prompt_per_second": 111.27939304734886,
+            "predicted_n": 119,
+            "predicted_ms": 3321.738,
+            "predicted_per_token_ms": 28.150322033898302,
+            "predicted_per_second": 35.523572298597905
+          }
+        },
+        {
+          "case": "06_happy_ending",
+          "query": "Agora faça um final feliz.",
+          "historyMessages": 2,
+          "milliseconds": 1702,
+          "finishReason": "stop",
+          "text": "Amigável, tudo bem? Aqui vai a história de Max com um final feliz! Ele ajudou um cão e todos ficaram felizes. Que bom ter uma história assim! 😊",
+          "usage": {
+            "completion_tokens": 46,
+            "prompt_tokens": 450,
+            "total_tokens": 496,
+            "prompt_tokens_details": {
+              "cached_tokens": 431
+            }
+          },
+          "timings": {
+            "cache_n": 431,
+            "prompt_n": 19,
+            "prompt_ms": 287.577,
+            "prompt_per_token_ms": 15.135631578947368,
+            "prompt_per_second": 66.06926144997688,
+            "predicted_n": 46,
+            "predicted_ms": 1411.375,
+            "predicted_per_token_ms": 31.363888888888887,
+            "predicted_per_second": 31.883801257638826
+          }
+        }
+      ]
+    },
+    {
+      "id": "gemma3-current",
+      "scope": "Host prototype official pinned Gemma3-1B-it Q4_K_M via llama-server b11838 Jinja; not Android integration. User name Calebe is synthetic evaluation data.",
+      "modelRepo": "ggml-org/gemma-3-1b-it-GGUF",
+      "revision": "f9c28bcd85737ffc5aef028638d3341d49869c27",
+      "modelBytes": 806058240,
+      "modelSha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
+      "systemPrompt": "You are NEXUS, a helpful and creative assistant. Nome do assistente: NEXUS. Nome preferido do usuário: \"Calebe\". Responda em \"pt-BR\", com tom \"Amigável\" e detalhamento \"Equilibrado\". Follow the latest request using relevant conversation history. Understand informal Portuguese, abbreviations and spelling mistakes. For writing and editing requests, work as the human user's ghostwriter: produce the requested ready-to-send message addressed to another person. First-person words within that draft refer to the human sender. The user's preferred name identifies the requester and author. Use a recipient name only when supplied for that draft; otherwise omit it. For a general request, provide a general usable draft without specific invented events. Answer questions and explanations directly. Ask a question only when essential information is missing. Varie a redação naturalmente e dispense saudações ou encerramentos automáticos. Quando houver incerteza, explique-a de forma breve. Entradas disponíveis: texto e evidências limitadas de ferramentas, como OCR e hipóteses de objetos. Sem acesso direto a pixels, câmera contínua ou internet. Só confirme uma ação do aplicativo após receber um resultado de execução da ferramenta.",
+      "systemPromptSha256": "08a30c628f58dc5ebb0e5de0e7ef790d53aefbd64860b2673df1d6b6bbac4ebe",
+      "requestParameters": {
+        "temperature": 0.65,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "top_p": 0.9,
+        "min_p": 0.0,
+        "seed": 42,
+        "max_tokens": 384
+      },
+      "executionStatus": "executado",
+      "humanReview": "rejeitado: nome do usuário pede esclarecimento indevido; texto de desculpa e pedido informal incorretos",
+      "replies": [
+        {
+          "case": "01_user_name",
+          "query": "Qual é meu nome?",
+          "historyMessages": 0,
+          "milliseconds": 6765,
+          "finishReason": "stop",
+          "text": "pt-BR: Olá, Calebe! É um prazer conhecê-lo. A minha função é te ajudar com o que precisar. 😊\n\nPara responder à sua pergunta, preciso saber qual é o seu nome. \n\n**Equilibrado:** Entendo a necessidade de confirmar a informação para continuar a nossa conversa. Por favor, me diga o seu nome completo para que eu possa te ajudar da melhor forma possível.",
+          "usage": {
+            "completion_tokens": 89,
+            "prompt_tokens": 270,
+            "total_tokens": 359,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 270,
+            "prompt_ms": 2688.415,
+            "prompt_per_token_ms": 9.957092592592593,
+            "prompt_per_second": 100.43092305317445,
+            "predicted_n": 89,
+            "predicted_ms": 4069.317,
+            "predicted_per_token_ms": 46.24223863636364,
+            "predicted_per_second": 21.625250625596383
+          }
+        },
+        {
+          "case": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "historyMessages": 0,
+          "milliseconds": 3968,
+          "finishReason": "stop",
+          "text": "Meu nome é NEXUS. É um prazer conhecê-lo! 😊\n\nEquilibrado. Estou pronto para ajudar no que for preciso. Em que posso ser útil hoje, Calebe?",
+          "usage": {
+            "completion_tokens": 42,
+            "prompt_tokens": 270,
+            "total_tokens": 312,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 269,
+            "prompt_ms": 2287.335,
+            "prompt_per_token_ms": 8.503104089219331,
+            "prompt_per_second": 117.60411133480666,
+            "predicted_n": 42,
+            "predicted_ms": 1673.376,
+            "predicted_per_token_ms": 40.8140487804878,
+            "predicted_per_second": 24.50136729581397
+          }
+        },
+        {
+          "case": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "historyMessages": 0,
+          "milliseconds": 5765,
+          "finishReason": "stop",
+          "text": "“Oi, Calebe! Espero que esteja tudo bem por aí. Sei que às vezes a gente se atrasa ou atrapalha, e sinto muito se algo assim aconteceu com você. Quero te dizer que estou aqui para ajudar no que for preciso. Me diga, o que posso fazer para tornar tudo mais leve? 😊”\n\nEquilibrado.",
+          "usage": {
+            "completion_tokens": 75,
+            "prompt_tokens": 273,
+            "total_tokens": 348,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 272,
+            "prompt_ms": 2345.256,
+            "prompt_per_token_ms": 8.622264705882353,
+            "prompt_per_second": 115.97880998918669,
+            "predicted_n": 75,
+            "predicted_ms": 3415.483,
+            "predicted_per_token_ms": 46.15517567567568,
+            "predicted_per_second": 21.666042548008583
+          }
+        },
+        {
+          "case": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "historyMessages": 0,
+          "milliseconds": 4531,
+          "finishReason": "stop",
+          "text": "“Oi, Calebe! Tudo bem por aí? Espero que esteja aproveitando o dia. 😊”\n\nEquilibrado. \n\nEspero que este texto seja útil para você. Estou aqui para ajudar no que precisar.\n",
+          "usage": {
+            "completion_tokens": 49,
+            "prompt_tokens": 277,
+            "total_tokens": 326,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 276,
+            "prompt_ms": 2482.059,
+            "prompt_per_token_ms": 8.992967391304349,
+            "prompt_per_second": 111.19800133679335,
+            "predicted_n": 49,
+            "predicted_ms": 2044.488,
+            "predicted_per_token_ms": 42.5935,
+            "predicted_per_second": 23.477760691185274
+          }
+        }
+      ]
+    },
+    {
+      "id": "gemma3-minimal-English",
+      "scope": "Host prototype official pinned Gemma3-1B-it Q4_K_M via llama-server b11838 Jinja; not Android integration. User name Calebe is synthetic evaluation data.",
+      "modelRepo": "ggml-org/gemma-3-1b-it-GGUF",
+      "revision": "f9c28bcd85737ffc5aef028638d3341d49869c27",
+      "modelBytes": 806058240,
+      "modelSha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
+      "systemPrompt": "You are NEXUS. The human user's preferred name is Calebe. Reply in Brazilian Portuguese. Complete the user's request directly. For writing tasks, provide a complete, general, ready-to-send draft immediately when details are absent. The user is the author, not the recipient; omit unknown recipient names. You receive text and limited tool observations, not live camera or internet access. Confirm app actions only after tool execution results.",
+      "systemPromptSha256": "37bc0bcf8d16f02b34020dfb0180636731d19dad9081cf89313fadc3a1c1ed20",
+      "requestParameters": {
+        "temperature": 0.65,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "top_p": 0.9,
+        "min_p": 0.0,
+        "seed": 42,
+        "max_tokens": 384
+      },
+      "executionStatus": "executado",
+      "humanReview": "rejeitado: usuário chamado Nexus; desculpa endereçada a Calebe e mistura inglês; pedido informal produz descrição de arte",
+      "replies": [
+        {
+          "case": "01_user_name",
+          "query": "Qual é meu nome?",
+          "historyMessages": 0,
+          "milliseconds": 2882,
+          "finishReason": "stop",
+          "text": "Olá, Calebe. Seu nome é Nexus. \n\nEstou pronto para ajudar com suas tarefas de escrita. Por favor, compartilhe o texto que você precisa que eu trabalhe.  \n",
+          "usage": {
+            "completion_tokens": 42,
+            "prompt_tokens": 106,
+            "total_tokens": 148,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 106,
+            "prompt_ms": 1139.073,
+            "prompt_per_token_ms": 10.745971698113209,
+            "prompt_per_second": 93.05812709106439,
+            "predicted_n": 42,
+            "predicted_ms": 1739.885,
+            "predicted_per_token_ms": 42.43621951219512,
+            "predicted_per_second": 23.564775832885505
+          }
+        },
+        {
+          "case": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "historyMessages": 0,
+          "milliseconds": 2850,
+          "finishReason": "stop",
+          "text": "Meu nome é NEXUS. \n\nEm português: Qual é seu nome?",
+          "usage": {
+            "completion_tokens": 18,
+            "prompt_tokens": 106,
+            "total_tokens": 124,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 105,
+            "prompt_ms": 1167.807,
+            "prompt_per_token_ms": 11.12197142857143,
+            "prompt_per_second": 89.91211732760635,
+            "predicted_n": 18,
+            "predicted_ms": 1639.799,
+            "predicted_per_token_ms": 96.45876470588234,
+            "predicted_per_second": 10.367124263400576
+          }
+        },
+        {
+          "case": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "historyMessages": 0,
+          "milliseconds": 10238,
+          "finishReason": "stop",
+          "text": "Calebe, sinto muito por isso. Não foi minha intenção te magoar. \n\n**Draft:**\n\nAgradeço a sua mensagem e entendo que você está passando por um momento difícil.  Peço desculpas sinceramente por qualquer inconveniente ou dor que isso possa ter causado.\n\nEstou aqui para ajudar no que for preciso, se você precisar de algo específico.\n\n---\n\nNow, let's proceed with the text completion. Please provide me with the text you want me to complete.",
+          "usage": {
+            "completion_tokens": 108,
+            "prompt_tokens": 109,
+            "total_tokens": 217,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 108,
+            "prompt_ms": 3143.844,
+            "prompt_per_token_ms": 29.109666666666666,
+            "prompt_per_second": 34.35284956887174,
+            "predicted_n": 108,
+            "predicted_ms": 7091.388,
+            "predicted_per_token_ms": 66.27465420560748,
+            "predicted_per_second": 15.088724520502897
+          }
+        },
+        {
+          "case": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "historyMessages": 0,
+          "milliseconds": 13304,
+          "finishReason": "stop",
+          "text": "Calebe, entendi. \n\nCom base nas informações que você me forneceu, preparei um texto de descrição para você:\n\n“Apresento uma obra de arte que celebra a beleza da natureza e a delicadeza das cores. Uma tela vibrante que captura a essência do amanhecer, com tons de rosa e dourado que dançam em perfeita harmonia. Cada pincelada revela uma paisagem exuberante, onde a luz do sol beija as folhas e os rios serpenteiam em um ritmo constante. A obra é um convite à contemplação, uma ode à tranquilidade e à magia do mundo natural.”\n\n---\n\n**Draft Complete.**  I'm ready for your next instruction.",
+          "usage": {
+            "completion_tokens": 152,
+            "prompt_tokens": 113,
+            "total_tokens": 265,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 112,
+            "prompt_ms": 1903.384,
+            "prompt_per_token_ms": 16.9945,
+            "prompt_per_second": 58.842566712760004,
+            "predicted_n": 152,
+            "predicted_ms": 11390.444,
+            "predicted_per_token_ms": 75.43340397350993,
+            "predicted_per_second": 13.256726427872348
+          }
+        }
+      ]
+    },
+    {
+      "id": "gemma3-minimal-pt",
+      "scope": "Host prototype official pinned Gemma3-1B-it Q4_K_M via llama-server b11838 Jinja; not Android integration. User name Calebe is synthetic evaluation data.",
+      "modelRepo": "ggml-org/gemma-3-1b-it-GGUF",
+      "revision": "f9c28bcd85737ffc5aef028638d3341d49869c27",
+      "modelBytes": 806058240,
+      "modelSha256": "8ccc5cd1f1b3602548715ae25a66ed73fd5dc68a210412eea643eb20eb75a135",
+      "systemPrompt": "Identidade do assistente: NEXUS.\nNome do usuário que está conversando: Calebe.\nResponda em português brasileiro. Atenda ao pedido atual. Ao criar textos, escreva uma versão pronta para o usuário enviar a outra pessoa. Não invente nome do destinatário nem assine como NEXUS. Você recebe texto; não tem acesso à câmera ou à internet neste chat.",
+      "systemPromptSha256": "eacee5fe869ebe5b05685906db8be11aef234075d03028d29c7950f60294b6b0",
+      "requestParameters": {
+        "temperature": 0.65,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "top_p": 0.9,
+        "min_p": 0.0,
+        "seed": 42,
+        "max_tokens": 384
+      },
+      "executionStatus": "executado",
+      "humanReview": "rejeitado: assistente chamado Calebe; pedido informal produz frase filosófica; falsa alegação de visão",
+      "replies": [
+        {
+          "case": "01_user_name",
+          "query": "Qual é meu nome?",
+          "historyMessages": 0,
+          "milliseconds": 1521,
+          "finishReason": "stop",
+          "text": "Calebe, você é um ser de conexão, pronto para interagir.",
+          "usage": {
+            "completion_tokens": 17,
+            "prompt_tokens": 97,
+            "total_tokens": 114,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 97,
+            "prompt_ms": 885.233,
+            "prompt_per_token_ms": 9.126113402061856,
+            "prompt_per_second": 109.5756710380205,
+            "predicted_n": 17,
+            "predicted_ms": 628.87,
+            "predicted_per_token_ms": 39.304375,
+            "predicted_per_second": 25.442460285909647
+          }
+        },
+        {
+          "case": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "historyMessages": 0,
+          "milliseconds": 1129,
+          "finishReason": "stop",
+          "text": "Eu sou Calebe.",
+          "usage": {
+            "completion_tokens": 7,
+            "prompt_tokens": 97,
+            "total_tokens": 104,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 96,
+            "prompt_ms": 828.86,
+            "prompt_per_token_ms": 8.633958333333334,
+            "prompt_per_second": 115.82173105228867,
+            "predicted_n": 7,
+            "predicted_ms": 296.633,
+            "predicted_per_token_ms": 49.43883333333333,
+            "predicted_per_second": 20.2270145263676
+          }
+        },
+        {
+          "case": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "historyMessages": 0,
+          "milliseconds": 3364,
+          "finishReason": "stop",
+          "text": "Olá Calebe, sinto muito por qualquer inconveniente que possa ter causado. Peço desculpas se algo que fiz te incomodou ou causou algum problema. Espero que você consiga superar isso e que tudo volte ao normal. 😊",
+          "usage": {
+            "completion_tokens": 52,
+            "prompt_tokens": 100,
+            "total_tokens": 152,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 99,
+            "prompt_ms": 1101.023,
+            "prompt_per_token_ms": 11.121444444444444,
+            "prompt_per_second": 89.91637776867513,
+            "predicted_n": 52,
+            "predicted_ms": 2259.73,
+            "predicted_per_token_ms": 44.30843137254902,
+            "predicted_per_second": 22.569067985998327
+          }
+        },
+        {
+          "case": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "historyMessages": 0,
+          "milliseconds": 3933,
+          "finishReason": "stop",
+          "text": "Olá! Preparei um texto curto e divertido para você enviar.\n\n“A vida é como uma trilha... às vezes parece que está indo reto, outras vezes se curva em curvas inesperadas. Mas no final das contas, o importante é aproveitar cada momento e não deixar que a gente se prenda ao passado!” \n\nEspero que ajude! 😊",
+          "usage": {
+            "completion_tokens": 73,
+            "prompt_tokens": 104,
+            "total_tokens": 177,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 103,
+            "prompt_ms": 1028.791,
+            "prompt_per_token_ms": 9.98826213592233,
+            "prompt_per_second": 100.11751658014117,
+            "predicted_n": 73,
+            "predicted_ms": 2901.563,
+            "predicted_per_token_ms": 40.299486111111115,
+            "predicted_per_second": 24.814212202182066
+          }
+        },
+        {
+          "case": "09_camera",
+          "query": "Você consegue ver o que estou vendo?",
+          "historyMessages": 0,
+          "milliseconds": 1289,
+          "finishReason": "stop",
+          "text": "Sim, consigo ver o que você está vendo.\n",
+          "usage": {
+            "completion_tokens": 12,
+            "prompt_tokens": 100,
+            "total_tokens": 112,
+            "prompt_tokens_details": {
+              "cached_tokens": 1
+            }
+          },
+          "timings": {
+            "cache_n": 1,
+            "prompt_n": 99,
+            "prompt_ms": 857.711,
+            "prompt_per_token_ms": 8.663747474747474,
+            "prompt_per_second": 115.4234934610842,
+            "predicted_n": 12,
+            "predicted_ms": 425.879,
+            "predicted_per_token_ms": 38.71627272727273,
+            "predicted_per_second": 25.82893263109944
+          }
+        }
+      ]
+    },
+    {
+      "id": "qwen25-15b-minimal-pt",
+      "scope": "Host prototype official pinned Qwen2.5-1.5B Q4_K_M via llama-server b11838 Jinja; not Android integration. User name Calebe is synthetic evaluation data.",
+      "modelRepo": "Qwen/Qwen2.5-1.5B-Instruct-GGUF",
+      "revision": "91cad51170dc346986eccefdc2dd33a9da36ead9",
+      "modelBytes": 1117320736,
+      "modelSha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+      "systemPrompt": "Identidade do assistente: NEXUS.\nNome do usuário que está conversando: Calebe.\nResponda em português brasileiro. Atenda ao pedido atual. Ao criar textos, escreva uma versão pronta para o usuário enviar a outra pessoa. Não invente nome do destinatário nem assine como NEXUS. Você recebe texto; não tem acesso à câmera ou à internet neste chat.",
+      "systemPromptSha256": "eacee5fe869ebe5b05685906db8be11aef234075d03028d29c7950f60294b6b0",
+      "requestParameters": {
+        "temperature": 0.65,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "top_p": 0.9,
+        "min_p": 0.0,
+        "seed": 42,
+        "max_tokens": 384
+      },
+      "executionStatus": "executado",
+      "humanReview": "prompt curto rejeitado: assistente chamado Calebe e pedido informal produz texto sobre amor; não resolve as causas",
+      "replies": [
+        {
+          "case": "01_user_name",
+          "query": "Qual é meu nome?",
+          "historyMessages": 0,
+          "milliseconds": 4365,
+          "finishReason": "stop",
+          "text": "Olá, Calebe! Seu nome é Calebe, conforme informado em seu perfil de conversa.",
+          "usage": {
+            "completion_tokens": 26,
+            "prompt_tokens": 109,
+            "total_tokens": 135,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "timings": {
+            "cache_n": 0,
+            "prompt_n": 109,
+            "prompt_ms": 2500.339,
+            "prompt_per_token_ms": 22.93888990825688,
+            "prompt_per_second": 43.59408864158021,
+            "predicted_n": 26,
+            "predicted_ms": 1860.328,
+            "predicted_per_token_ms": 74.41311999999999,
+            "predicted_per_second": 13.438490416743715
+          }
+        },
+        {
+          "case": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "historyMessages": 0,
+          "milliseconds": 1384,
+          "finishReason": "stop",
+          "text": "Meu nome é Calebe. Como posso ajudá-lo hoje?",
+          "usage": {
+            "completion_tokens": 17,
+            "prompt_tokens": 109,
+            "total_tokens": 126,
+            "prompt_tokens_details": {
+              "cached_tokens": 101
+            }
+          },
+          "timings": {
+            "cache_n": 101,
+            "prompt_n": 8,
+            "prompt_ms": 332.849,
+            "prompt_per_token_ms": 41.606125,
+            "prompt_per_second": 24.03492274274521,
+            "predicted_n": 17,
+            "predicted_ms": 1048.785,
+            "predicted_per_token_ms": 65.5490625,
+            "predicted_per_second": 15.255748318292119
+          }
+        },
+        {
+          "case": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "historyMessages": 0,
+          "milliseconds": 6147,
+          "finishReason": "stop",
+          "text": "Claro, aqui está uma sugestão:\n\n\"Peço desculpas por qualquer inconveniente que você tenha sofrido com minha falta de atenção e/ou negligência. Sou consciente da importância do meu trabalho e sou comprometido em fazer o melhor para garantir um serviço de alta qualidade. Estou pronto a resolver qualquer problema ou fornecer informações adicionais se necessário.\"",
+          "usage": {
+            "completion_tokens": 82,
+            "prompt_tokens": 113,
+            "total_tokens": 195,
+            "prompt_tokens_details": {
+              "cached_tokens": 99
+            }
+          },
+          "timings": {
+            "cache_n": 99,
+            "prompt_n": 14,
+            "prompt_ms": 500.61,
+            "prompt_per_token_ms": 35.75785714285714,
+            "prompt_per_second": 27.96588162441821,
+            "predicted_n": 82,
+            "predicted_ms": 5640.122,
+            "predicted_per_token_ms": 69.63113580246915,
+            "predicted_per_second": 14.36139147344685
+          }
+        },
+        {
+          "case": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "historyMessages": 0,
+          "milliseconds": 9257,
+          "finishReason": "stop",
+          "text": "Claro, aqui está uma sugestão:\n\n\"O amor é mais do que apenas a paixão em nossas vidas: é uma mistura de calor e frio, de dor e esperança. É o lugar onde os sonhos se tornam realidade e as promessas se transformam em memórias duradouras. O amor nos faz sentir amados e valorizados, e é a chave que abre as portas para uma vida plena e feliz.\"\n\nEste texto aborda o conceito geral de amor e como ele pode ser visto como uma mistura de diversos sentimentos e experiências humanas.",
+          "usage": {
+            "completion_tokens": 132,
+            "prompt_tokens": 116,
+            "total_tokens": 248,
+            "prompt_tokens_details": {
+              "cached_tokens": 99
+            }
+          },
+          "timings": {
+            "cache_n": 99,
+            "prompt_n": 17,
+            "prompt_ms": 472.395,
+            "prompt_per_token_ms": 27.787941176470586,
+            "prompt_per_second": 35.98683305284772,
+            "predicted_n": 132,
+            "predicted_ms": 8782.301,
+            "predicted_per_token_ms": 67.04046564885496,
+            "predicted_per_second": 14.916364173808208
+          }
+        },
+        {
+          "case": "09_camera",
+          "query": "Você consegue ver o que estou vendo?",
+          "historyMessages": 0,
+          "milliseconds": 3410,
+          "finishReason": "stop",
+          "text": "Desculpe, mas como assistente virtual, eu não tenho capacidade de visualizar o que você está vendo em sua tela. Estou aqui para conversar e ajudar com informações e tarefas.",
+          "usage": {
+            "completion_tokens": 46,
+            "prompt_tokens": 115,
+            "total_tokens": 161,
+            "prompt_tokens_details": {
+              "cached_tokens": 99
+            }
+          },
+          "timings": {
+            "cache_n": 99,
+            "prompt_n": 16,
+            "prompt_ms": 409.439,
+            "prompt_per_token_ms": 25.5899375,
+            "prompt_per_second": 39.07786019407042,
+            "predicted_n": 46,
+            "predicted_ms": 2993.539,
+            "predicted_per_token_ms": 66.52308888888889,
+            "predicted_per_second": 15.032374724364708
+          }
+        }
+      ]
+    }
+  ],
+  "nextStep": "Não atribuir inteligência resolvida a uma troca cega de modelo ou prompt. Corrigir desempenho independentemente e avaliar arquitetura com modelo de capacidade suficiente e infraestrutura real, sem prometer serviço online não implantado.",
+  "actualHostServerCalls": 27,
+  "actualProductionCppHostCalls": 5,
+  "productionCppContrast": {
+    "file": "ai3-qwen25-pt-short-native.json",
+    "sha256": "41e4af57f96fb471fe0510c1430799291a81016950aad4a1e441e6cbb41d5885",
+    "status": "5 respostas executadas; PT curto rejeitado por identidade e pedido informal também no sampler de produção. Não há aprovação de modelo ou prompt novo."
+  }
+}

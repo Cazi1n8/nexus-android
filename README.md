@@ -2,11 +2,13 @@
 
 Projeto Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Etapa atual: NEXUS AI 3.0, alpha.1 (versionCode 24), em validação.** Esta etapa preserva Mouse Virtual, Mãos Livres, 3D, Libras, histórico e configurações. Veja [progresso atual](PROGRESSO_NEXUS_AI_3.md), [avaliações da IA](TESTES_NEXUS_AI.md), [testes de segundo plano](TESTES_SEGUNDO_PLANO.md) e [auditoria de segurança](AUDITORIA_PLAY_PROTECT.md). Compilar e passar testes unitários não comprova a qualidade das respostas nem a instalação no seu celular.
+**Etapa atual: NEXUS AI 3.0, alpha.2 (versionCode 25), em validação.** Esta etapa preserva Mouse Virtual, Mãos Livres, 3D, Libras, histórico e configurações. Veja a [correção de desempenho da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md), o [progresso atual](PROGRESSO_NEXUS_AI_3.md), as [avaliações da IA](TESTES_NEXUS_AI.md), os [testes de segundo plano](TESTES_SEGUNDO_PLANO.md) e a [auditoria de segurança](AUDITORIA_PLAY_PROTECT.md). Compilar e passar testes unitários não comprova a qualidade das respostas nem a instalação no seu celular.
+
+[Guia simples para começar no celular](COMECE_AQUI_NO_CELULAR.md).
 
 ## APK de teste e estado atual
 
-**[Baixar o artefato de teste do GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/runs/40303339535/artifacts/12641159108)** — exige entrar no GitHub. O download é um ZIP grande contendo `app-debug.apk`; extraia esse arquivo. A CI compilou o APK e aprovou 189 testes JVM. No emulador, 19 testes comuns, inferência nativa e download real dos dois modelos passaram. Isso não significa que os 15 testes de qualidade da IA ou a instalação pelo Play Protect foram aprovados.
+O [artefato 15 da alpha.1](https://github.com/Cazi1n8/nexus-android/actions/runs/40305428821/artifacts/12642117269) permanece disponível enquanto a nova compilação é validada; **ele ainda não contém o cache da alpha.2**. Exige entrar no GitHub e extrair `app-debug.apk` do ZIP. A CI anterior aprovou 189 testes JVM, 19 testes Android comuns, inferência nativa e download real dos dois modelos. Isso não significa que os 15 testes de qualidade da IA ou a instalação pelo Play Protect foram aprovados.
 
 A compilação local debug e release terminou. O release local está sem assinatura e não é instalável; o artefato acima contém o build debug para avaliação. A linguagem informal ainda produz erros reais e os serviços de câmera/voz precisam de teste físico. Mantenha o Play Protect ativado; se houver bloqueio, use o procedimento oficial da auditoria.
 
@@ -14,6 +16,7 @@ A compilação local debug e release terminou. O release local está sem assinat
 
 - Identidade fixa **NEXUS**, separada de nome preferido do usuário, personalidade, instruções e preferências. Migração das configurações existentes.
 - Contexto por orçamento de tokens, com contagem real no runtime e remoção de turnos antigos completos. Sob pressão, trechos literais identificados preservam referências; não há limite fixo de quatro mensagens ou resumo inventado.
+- Alpha.2 reaproveita o processamento do prefixo idêntico do histórico e descarta o cache ao mudar de conversa ou alterar dados pessoais. Vinte comparações reais com os dois modelos mantiveram o texto idêntico; cancelamento e recuperação passaram no JNI do computador. Isso corrige trabalho repetido, sem comprovar a inteligência solicitada.
 - Geração local real com parâmetros de amostragem e finalização explícita. Nenhum rodapé programado é acrescentado às respostas. Falhas por resposta vazia, marcadores internos ou repetição excessiva geram erro técnico, sem resposta falsa.
 - Histórico local com busca, renomeação, continuação, exclusão e novo contexto. Markdown, blocos de código, copiar, ouvir e interromper no chat.
 - Calculadora local: `10+10÷10×10 = 20`; `25 vezes 18 = 450`. Perguntas gerais continuam no modelo de linguagem, que pode errar.
@@ -37,7 +40,7 @@ Android **8.0/API 26 ou superior**. Compatibilidade é verificada por recurso; n
 
 A conversa de voz opcional alterna escuta, resposta e fala por até **15 minutos ou 30 perguntas**, com no máximo duas tentativas após silêncio. O modo básico espera novo toque em OUVIR. **Não há detector permanente de “Ei, NEXUS”.** Android/fabricante pode interromper câmera, microfone ou processo por restrições de bateria, memória ou permissões. Vision, Libras, Mãos Livres e 3D usam câmera vinculada à tela; não são apresentados como serviços globais.
 
-A versão completa com os dois perfis incluídos é grande, aproximadamente 1,7 GB antes da medição final. Reserve pelo menos **6 GB livres** para download, instalação e cópia selecionada; atualizações podem precisar de mais espaço. Não há download de um APK diferente por modelo de telefone.
+A versão completa com os dois perfis incluídos é grande, aproximadamente 1,7 GB antes da medição final. Reserve pelo menos **8 GB livres** para download, instalação e cópia selecionada; atualizações podem precisar de mais espaço. Não há download de um APK diferente por modelo de telefone.
 
 ## Play Protect e distribuição
 
