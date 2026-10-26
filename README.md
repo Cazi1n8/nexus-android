@@ -4,6 +4,12 @@ Projeto Android existente em Kotlin e Jetpack Compose, em português brasileiro,
 
 **Etapa atual: NEXUS AI 3.0, alpha.1 (versionCode 24), em validação.** Esta etapa preserva Mouse Virtual, Mãos Livres, 3D, Libras, histórico e configurações. Veja [progresso atual](PROGRESSO_NEXUS_AI_3.md), [avaliações da IA](TESTES_NEXUS_AI.md), [testes de segundo plano](TESTES_SEGUNDO_PLANO.md) e [auditoria de segurança](AUDITORIA_PLAY_PROTECT.md). Compilar e passar testes unitários não comprova a qualidade das respostas nem a instalação no seu celular.
 
+## APK de teste e estado atual
+
+**[Baixar o artefato de teste do GitHub Actions](https://github.com/Cazi1n8/nexus-android/actions/runs/40303339535/artifacts/12641159108)** — exige entrar no GitHub. O download é um ZIP grande contendo `app-debug.apk`; extraia esse arquivo. A CI compilou o APK e aprovou 189 testes JVM. No emulador, 19 testes comuns, inferência nativa e download real dos dois modelos passaram. Isso não significa que os 15 testes de qualidade da IA ou a instalação pelo Play Protect foram aprovados.
+
+A compilação local debug e release terminou. O release local está sem assinatura e não é instalável; o artefato acima contém o build debug para avaliação. A linguagem informal ainda produz erros reais e os serviços de câmera/voz precisam de teste físico. Mantenha o Play Protect ativado; se houver bloqueio, use o procedimento oficial da auditoria.
+
 ## Mudanças em validação
 
 - Identidade fixa **NEXUS**, separada de nome preferido do usuário, personalidade, instruções e preferências. Migração das configurações existentes.

@@ -1,0 +1,12 @@
+{
+  "xmls": 25,
+  "tests": 189,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "lint": {
+    "Error": 0,
+    "Warning": 48,
+    "Information": 1
+  }
+}

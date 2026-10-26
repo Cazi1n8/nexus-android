@@ -65,13 +65,28 @@ class BundledChatFirstRunTest {
             lateinit var reset: Job
             compose.runOnUiThread { reset = model.deleteAllData() }
             runBlocking { reset.join() }
-            // An old manually selected heavier profile must not change the base bundled model.
+            // The two-profile APK must respect an explicit manual choice. This
+            // emulator proof then enables the real automatic policy, keeping the
+            // previous preference to prove it does not override that policy.
             report.put("stage", "restore_manual_profile_preference")
             runBlocking { SettingsRepository(context).save(NexusSettings(
                 aiMode = AiMode.NEXUS_LOCAL, automaticProfile = false, localModelProfile = LocalModelProfile.BALANCED)) }
-            compose.waitUntil(10_000) { !model.settings.value.automaticProfile }
+            compose.waitUntil(10_000) {
+                !model.settings.value.automaticProfile && model.effectiveLocalProfile.value == LocalModelProfile.BALANCED
+            }
+            assertEquals(LocalModelProfile.BALANCED, model.effectiveLocalProfile.value)
+            report.put("manualProfileRespected", true)
             assertTrue("The emulator must satisfy the real app memory/ABI policy", model.devicePolicy.value.localAiSupported)
-            assertEquals(LocalModelProfile.COMPACT, model.effectiveLocalProfile.value)
+            val recommended = requireNotNull(model.devicePolicy.value.recommendedProfile)
+            assertEquals("This 4 GB emulator proof uses its actual compact recommendation", LocalModelProfile.COMPACT, recommended)
+            report.put("stage", "enable_automatic_profile")
+            runBlocking { SettingsRepository(context).save(NexusSettings(
+                aiMode = AiMode.NEXUS_LOCAL, automaticProfile = true, localModelProfile = LocalModelProfile.BALANCED)) }
+            compose.waitUntil(10_000) {
+                model.settings.value.automaticProfile && model.effectiveLocalProfile.value == recommended
+            }
+            assertEquals(LocalModelProfile.BALANCED, model.settings.value.localModelProfile)
+            report.put("automaticProfileSelectedFromDevicePolicy", recommended.name)
             val before = network(context)
             report.put("networkAvailableBefore", before.first).put("activeNetworkPresentBefore", before.second)
             assertFalse("The proof requires internet disabled before opening Chat", before.first)
@@ -155,9 +170,12 @@ class BundledChatFirstRunTest {
             compose.activityRule.scenario.recreate()
             compose.runOnUiThread { model = br.com.nexus.assistant.device.voice.SharedNexusModel.get(compose.activity) }
             activeModel = model
-            compose.waitUntil(10_000) { !model.settings.value.automaticProfile }
+            compose.waitUntil(10_000) {
+                model.settings.value.automaticProfile && model.effectiveLocalProfile.value == recommended
+            }
             assertEquals(AiMode.NEXUS_LOCAL, model.settings.value.aiMode)
-            assertEquals(LocalModelProfile.COMPACT, model.effectiveLocalProfile.value)
+            assertEquals(LocalModelProfile.BALANCED, model.settings.value.localModelProfile)
+            assertEquals(recommended, model.effectiveLocalProfile.value)
             assertEquals(spec.bytes, privateModel.length())
             report.put("profileStableAfterRecreation", true)
             val after = network(context)

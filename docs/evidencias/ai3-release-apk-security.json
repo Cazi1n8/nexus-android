@@ -1,0 +1,143 @@
+{
+  "scope": "Final local release APK from successful corrected Gradle build; no physical install or Google approval.",
+  "inspected_at_utc": "2026-10-26T09:56:43.230925+00:00",
+  "apk": {
+    "path": "app/build/outputs/apk/release/app-release-unsigned.apk",
+    "bytes": 1715955100,
+    "sha256": "a109fb45fb31d6cc6abb0e5e2cc6fd850e557e7e5971417e6feb4af3eee9fd8e",
+    "package": "br.com.nexus.assistant",
+    "version_code": 24,
+    "version_name": "3.0.0-alpha.1",
+    "min_sdk": 26,
+    "target_sdk": 35
+  },
+  "apksigner": {
+    "exit_code": 1,
+    "verified": false,
+    "unsigned_expected": true,
+    "installable": false,
+    "verification_error": "DOES NOT VERIFY\nERROR: Missing META-INF/MANIFEST.MF"
+  },
+  "zipalign": {
+    "command": "zipalign -c -P 16 4 APK",
+    "exit_code": 0
+  },
+  "compiled_manifest": {
+    "evidence_path": "docs/evidencias/ai3-release-compiled-manifest.xml",
+    "sha256": "cbbdea7137febfdbd2efec2d48f78c48135aff841c6801cdc69167f2c8535740",
+    "debuggable": false,
+    "uses_permissions": [
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.CAMERA",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_CAMERA",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.INTERNET",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.RECORD_AUDIO",
+      "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    ],
+    "foreground_services": [
+      {
+        "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+        "exported": "false",
+        "stop_with_task": "false",
+        "type_mask": "0x80"
+      },
+      {
+        "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+        "exported": "false",
+        "stop_with_task": "false",
+        "type_mask": "0x40"
+      }
+    ],
+    "exported_components": [
+      {
+        "kind": "service",
+        "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+        "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE"
+      },
+      {
+        "kind": "activity",
+        "name": "br.com.nexus.assistant.MainActivity",
+        "permission": null
+      },
+      {
+        "kind": "receiver",
+        "name": "androidx.profileinstaller.ProfileInstallReceiver",
+        "permission": "android.permission.DUMP"
+      }
+    ]
+  },
+  "mediapipe_dex_factory": {
+    "factory_inlined_by_r8": true,
+    "mapping_evidence_path": "docs/evidencias/ai3-release-mediapipe-r8-mapping.txt",
+    "taskrunner_dex_path": "docs/evidencias/ai3-release-mediapipe-taskrunner-dex.txt",
+    "taskrunner_residual_class": "com.google.mediapipe.tasks.core.a",
+    "dex_inspection_exit_code": 0,
+    "scope": "Factory and Dummy.create are inlined into TaskRunner.create according to R8 mapping. DEX of optimized TaskRunner saved; dynamic absence of networking is not established."
+  },
+  "mediapipe_native_libraries": {
+    "lib/arm64-v8a/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 10533648,
+      "apk_sha256": "3e24311e736feedbab78b3c6c0122042233919384ac1ff0fe191d3586d319ab3",
+      "merged_sha256": "c0497affbe5c60ddbb61b969403d053ae61d209dc6c7063f38427640c62b8f90",
+      "stripped_sha256": "3e24311e736feedbab78b3c6c0122042233919384ac1ff0fe191d3586d319ab3",
+      "merged_matches_upstream_aar": true,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false
+    },
+    "lib/armeabi-v7a/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 7405000,
+      "apk_sha256": "f63d308af5000e47bfa974d76ec1d17c189f68dda988fc105d0ddf4077dd5feb",
+      "merged_sha256": "13156861846c2ab5924b7c6331bf541dbc9d0918c2c480ede118aca47bf75e2f",
+      "stripped_sha256": "f63d308af5000e47bfa974d76ec1d17c189f68dda988fc105d0ddf4077dd5feb",
+      "merged_matches_upstream_aar": true,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false
+    },
+    "lib/x86/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 14961388,
+      "apk_sha256": "233173370b189917a236c321580438d2ef0d5257af501307e9116d82688738b6",
+      "merged_sha256": "db2d3d3217e5e16a91014d337bbb922fce7e0a66c0eb1b53b097fee1eec91e38",
+      "stripped_sha256": "233173370b189917a236c321580438d2ef0d5257af501307e9116d82688738b6",
+      "merged_matches_upstream_aar": true,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false
+    },
+    "lib/x86_64/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 13032736,
+      "apk_sha256": "59bfe82577c40327a3072f0826c16b8c0a280cb95ce39ea88cbe5f3269d586a7",
+      "merged_sha256": "67fe7c45ce672cc65d121996ad3fe2f87c82ab5419fddfcb7210e4771d011ae0",
+      "stripped_sha256": "59bfe82577c40327a3072f0826c16b8c0a280cb95ce39ea88cbe5f3269d586a7",
+      "merged_matches_upstream_aar": true,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false
+    }
+  },
+  "license_assets": {
+    "assets/licenses/MEDIAPIPE-RUNTIME-NOTICES.txt": {
+      "bytes": 1732,
+      "sha256": "dff521de213508a2fe55763d6cdb08c015a3e8888da569f87064369a2c1f0f67"
+    },
+    "assets/licenses/MediaPipe-Apache-2.0.txt": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "assets/licenses/MARKWON-NOTICES.txt": {
+      "bytes": 458,
+      "sha256": "a94443d364e21c86b883319346beba1d7952926309a235cba8106ed5b07608e2"
+    },
+    "assets/licenses/Markwon-Apache-2.0.txt": {
+      "bytes": 11325,
+      "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14"
+    }
+  },
+  "native_transform_scope": "The AAR derivative preserves upstream native payloads. Normal AGP/NDK stripping changes native bytes; APK outputs match stripped intermediates.",
+  "google_play_protect": {
+    "tested": false,
+    "approved": false,
+    "prior_user_reported_block_cause": "unknown"
+  },
+  "physical_device_privacy_tests": "pending"
+}

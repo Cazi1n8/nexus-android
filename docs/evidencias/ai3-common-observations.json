@@ -1,0 +1,175 @@
+{
+  "runId": 40303339780,
+  "jobId": 121506295192,
+  "sourceCommit": "4228a54f09fcba3a55e0231f182d24db4707cb66",
+  "androidApi": 29,
+  "tests": 23,
+  "passed": 19,
+  "skipped": 4,
+  "failures": 0,
+  "errors": 0,
+  "testcases": [
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationTest",
+      "name": "evaluateTheFifteenRequestedCasesWithTheBundledModel",
+      "skipped": true,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.BundledChatFirstRunTest",
+      "name": "firstChatPreparesBundledModelAndRespondsOffline",
+      "skipped": true,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.ConversationCancellationTest",
+      "name": "deletingDataWaitsForAnExistingMemorySaveAndRejectsEditsDuringDeletion",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.ConversationCancellationTest",
+      "name": "interruptingTheFirstAnswerKeepsItsMessageAndNextSendInTheSameConversation",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.FirstRunFlowsTest",
+      "name": "sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.FirstRunFlowsTest",
+      "name": "anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalAiInferenceTest",
+      "name": "realModelProducesUtf8TextOnAndroidAndRecordsObservations",
+      "skipped": true,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalModelDownloadDeviceTest",
+      "name": "cancellationAndManagerRecreationResumeTheVerifiedTransfer",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalModelDownloadDeviceTest",
+      "name": "allBytesReceivedCanFinishAndReachReadyWithoutWaitingForEof",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalObjectClassifierTest",
+      "name": "realBundledModelRecognizesOfficialFoodImageLocally",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalObjectClassifierTest",
+      "name": "blankFrameDoesNotInventObjectsAndClosedReaderCannotRestart",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "boundedDecodeHonorsExifRotationAndBlankImageReturnsNoText",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "rejectsOutsidePrivateFilesAndOversizedInput",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "closedReaderDoesNotStartRecognition",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "bundledPortugueseAndEnglishModelsReadPrintedText",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.MediaPipePrivacyTest",
+      "name": "packagedFactorySelectsUpstreamNoOpLogger",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.NativeCapabilitiesSmokeTest",
+      "name": "localAiJniLoadsOnlyInSupportedProcessAndRejectsMissingWeights",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.NativeCapabilitiesSmokeTest",
+      "name": "packagedHandTrackerProcessesABlankVideoFrame",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.ProductionModelDownloadTest",
+      "name": "bothProductionModelsDownloadAndCompactCanInfer",
+      "skipped": true,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.VisionUiTest",
+      "name": "galleryAndQuestionWorkWithoutActivatingSensorsOrSendingAnImage",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "deletingConversationRemovesMessagesButPreservesAuthorizedMemories",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "historyCanBeRenamedSearchedAndContinuedWithoutChangingMessages",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "exportContainsConversationAndMemoriesButOmitsPrivateImagePaths",
+      "skipped": false,
+      "failure": false,
+      "error": false
+    }
+  ],
+  "artifactSha256": "fd55ffeb53c3b7e28de255a991dc868172b6f22dfdec49441c6d4a95b6195806"
+}

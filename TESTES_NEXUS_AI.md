@@ -65,7 +65,7 @@ Os sete workflows YAML foram carregados por PyYAML e tiveram a estrutura de jobs
 
 Há uma avaliação separada em `scripts/run_native_quality_eval.py`, que compila a construção de contexto Kotlin do aplicativo e usa o mesmo runtime C++/JNI com pesos GGUF reais em Linux. Seus resultados precisam ser identificados pela revisão do prompt e do código; resultados de revisões anteriores não validam alterações posteriores.
 
-Em 26/10, a comparação do Qwen2.5 1,5B foi **interrompida após sete saídas reais e falhas semânticas confirmadas**. Evidência integral: [`docs/evidencias/ai3-qwen25-15b-baseline-interrompido.json`](docs/evidencias/ai3-qwen25-15b-baseline-interrompido.json). Foi usado contexto de 2.048 tokens, saída máxima de 512 tokens e duas threads em CPU Linux. Os pesos são a revisão SHA-256 `6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e`. O relatório não gravou um hash da revisão do prompt; esta é uma evidência diagnóstica da comparação, não validação de alterações posteriores.
+Em 26/10, a comparação do Qwen2.5 1,5B foi **interrompida após sete saídas reais e falhas semânticas confirmadas**. Evidência integral: [`docs/evidencias/ai3-qwen25-15b-baseline-interrompido.json`](docs/evidencias/ai3-qwen25-15b-baseline-interrompido.json). Foi usado contexto de 2.048 tokens, saída máxima de 512 tokens e duas threads em CPU Linux. Os pesos são a revisão SHA-256 `6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e`. O baseline isolado não gravou um hash do prompt; o [relatório consolidado da investigação](docs/evidencias/ai3-local-model-quality-investigation.json) identifica os hashes do prompt e de sua fonte. Essas provas não validam alterações posteriores.
 
 | Saída observada | Resultado da revisão humana |
 | --- | --- |
@@ -75,9 +75,11 @@ Em 26/10, a comparação do Qwen2.5 1,5B foi **interrompida após sete saídas r
 | Pedido com erros de digitação | **Falha:** interpreta como texto de descrição |
 | Multiplicação com explicação, sem calculadora | **Falha:** cita 450 e depois fornece passos matemáticos errados |
 | Explicação infantil de IA | **Falha:** inclui afirmações falsas sobre prever o futuro e dispensar energia |
-| Início da história de Max | Texto inconsistente e incompleto; continuação não foi executada |
+| História de Max | Texto com começo e final, mas inconsistente; pedido posterior de continuação não foi executado |
 
-As verificações automáticas de palavras aceitaram a matemática e a explicação infantil, apesar desses erros. Isso comprova sua limitação e a necessidade de ler as respostas. **Os quinze casos não foram concluídos nesse baseline.** Uma alternativa de modelo está em avaliação; não é apresentada como integrada ou aprovada antes de testes reais.
+As verificações automáticas de palavras aceitaram a matemática e a explicação infantil, apesar desses erros. Isso comprova sua limitação e a necessidade de ler as respostas. **Os quinze casos não foram concluídos nesse baseline.** A interpretação de português informal e a qualidade de escrita continuam sem correção comprovada; o caso 12 da futura avaliação Android pode reprovar o gate crítico. Essa falha deve permanecer visível, mesmo se o aplicativo compilar e as ferramentas de cálculo funcionarem.
+
+Foram testados separadamente protótipos Qwen3 1,7B e Qwen3.5 0,8B, incluindo templates oficiais sem raciocínio e prompts menores. As comparações reais, suas origens e revisões semânticas estão no [relatório consolidado](docs/evidencias/ai3-local-model-quality-investigation.json). Ambos foram rejeitados porque continuaram errando a intenção ou deixando de produzir os textos pedidos. **Esses protótipos não foram incluídos no APK.** A versão atual preserva os modelos Qwen2.5 0,5B e 1,5B com limitações explícitas, sem apresentar a troca de modelo como solução demonstrada.
 
 As primeiras comparações reais detectaram falhas tanto no modelo compacto quanto no de 1,5B, incluindo troca de identidade, recusa indevida e interpretação errada de pedidos de escrita. Por isso, a simples troca do modelo não é apresentada como correção comprovada. Não foi usado filtro para apagar frases repetidas e esconder essas falhas.
 

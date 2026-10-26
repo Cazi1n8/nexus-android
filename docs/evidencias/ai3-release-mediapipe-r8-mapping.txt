@@ -1,0 +1,4 @@
+    0:3:com.google.mediapipe.tasks.core.logging.TasksStatsDummyLogger com.google.mediapipe.tasks.core.logging.TasksStatsDummyLogger.create(android.content.Context,java.lang.String,java.lang.String):31:31 -> d
+    0:3:com.google.mediapipe.tasks.core.logging.TasksStatsLogger com.google.mediapipe.tasks.core.logging.TasksStatsLoggerFactory.create(android.content.Context,java.lang.String,java.lang.String):0 -> d
+    4:6:com.google.mediapipe.tasks.core.logging.TasksStatsDummyLogger com.google.mediapipe.tasks.core.logging.TasksStatsDummyLogger.create(android.content.Context,java.lang.String,java.lang.String):31 -> d
+    4:6:com.google.mediapipe.tasks.core.logging.TasksStatsLogger com.google.mediapipe.tasks.core.logging.TasksStatsLoggerFactory.create(android.content.Context,java.lang.String,java.lang.String):0 -> d

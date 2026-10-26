@@ -1,0 +1,17 @@
+{
+  "sourceCommit": "4228a54f09fcba3a55e0231f182d24db4707cb66",
+  "runId": 40303339535,
+  "buildConclusion": "success",
+  "publicDebugReleaseConclusion": "skipped",
+  "artifact": {
+    "id": 12641159108,
+    "name": "nexus-debug-14",
+    "zipBytes": 1645769317,
+    "zipDigestReportedByGitHub": "sha256:78cecb4f158a7ebdb8bbb9e621f70edd464440373e2c1e0706bc6a2a89b5b084",
+    "webUrl": "https://github.com/Cazi1n8/nexus-android/actions/runs/40303339535/artifacts/12641159108",
+    "requiresGitHubLogin": true,
+    "contains": "app-debug.apk and SHA256SUMS.txt",
+    "zipDownloadedAndLocallyInspected": false
+  },
+  "note": "CI artifact metadata, not the independently inspected local APK hash. No physical installation or Play Protect approval."
+}
