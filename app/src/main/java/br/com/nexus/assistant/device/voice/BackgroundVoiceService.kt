@@ -81,7 +81,7 @@ class BackgroundVoiceService : Service() {
             else startForeground(NOTIFICATION, notification)
             started = true
             model = SharedNexusModel.get(this)
-            voice = VoiceController(this)
+            voice = VoiceController(this, backgroundSessionOwner = true)
             budget = VoiceConversationBudget(SystemClock.elapsedRealtime())
             publish(VoiceSessionPhase.PREPARING, "Preparando voz e IA; microfone iniciado somente quando pronto")
             observeSession()

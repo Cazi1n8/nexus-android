@@ -64,6 +64,7 @@ fun NexusDiagnosticsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val voiceState by voice.state.collectAsStateWithLifecycle()
+    val backgroundVoice by br.com.nexus.assistant.device.voice.VoiceSessionRuntime.state.collectAsStateWithLifecycle()
     val voices by voice.voices.collectAsStateWithLifecycle()
     val localModel by model.localModelState.collectAsStateWithLifecycle()
     val generation by model.generationDiagnostics.collectAsStateWithLifecycle()
@@ -141,7 +142,7 @@ fun NexusDiagnosticsScreen(
                 OutlinedButton(onClick = {
                     voice.speak("Olá! O NEXUS está falando no idioma que você escolheu.", settings.language,
                         settings.voiceRate, settings.voiceName, settings.voicePitch)
-                }, enabled = voiceState.ttsReady && voiceState.languageReady) { Text("Reproduzir frase de teste") }
+                }, enabled = !backgroundVoice.active && voiceState.ttsReady && voiceState.languageReady) { Text("Reproduzir frase de teste") }
                 if (voiceState.isSpeaking) OutlinedButton(onClick = voice::stopSpeaking) { Text("Parar reprodução") }
                 if (voiceState.speechUsesNetwork) Text("A voz selecionada informa uso de rede pelo mecanismo de fala.", style = MaterialTheme.typography.bodySmall)
                 voiceState.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }

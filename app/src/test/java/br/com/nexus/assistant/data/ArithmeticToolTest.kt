@@ -27,6 +27,14 @@ class ArithmeticToolTest {
         assertFalse(ArithmeticTool.answerFor("25 vezes 18")!!.contains('\n'))
         assertNull(ArithmeticTool.answerFor("Escreva um texto sobre mais oportunidades"))
     }
+    @Test fun `requested explanation is computed from actual operation order`() {
+        val answer = ArithmeticTool.answerFor("Quanto é 10+10÷10×10? Explique o cálculo.")!!
+        assertTrue(answer.startsWith("10+10÷10×10 = 20"))
+        assertTrue(answer.indexOf("10 ÷ 10 = 1") < answer.indexOf("1 × 10 = 10"))
+        assertTrue(answer.indexOf("1 × 10 = 10") < answer.indexOf("10 + 10 = 20"))
+        assertTrue(ArithmeticTool.answerFor("Quanto é 25 vezes 18? Explique o cálculo.")!!.contains("25 × 18 = 450"))
+        assertNull(ArithmeticTool.answerFor("Escreva uma história de 25 linhas. Explique."))
+    }
     @Test fun `ordinary conversation and embedded calculations are left to language provider`() {
         listOf("Olá", "10", "Explique 10+10", "Tenho 10 anos", "Como programar 2+2 em Kotlin?", "abra configurações").forEach {
             assertNull(it, ArithmeticTool.answerFor(it))

@@ -1,48 +1,53 @@
 # Compatibilidade e ajuste automático
 
-O objetivo é permitir que o NEXUS funcione em mais aparelhos, ajustando o que consegue executar. Nenhum aplicativo pode garantir câmera, IA offline e controle global em todo celular: sistema, arquitetura, memória, sensores e políticas do fabricante variam.
+Estado da implementação 3.0 em 26/10/2026. O NEXUS adapta recursos medidos do aparelho; não garante todas as funções em qualquer celular. [Progresso atual](../PROGRESSO_NEXUS_AI_3.md).
 
-## Base de instalação
+## Instalação e arquiteturas
 
-A versão 2.0 tem **Android mínimo 8.0/API 26** e oferece um APK com quatro arquiteturas: `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. O APK alpha.2 publicado foi inspecionado: assinatura v2 válida, ZIP alinhado a 16 KB e 40 bibliotecas nativas. As 22 de 64 bits têm alinhamento ELF de pelo menos 16 KB; as 18 de 32 bits, pelo menos 4 KB. [Inspeção e testes da versão](RELATORIO_ALPHA_2.md). Isso não é uma lista de aparelhos fisicamente testados.
+Android mínimo **8.0/API 26**, alvo **API 35**. O APK universal inclui `arm64-v8a`, `armeabi-v7a`, `x86_64` e `x86`. IA local exige processo de 64 bits; a interface e funções independentes podem continuar disponíveis em processos de 32 bits. A presença de uma biblioteca não comprova sensores ou desempenho físico.
 
-| Arquitetura do processo | App base e chat remoto | IA local | Rastreamento MediaPipe |
+| Processo | App base / provedor remoto opcional | IA local | MediaPipe |
 | --- | --- | --- | --- |
-| ARM64 | Previsto | Depende de RAM e modelo | Biblioteca incluída na dependência |
-| ARM32 | Previsto | Indisponível neste runtime | Biblioteca incluída na dependência |
-| x86_64 | Previsto | Depende de RAM e modelo | Biblioteca incluída na dependência |
-| x86 | Previsto | Indisponível neste runtime | Biblioteca incluída na dependência |
+| ARM64 | Previsto em Android compatível | Depende de RAM e armazenamento | Biblioteca incluída |
+| ARM32 | Previsto em Android compatível | Indisponível neste runtime | Biblioteca incluída |
+| x86_64 | Previsto em Android compatível | Depende de RAM e armazenamento | Biblioteca incluída |
+| x86 | Previsto em Android compatível | Indisponível neste runtime | Biblioteca incluída |
 
-O AAR oficial MediaPipe 0.10.35 foi inspecionado: `tasks-core` fornece `libmediapipe_tasks_jni.so` para as quatro ABIs, com segmentos ELF alinhados a 16 KB. A atualização substitui a dependência 0.10.21 utilizada na base auditada. O aplicativo continua exigindo API 26, embora a biblioteca declare API mínima 24.
+O MediaPipe 0.10.35 derivado preserva os quatro nativos upstream; somente a fábrica de logging de uso foi substituída pela seleção no-op padrão oficial. [Proveniência](evidencias/ai3-mediapipe-runtime.json). Isso não é uma certificação de câmera, rastreamento ou Play Protect.
 
-“Biblioteca incluída” não comprova reconhecimento de mãos ou funcionamento da câmera. CameraX, captura de imagens, chat e rastreamento são capacidades separadas. Sem rastreamento, conteúdo educacional e outras funções compatíveis podem continuar disponíveis.
+## O que é medido
 
-O OCR da alpha.2 pode ler uma foto importada da galeria sem câmera, microfone, modelo de conversa ou provedor remoto. Os modelos português/inglês vêm no APK; a imagem é reduzida a no máximo 2.048 pixels por lado e cerca de 4 megapixels antes do reconhecimento. A execução usa um worker serial compartilhado. Cancelar descarta o resultado; uma chamada nativa já iniciada termina antes de liberar os recursos. [Uso e limites do OCR](OCR_LOCAL.md).
+`DeviceCapabilities` consulta versão Android, ABI/processo de 64 bits, RAM total utilizável e disponível, indicação Android de pouca memória, núcleos de CPU, espaço privado livre, câmeras, microfone e GLES. Não liga sensores para fazer essa consulta. O diagnóstico mostra detalhes locais apenas por escolha do usuário e não consulta IMEI ou número de série.
 
-## O que o aplicativo verifica
+A leitura usada pela política é estabilizada ao iniciar o app. O nome comercial de um celular não determina o perfil; RAM disponível varia com outros aplicativos. Uma reabertura após liberar memória pode produzir outra recomendação. Isso evita trocar de modelo no meio de uma conversa.
 
-`DeviceCapabilities` coleta um retrato do aparelho sem ligar câmera ou microfone: versão Android, arquiteturas, processo de 64 bits, RAM total e disponível, indicação de pouca memória do Android, núcleos de CPU, espaço privado livre, câmeras frontal/traseira, microfone e versão GLES.
+## IA incluída e orçamento
 
-Na alpha.4 completa, `DevicePolicy` mantém a mesma base compacta incluída no APK e ajusta os limites de processamento. Não há escolha de modelo recomendado no telefone. A variante de desenvolvimento sem pesos preserva a seleção manual para regressão; não autoriza servidor externo.
+A versão completa prepara ambos os perfis no mesmo APK, sem exigir outro APK por modelo de telefone. A cópia privada de um perfil incluído não usa rede. Os GGUFs são verificados por tamanho e SHA-256; um arquivo parcial/final já presente reduz o espaço adicional necessário, sem substituir a verificação de integridade.
 
-Os critérios atuais usam RAM total e livre, não apenas o nome comercial do celular:
+| Critério | Política atual |
+| --- | --- |
+| IA local básica | Android compatível, ARM64/x86_64, sem indicação Android de pouca memória, pelo menos **3 GB de RAM utilizável total e 1 GB disponível** |
+| Perfil equilibrado Qwen2.5 1,5B | Pelo menos **5 GB utilizáveis totais e 1,8 GB disponíveis**, além de espaço para preparar o modelo |
+| Perfil compacto Qwen2.5 0,5B | Alternativa para a margem menor de memória/armazenamento; qualidade mais limitada |
+| Contexto compartilhado por prompt, histórico e saída | **2.048 tokens**; **4.096** no perfil de maior folga de recursos |
+| Saída | Até **384, 512 ou 768 tokens**, conforme o orçamento |
+| CPU | **1 a 3 threads**, conforme recursos disponíveis |
 
-- IA local requer processo ARM64 ou x86_64, Android compatível, ausência da indicação Android de pouca memória e margem mínima de RAM. O perfil compacto usa como referência pelo menos 3 GB totais e 1 GB disponível.
-- O perfil equilibrado permanece somente no modo avançado/variante sem pesos para regressão; não é a base do APK completo. Exige pelo menos 6 GB totais e 2 GB disponíveis. Os arquivos finais/parciais já presentes entram no cálculo do espaço adicional, mas tamanho não substitui SHA-256.
-- Contexto, threads e limite de resposta são reduzidos em aparelhos mais modestos. O contexto varia entre 512 e 1.536 tokens, compartilhados por instruções, memórias, conversa e saída.
-- Câmera e rastreamento usam resolução menor e intervalos maiores em aparelhos com menos recursos. A análise também observa o custo dos quadros para evitar sobrecarregar a interface.
-- Rastreamento de duas mãos e ambiente 3D dependem dos recursos disponíveis. O renderer exige OpenGL ES 2.
+Esses valores são limites de recursos, não garantia de fluidez ou qualidade. A avaliação real ainda encontrou falhas de interpretação e conhecimento no modelo 1,5B. [Resultados da IA](../TESTES_NEXUS_AI.md). Sem margem de IA local, um provedor remoto é uma opção explícita e precisa de infraestrutura real e consentimento; não existe encaminhamento automático.
 
-Esses valores são uma política inicial de segurança de recursos, não uma garantia de velocidade. RAM livre muda conforme os outros aplicativos. A recomendação é estabilizada para a sessão, evitando alternar modelo a cada flutuação de memória. O usuário pode liberar memória e reabrir o aplicativo para uma nova avaliação.
+O APK com ambos os perfis é grande, aproximadamente 1,7 GB antes de cada medição final. Download, instalação, atualizações e cópia privada precisam de espaço adicional; reserve pelo menos 6 GB livres e confira a mensagem real de armazenamento no aparelho.
 
-## Quando falta um recurso
+## Câmera, voz e gráficos
 
-Sem microfone ou serviço de reconhecimento, use texto. Sem voz instalada no idioma escolhido, instale os dados de fala do Android. Sem câmera compatível ou biblioteca de rastreamento, o app deve explicar a indisponibilidade e preservar as funções independentes. Sem suporte à IA local, o provedor personalizado é uma opção explícita; não há envio remoto automático.
+A política reduz resolução, intervalo de análise e número de mãos conforme a margem do aparelho. O mouse usa cadência e suavização por tempo, com ajuste pelo custo efetivo dos quadros. Rastreamento de duas mãos/3D depende dos recursos e o renderer exige OpenGL ES 2. A câmera é um recurso compartilhado: iniciar dois módulos concorrentes pode ser impedido.
 
-A câmera traseira pode ser usada como alternativa onde o módulo permitir, se a frontal estiver ausente. Permissão negada é uma escolha do usuário e não deve iniciar sensor nem serviço. Controle global requer autorização de acessibilidade, câmera e sessão visível com notificação; o fabricante ou um aplicativo protegido pode bloquear interações.
+Vision classifica quadros periódicos localmente; não é compreensão geral de vídeo. OCR de foto importada pode funcionar sem câmera, microfone, modelo de conversa ou servidor. Sem câmera, os conteúdos educacionais de Libras e outras funções independentes continuam acessíveis.
 
-## Conferir no seu aparelho
+Reconhecimento de fala e TTS são serviços Android: pt-BR offline depende do mecanismo e dados instalados. O serviço de voz manual e o mouse global são independentes e possuem notificações/parada. Fabricante, permissões, bateria, memória e aplicativos protegidos podem limitar a continuidade fora do NEXUS. [Permissões e segundo plano](PERMISSOES_E_SEGUNDO_PLANO.md).
 
-Abra **Central de Diagnóstico** para consultar o perfil e suas razões. Os testes locais são iniciados por botão e não gravam uma aprovação fictícia. Depois teste separadamente texto/IA, áudio, captura, uma mão, duas mãos e controle global.
+## Conferir no aparelho
 
-O Samsung Galaxy S9+ é o aparelho informado pelo usuário. A versão do Android, os serviços de fala instalados, a RAM livre e o desempenho físico desse exemplar ainda não foram medidos pelo ambiente. A adaptação usa as observações do aparelho ao executar o app.
+Abra **Central de Diagnóstico**, consulte a compatibilidade e inicie testes locais por botão. Depois verifique texto, voz, foto, uma mão, duas mãos e controle global separadamente. Os resultados não recebem aprovação automática por uma biblioteca inicializar.
+
+O **Samsung Galaxy S9+** é o aparelho informado pelo usuário. A versão do sistema, a RAM livre, serviços de fala e desempenho desse exemplar ainda não foram medidos pelo ambiente. Os testes de segundo plano, sensores, aquecimento e instalação com Play Protect continuam precisando de aparelho físico.

@@ -5,9 +5,9 @@ O APK alpha.4 publicado foi bloqueado novamente pelo Play Protect no aparelho do
 ## Estado encontrado na auditoria
 
 - O workflow de teste compila `assembleDebug`. Seu certificado é criado no executor temporário e mudou entre entregas. O certificado SHA-256 da alpha.4 publicada é `65297709dfb7a0149397313c1249cf40b3392913a4050f0af0c8a5951c394c1f`.
-- O tipo `release` já habilita redução de código e recursos. As regras preservam a ponte JNI do NEXUS e os wrappers JNI do Tesseract; Room e MediaPipe também fornecem regras de consumidor. Isso não substitui compilar e executar o build reduzido.
+- O tipo `release` já habilita redução de código e recursos. As regras preservam a ponte JNI do NEXUS e os wrappers JNI do Tesseract; Room e MediaPipe também fornecem regras de consumidor. Isso não substitui compilar e executar o build reduzido. O manifesto release 24 já foi inspecionado: sem atividades Compose de tooling/teste e com `debuggable` efetivo false. Essa inspeção de manifesto ainda não é validação do APK final.
 - Antes da configuração de assinatura desta etapa, `release` não tinha `signingConfig`: um APK de release produzido assim ficaria sem assinatura e não seria instalável. Um AAB também precisa ser assinado para distribuição.
-- O manifesto declara câmera, microfone, notificações, serviço de câmera em primeiro plano, rede e o serviço oficial de acessibilidade para gestos autorizados. Não declara leitura de SMS, contatos, localização, instalação de pacotes ou acesso amplo aos arquivos.
+- Os manifestos mesclados debug e release da versão 24 declaram câmera, microfone, notificações, serviços separados de câmera e microfone em primeiro plano, rede e o serviço oficial de acessibilidade para gestos autorizados. Não declara leitura de SMS, contatos, localização, instalação de pacotes ou acesso amplo aos arquivos.
 - A acessibilidade permite executar gestos, mas não recuperar conteúdo de janelas; seu código não coleta eventos. Essa continua sendo uma capacidade sensível, sujeita às políticas e à análise do Google. Não foi removida ou disfarçada para evitar a análise.
 
 ## O que precisa ficar protegido

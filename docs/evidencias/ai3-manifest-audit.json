@@ -1,0 +1,359 @@
+{
+  "accessibility_configuration": {
+    "accessibilityFeedbackType": "feedbackGeneric",
+    "canPerformGestures": "true",
+    "canRetrieveWindowContent": "false",
+    "description": "@string/nexus_accessibility_description",
+    "isAccessibilityTool": "false",
+    "notificationTimeout": "100"
+  },
+  "audited_at_utc": "2026-10-26T02:15:43.237842+00:00",
+  "debug_only_components": [
+    "androidx.activity.ComponentActivity",
+    "androidx.compose.ui.tooling.PreviewActivity"
+  ],
+  "final_apk_inspected": true,
+  "final_apk_scope": "Local debug24 only; see ai3-debug-apk-security.json. Release and physical permissions/Play Protect remain separate.",
+  "permission_count": {
+    "android": 8,
+    "own_androidx_signature": 1,
+    "total_uses_permission": 9
+  },
+  "play_protect_approval": "not tested; prior user-reported block remains unresolved",
+  "scope": "Actual generated merged manifests and source XML; final APK, signature, runtime permissions and Play Protect not established by this observation.",
+  "source_network_config": {
+    "debug": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<network-security-config>\n    <base-config cleartextTrafficPermitted=\"false\" />\n    <!-- Development only: emulator host or an adb reverse tunnel. -->\n    <domain-config cleartextTrafficPermitted=\"true\">\n        <domain includeSubdomains=\"false\">localhost</domain>\n        <domain includeSubdomains=\"false\">127.0.0.1</domain>\n        <domain includeSubdomains=\"false\">::1</domain>\n        <domain includeSubdomains=\"false\">10.0.2.2</domain>\n    </domain-config>\n</network-security-config>\n",
+    "release": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<network-security-config>\n    <base-config cleartextTrafficPermitted=\"false\" />\n</network-security-config>\n"
+  },
+  "variants": {
+    "debug": {
+      "application": {
+        "allowBackup": "false",
+        "appComponentFactory": "androidx.core.app.CoreComponentFactory",
+        "dataExtractionRules": "@xml/data_extraction_rules",
+        "debuggable": "true",
+        "extractNativeLibs": "false",
+        "fullBackupContent": "false",
+        "icon": "@drawable/ic_nexus",
+        "label": "@string/app_name",
+        "networkSecurityConfig": "@xml/network_security_config",
+        "roundIcon": "@drawable/ic_nexus",
+        "supportsRtl": "true",
+        "theme": "@style/Theme.Nexus"
+      },
+      "components": [
+        {
+          "exported": "false",
+          "foregroundServiceType": "microphone",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+          "stopWithTask": "false"
+        },
+        {
+          "exported": "false",
+          "foregroundServiceType": "camera",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+          "stopWithTask": "false"
+        },
+        {
+          "exported": "true",
+          "kind": "service",
+          "label": "@string/nexus_accessibility_label",
+          "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+          "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "br.com.nexus.assistant.MainActivity",
+          "windowSoftInputMode": "adjustResize"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "androidx.compose.ui.tooling.PreviewActivity"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "androidx.activity.ComponentActivity",
+          "theme": "@android:style/Theme.Material.Light.NoActionBar"
+        },
+        {
+          "enabled": "false",
+          "exported": "false",
+          "kind": "service",
+          "name": "androidx.camera.core.impl.MetadataHolderService"
+        },
+        {
+          "authorities": "br.com.nexus.assistant.androidx-startup",
+          "exported": "false",
+          "kind": "provider",
+          "name": "androidx.startup.InitializationProvider"
+        },
+        {
+          "directBootAware": "true",
+          "exported": "false",
+          "kind": "service",
+          "name": "androidx.room.MultiInstanceInvalidationService"
+        },
+        {
+          "directBootAware": "false",
+          "enabled": "true",
+          "exported": "true",
+          "kind": "receiver",
+          "name": "androidx.profileinstaller.ProfileInstallReceiver",
+          "permission": "android.permission.DUMP"
+        },
+        {
+          "exported": "false",
+          "kind": "service",
+          "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+        },
+        {
+          "exported": "false",
+          "kind": "service",
+          "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+          "permission": "android.permission.BIND_JOB_SERVICE"
+        },
+        {
+          "exported": "false",
+          "kind": "receiver",
+          "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+        }
+      ],
+      "debuggable_effective": true,
+      "declared_signature_permissions": [
+        {
+          "name": "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+          "protection_level": "signature"
+        }
+      ],
+      "exported_components": [
+        {
+          "exported": "true",
+          "kind": "service",
+          "label": "@string/nexus_accessibility_label",
+          "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+          "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "br.com.nexus.assistant.MainActivity",
+          "windowSoftInputMode": "adjustResize"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "androidx.compose.ui.tooling.PreviewActivity"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "androidx.activity.ComponentActivity",
+          "theme": "@android:style/Theme.Material.Light.NoActionBar"
+        },
+        {
+          "directBootAware": "false",
+          "enabled": "true",
+          "exported": "true",
+          "kind": "receiver",
+          "name": "androidx.profileinstaller.ProfileInstallReceiver",
+          "permission": "android.permission.DUMP"
+        }
+      ],
+      "manifest_path": "app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml",
+      "manifest_sha256": "e859a3f4f0d7760c4c535df5856a0db2616447c64cf27109831c22a666da5801",
+      "merge_blame_path": "app/build/intermediates/manifest_merge_blame_file/debug/processDebugMainManifest/manifest-merger-blame-debug-report.txt",
+      "merge_blame_sha256": "7c45603c11ddde48a204e678629f1d4f3aed628696a09047d82bcf3c6a17e9be",
+      "min_sdk": 26,
+      "own_foreground_services": [
+        {
+          "exported": "false",
+          "foregroundServiceType": "microphone",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+          "stopWithTask": "false"
+        },
+        {
+          "exported": "false",
+          "foregroundServiceType": "camera",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+          "stopWithTask": "false"
+        }
+      ],
+      "package": "br.com.nexus.assistant",
+      "target_sdk": 35,
+      "tooling_activity_present": true,
+      "uses_permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "version_code": 24,
+      "version_name": "3.0.0-alpha.1"
+    },
+    "release": {
+      "application": {
+        "allowBackup": "false",
+        "appComponentFactory": "androidx.core.app.CoreComponentFactory",
+        "dataExtractionRules": "@xml/data_extraction_rules",
+        "extractNativeLibs": "false",
+        "fullBackupContent": "false",
+        "icon": "@drawable/ic_nexus",
+        "label": "@string/app_name",
+        "networkSecurityConfig": "@xml/network_security_config",
+        "roundIcon": "@drawable/ic_nexus",
+        "supportsRtl": "true",
+        "theme": "@style/Theme.Nexus"
+      },
+      "components": [
+        {
+          "exported": "false",
+          "foregroundServiceType": "microphone",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+          "stopWithTask": "false"
+        },
+        {
+          "exported": "false",
+          "foregroundServiceType": "camera",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+          "stopWithTask": "false"
+        },
+        {
+          "exported": "true",
+          "kind": "service",
+          "label": "@string/nexus_accessibility_label",
+          "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+          "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "br.com.nexus.assistant.MainActivity",
+          "windowSoftInputMode": "adjustResize"
+        },
+        {
+          "enabled": "false",
+          "exported": "false",
+          "kind": "service",
+          "name": "androidx.camera.core.impl.MetadataHolderService"
+        },
+        {
+          "authorities": "br.com.nexus.assistant.androidx-startup",
+          "exported": "false",
+          "kind": "provider",
+          "name": "androidx.startup.InitializationProvider"
+        },
+        {
+          "directBootAware": "true",
+          "exported": "false",
+          "kind": "service",
+          "name": "androidx.room.MultiInstanceInvalidationService"
+        },
+        {
+          "directBootAware": "false",
+          "enabled": "true",
+          "exported": "true",
+          "kind": "receiver",
+          "name": "androidx.profileinstaller.ProfileInstallReceiver",
+          "permission": "android.permission.DUMP"
+        },
+        {
+          "exported": "false",
+          "kind": "service",
+          "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+        },
+        {
+          "exported": "false",
+          "kind": "service",
+          "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+          "permission": "android.permission.BIND_JOB_SERVICE"
+        },
+        {
+          "exported": "false",
+          "kind": "receiver",
+          "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+        }
+      ],
+      "debuggable_effective": false,
+      "declared_signature_permissions": [
+        {
+          "name": "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+          "protection_level": "signature"
+        }
+      ],
+      "exported_components": [
+        {
+          "exported": "true",
+          "kind": "service",
+          "label": "@string/nexus_accessibility_label",
+          "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+          "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE"
+        },
+        {
+          "exported": "true",
+          "kind": "activity",
+          "name": "br.com.nexus.assistant.MainActivity",
+          "windowSoftInputMode": "adjustResize"
+        },
+        {
+          "directBootAware": "false",
+          "enabled": "true",
+          "exported": "true",
+          "kind": "receiver",
+          "name": "androidx.profileinstaller.ProfileInstallReceiver",
+          "permission": "android.permission.DUMP"
+        }
+      ],
+      "manifest_path": "app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml",
+      "manifest_sha256": "452c85dc9e43b02844833e79edbcdc73a343bfd23330b7350d1b53588a2ddce0",
+      "merge_blame_path": "app/build/intermediates/manifest_merge_blame_file/release/processReleaseMainManifest/manifest-merger-blame-release-report.txt",
+      "merge_blame_sha256": "5a3cd06a235320fbbd08998c4b06457b27c3a7b1822a8ae24652576aa84b7bd4",
+      "min_sdk": 26,
+      "own_foreground_services": [
+        {
+          "exported": "false",
+          "foregroundServiceType": "microphone",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+          "stopWithTask": "false"
+        },
+        {
+          "exported": "false",
+          "foregroundServiceType": "camera",
+          "kind": "service",
+          "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+          "stopWithTask": "false"
+        }
+      ],
+      "package": "br.com.nexus.assistant",
+      "target_sdk": 35,
+      "tooling_activity_present": false,
+      "uses_permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "version_code": 24,
+      "version_name": "3.0.0-alpha.1"
+    }
+  }
+}

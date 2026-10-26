@@ -1,33 +1,57 @@
 # Permissões, Play Protect e sessões fora do app
 
-## Novo bloqueio da alpha.4
+Estado da implementação 3.0 em 26/10/2026. Código compilado não comprova funcionamento físico no Samsung Galaxy S9+. Os [13 testes funcionais de segundo plano](../TESTES_SEGUNDO_PLANO.md) e os cenários de segurança permanecem separados.
 
-O usuário confirmou que a alpha.4 foi bloqueada novamente. O status permanece **não resolvido**. O APK exato, hashes, justificativa das permissões e uma minuta estão em [PLAY_PROTECT_REVISAO.md](PLAY_PROTECT_REVISAO.md); o pedido não foi enviado ao Google. A configuração de assinatura estável foi preparada, mas depende da chave definitiva e dos Secrets do responsável. [Distribuição](ASSINATURA_E_DISTRIBUICAO.md).
+## Play Protect e distribuição
 
-## Aviso relatado
+O usuário relatou novo bloqueio da alpha.4 pelo Play Protect. A mensagem não informa qual declaração ou comportamento motivou a decisão; a causa específica permanece desconhecida. A [auditoria atual](../AUDITORIA_PLAY_PROTECT.md) distingue achados confirmados, hipóteses e limites. Não houve aprovação do Google ou teste de instalação com Play Protect deste novo APK no aparelho físico.
 
-O aviso enviado pelo usuário em 25/10/2026 mostra o Play Protect bloqueando a instalação do NEXUS por possível acesso a dados sensíveis. Ele não informa qual declaração do pacote motivou a decisão. A auditoria do código não equivale a aprovação pelo Google. Esta alteração não garante que o próximo APK seja aceito.
+A assinatura estável foi preparada por configuração de ambiente e workflow manual, mas depende da chave definitiva protegida do responsável. O build release sem essas credenciais fica sem assinatura e não é instalável. APKs debug de ambientes diferentes podem ter certificados diferentes e impedir atualização direta. [Assinatura e distribuição](ASSINATURA_E_DISTRIBUICAO.md).
 
-O NEXUS declara um serviço de acessibilidade para **executar gestos autorizados** em outros aplicativos. Essa é uma capacidade sensível. O serviço tem `canPerformGestures=true`, `canRetrieveWindowContent=false`, `eventTypes=0`, sem coleta de eventos e sem leitura da árvore de outros aplicativos. O app não declara permissões de SMS, contatos, chamadas, localização, instalação de pacotes ou acesso amplo aos arquivos. Câmera e microfone são permissões solicitadas para recursos iniciados pelo usuário.
+Mantenha o Play Protect ativado. Se continuar bloqueado, registre o arquivo exato, versão, SHA-256, certificado e mensagem para a [revisão oficial](PLAY_PROTECT_REVISAO.md). Nenhum pedido de revisão foi enviado pelo ambiente. Não houve ocultação de serviços, troca de identidade para evasão ou remoção das divulgações sensíveis.
 
-Não foram ocultados serviços, alterados nomes para contornar classificação nem removidos avisos de privacidade. Para distribuição pública ainda são necessários assinatura de lançamento estável, descrição e divulgação das capacidades sensíveis, testes físicos e revisão das políticas aplicáveis. Se o bloqueio for indevido, o desenvolvedor pode pedir revisão no [formulário oficial do Play Protect](https://support.google.com/googleplay/android-developer/contact/protectappeals). A aprovação depende do Google.
+## Permissões por recurso
+
+| Recurso | Permissões/autorizações | Momento e limite |
+| --- | --- | --- |
+| Chat local e dados | Não exige câmera, microfone ou acessibilidade | Modelos incluídos são copiados/verificados no armazenamento privado; chat não ativa sensores |
+| IA remota opcional | `INTERNET`, `ACCESS_NETWORK_STATE` e consentimento de envio | Exige endpoint real configurado; não há fallback remoto silencioso |
+| Foto, Vision, mãos e Libras | `CAMERA` quando a câmera é iniciada | Galeria e OCR podem funcionar sem autorizar câmera |
+| Voz | `RECORD_AUDIO` ao iniciar escuta | Reconhecimento/TTS Android podem usar rede conforme o mecanismo instalado |
+| Mouse global | Câmera, notificações e acessibilidade habilitada pelo usuário | Consentimento explícito; FGS do tipo `camera` e gestos oficiais |
+| Voz fora do app | Microfone e notificações | Consentimento explícito; FGS do tipo `microphone`, iniciado com o NEXUS visível |
+
+Os manifestos 3.0 debug/release inspecionados contêm oito permissões Android e uma própria AndroidX de nível `signature`, totalizando nove `uses-permission`. `BIND_ACCESSIBILITY_SERVICE` protege o componente para vinculação pelo sistema; não é uma permissão geral solicitada para ler dados do telefone. O app não declara SMS, contatos, chamadas, localização, instalação de pacotes, acesso amplo a arquivos, `QUERY_ALL_PACKAGES` ou `SYSTEM_ALERT_WINDOW`. A lista detalhada e origem de bibliotecas estão na auditoria.
 
 ## Mouse global
 
-- O início exige um toque na tela visível, consentimento da sessão, câmera, notificações e acessibilidade habilitada pelo usuário nas configurações oficiais do Android.
-- O serviço usa `ImageAnalysis` do CameraX com MediaPipe, sem janela de vídeo sobre outros aplicativos. Há um cursor, botão **PARAR NEXUS** e notificação persistente com ação **PARAR**. Indicadores de privacidade do Android continuam sob controle do sistema.
-- A sessão continua ao sair da atividade e ao remover a tarefa da lista de recentes (`stopWithTask=false`). **PARAR**, revogação de permissão ou desconexão da acessibilidade encerram o controle. O serviço não se reinicia após ser morto (`START_NOT_STICKY`), não inicia no boot e não captura microfone.
-- A falta de quadros cancela toques mantidos; falta persistente de quadros encerra a sessão com erro. Isso evita uma câmera/um toque sem resposta permanente.
-- O sistema, fabricante, economia de bateria, câmera ocupada, bloqueio de tela e falta de memória podem encerrar ou impedir a sessão. Não há garantia de funcionamento ilimitado.
+- Início por botão na tela visível, checkbox de consentimento da sessão, câmera, notificações e acessibilidade conectada nas configurações oficiais.
+- `GlobalMouseCameraService` usa CameraX `ImageAnalysis` e MediaPipe com ciclo de vida próprio. Não depende de uma Activity visível para cada quadro. A prévia não precisa aparecer sobre outro aplicativo.
+- Cursor e botão **PARAR NEXUS** usam `TYPE_ACCESSIBILITY_OVERLAY`. O serviço de acessibilidade executa `dispatchGesture`, com `canPerformGestures=true`, `canRetrieveWindowContent=false`, `eventTypes=0` e sem leitura das janelas.
+- Notificação com **PARAR** e **ENCERRAR TUDO**. Saída da Activity ou remoção dos recentes não encerra deliberadamente a sessão (`stopWithTask=false`); Android/fabricante ainda podem fazê-lo.
+- Suavização por tempo, cadência adaptativa, sensibilidade e calibração. Perda de quadros cancela gestos mantidos; falha persistente encerra a sessão. Proteções de geração impedem que um início atrasado reabra a câmera após PARAR.
+- `START_NOT_STICKY`, sem início no boot, reinício oculto, leitura de conteúdo privado ou captura de microfone pelo serviço do mouse.
 
-## Outros recursos
+A implementação não comprova clique, arrasto, rolagem, latência ou continuidade reais no S9+. Aplicativos protegidos podem recusar interações.
 
-O parâmetro `showPreview` de `HandCamera` permite analisar mãos sem exibir o vídeo na interface. Isso não desliga a câmera nem os indicadores do sistema. A prévia permanece opcional nas telas que oferecem o controle.
+## Assistente de voz fora do app
 
-Mãos livres, Libras, 3D e voz ainda não compartilham um proprietário de sessão em serviço de primeiro plano. A câmera dessas telas depende do ciclo de vida da atividade; voz pertence à atividade. Ocultar a prévia não implementa execução em segundo plano. Uma próxima etapa precisa transferir a sessão e seu estado para um serviço próprio, com consentimento, notificações e limites reais de cada API. Nenhuma declaração desta versão promete continuidade de todos esses modos fora do app.
+`BackgroundVoiceService` é separado do mouse, não exportado e declara o tipo `microphone`. Inicia somente por uma sessão manual enquanto o NEXUS está visível, depois das permissões e divulgação. A notificação oferece **OUVIR**, **PARAR** e **ENCERRAR TUDO**; a interface também permite interromper uma resposta.
 
-## Desempenho alterado
+O serviço usa a mesma instância de IA, preferências e conversa da interface; não carrega outro LLM. A posse de áudio impede escuta durante a própria resposta/TTS e impede que um controlador de áudio da interface interfira com a sessão em serviço.
 
-A entrega de resultados de rastreamento à interface mantém apenas o quadro recente, em vez de acumular callbacks antigos quando a thread principal está ocupada. A leitura de compatibilidade do serviço global ocorre no executor, depois de publicar a notificação. O carregamento do MediaPipe e a análise continuam fora da thread principal, com resolução e cadência adaptadas pelo perfil do aparelho.
+O modo básico ouve uma pergunta e espera outro toque em OUVIR. A conversa contínua opcional alterna escuta/resposta/fala por até **15 minutos ou 30 perguntas**, com no máximo duas novas tentativas após silêncio. Depois aguarda ação do usuário. O serviço não é sticky e não inicia no boot.
 
-Essas alterações precisam de compilação e testes físicos no aparelho do usuário. Não demonstram por si só que todos os travamentos foram resolvidos.
+**Não há detector permanente de “Ei, NEXUS”.** O prefixo pode ser usado depois de ativar a escuta; SpeechRecognizer não é reiniciado infinitamente para simular hotword. Reconhecimento offline e voz pt-BR dependem dos serviços/dados instalados; alguns mecanismos podem transmitir áudio/texto. Não se promete funcionamento sem rede em todo aparelho.
+
+## Vision, Libras, Mãos Livres e 3D
+
+Esses módulos mantêm a câmera vinculada ao ciclo de vida da tela. Vision oferece classificação local de quadros periódicos, com intervalo e prévia opcionais; isso não constitui um serviço global de compreensão de vídeo. Libras, Mãos Livres e 3D não são declarados como processamento contínuo fora do aplicativo. O modo 3D mantém controlador independente do mouse.
+
+Ocultar a prévia não desliga a câmera. Os indicadores oficiais de privacidade permanecem sob controle do Android. Antes de abrir outro módulo de câmera, o NEXUS exige liberar o proprietário atual para evitar disputa pelo sensor.
+
+## Limites e privacidade
+
+O Android pode interromper qualquer sessão por memória, aquecimento, bateria, bloqueio de tela, câmera ocupada, revogação ou restrição do fabricante. A notificação e o FGS não concedem acesso irrestrito ao sistema. PARAR deve liberar sensores e gestos; o app não tenta impedir o usuário de encerrá-lo.
+
+A distribuição Maven auditada de MediaPipe continha envio de métricas de uso. O AAR derivado usa a fábrica no-op padrão upstream, com integridade/proveniência documentadas. Isso corrige o caminho encontrado, sem provar ausência de todo tráfego ou a causa do Play Protect. [Auditoria e evidências](../AUDITORIA_PLAY_PROTECT.md).

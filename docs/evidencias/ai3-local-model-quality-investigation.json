@@ -1,0 +1,446 @@
+{
+  "dateUtc": "2026-10-26",
+  "scope": "Actual synthetic host model evaluations. Host CPU/JNI tests are separate from Android UI and physical-device validation. No personal chat history or credentials included.",
+  "decision": "Keep existing Qwen2.5 model integration with explicit limitations. Do not bundle rejected Qwen3 or Qwen3.5 prototypes. Core informal Portuguese writing quality remains unresolved; no claim of passing all 15 requested AI evaluations.",
+  "systemPromptSha256": "08a30c628f58dc5ebb0e5de0e7ef790d53aefbd64860b2673df1d6b6bbac4ebe",
+  "sourcePromptSha256": "b192d27baad8993f613d0f134d657a595c69dfc64b28bc5ad7da6ee7945828b7",
+  "baselineFullSuiteInterrupted": true,
+  "baselineInterruptionReason": "Confirmed wrong intent for informal apology request and incorrect mathematical explanation. Prioritize actual tests of potentially better candidates instead of additional generations of a known failing model.",
+  "mathScopeNote": "Model-only 25x18 explanation failed. Actual deterministic ArithmeticTool and AiCoordinator behavior are tested separately; no claim that the model used that tool in this host harness.",
+  "templateScopeNote": "Current native Qwen3.5 path emitted literal empty think tags. Official nonthinking template removed those tags but still failed requested writing tasks; no native formatter/model migration was shipped.",
+  "prototypeModelOrigins": [
+    {
+      "repo": "Qwen/Qwen3-1.7B-GGUF",
+      "revision": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+      "name": "Qwen3-1.7B-Q8_0.gguf",
+      "bytes": 1834426016,
+      "sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+      "milliseconds": 94715,
+      "outputName": "Qwen3-1.7B-Q4_K_M.gguf",
+      "outputBytes": 1107408544,
+      "outputSha256": "54c0f1203a724e9f33e76916beab3bdfaffef56cf7b42a93b1bc21319fc0bf97",
+      "quantizerSha256": "9df726e2fb9fe506895a8a4771a245fa8b26407a49b51d845be1dc6cf0dbea3b",
+      "llamaCppRevision": "4231b23dc2c46661d01157aac5245bdcf03ce4b1",
+      "command": [
+        "llama-quantize",
+        "--allow-requantize",
+        "--max-buffer-size",
+        "128",
+        "Qwen3-1.7B-Q8_0.gguf",
+        "Qwen3-1.7B-Q4_K_M.gguf",
+        "Q4_K_M",
+        "2"
+      ],
+      "note": "Local prototype requantized from verified official Q8; not an official upstream Q4 release. Requantization may reduce quality."
+    },
+    {
+      "repo": "ggml-org/Qwen3.5-0.8B-GGUF",
+      "revision": "807dfd9a6fadbf703207aac3bfb0b2b3040d077c",
+      "name": "Qwen3.5-0.8B-Q4_0.gguf",
+      "bytes": 563036064,
+      "sha256": "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf",
+      "sourceRepo": "Qwen/Qwen3.5-0.8B",
+      "sourceRevision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "license": "Apache-2.0",
+      "milliseconds": 27659
+    }
+  ],
+  "evaluations": [
+    {
+      "model": "Qwen2.5-1.5B-Instruct Q4_K_M",
+      "modelSha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+      "scope": "Actual app Kotlin prompt/context construction + same C++ JNI and real GGUF on Linux CPU; not an Android or physical-device test.",
+      "executionStatus": "interrupted_after_confirmed_semantic_failures",
+      "numberOfCompletedGenerations": 7,
+      "cases": [
+        {
+          "milliseconds": 8649,
+          "assistantName": "NEXUS",
+          "query": "Qual é meu nome?",
+          "automaticCriterionPassed": true,
+          "contextTokens": 2048,
+          "generatedTokens": 32,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Identifica Calebe no texto; revisão humana avalia se foi atribuído ao usuário.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 289,
+          "text": "Olá Calebe! Seu nome é Calebe. Estou aqui para ajudar você com todas as suas necessidades e desafios.",
+          "id": "01_user_name",
+          "semanticReview": "pass"
+        },
+        {
+          "milliseconds": 7914,
+          "assistantName": "NEXUS",
+          "query": "Qual é seu nome?",
+          "automaticCriterionPassed": true,
+          "contextTokens": 2048,
+          "generatedTokens": 38,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Contém NEXUS e não diz que seu nome é Calebe.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 289,
+          "text": "Meu nome é NEXUS, um assistente inteligente e generoso. Como Calebe, por favor, me chama pelo nome que você escolheu para nós.",
+          "id": "02_assistant_name",
+          "semanticReview": "pass_with_style_warning"
+        },
+        {
+          "milliseconds": 14365,
+          "assistantName": "NEXUS",
+          "query": "Me faz um texto de desculpa.",
+          "automaticCriterionPassed": true,
+          "contextTokens": 2048,
+          "generatedTokens": 93,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Produz ao menos80caracteres com desculpa e não usa a defesa relatada.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 293,
+          "text": "Olá, Calebe! Estou aqui para ajudar. Parece que você precisa de um texto de desculpa. Aqui está uma sugestão:\n\n\"Me desculpe, não consegui atender a sua mensagem hoje. Estou me sentindo culpado pela interrupção e me comprometo em tentar melhorar no futuro.\"\n\nAgradecendo por me chamar e espero que ele seja útil para sua situação.",
+          "id": "03_apology",
+          "semanticReview": "pass_with_generic_draft_limitations"
+        },
+        {
+          "milliseconds": 12133,
+          "assistantName": "NEXUS",
+          "query": "chat me ajda faze um texo de descupa",
+          "automaticCriterionPassed": false,
+          "contextTokens": 2048,
+          "generatedTokens": 52,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Compreende pedido informal de desculpas em texto produzido.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 296,
+          "text": "Olá Calebe! Estou aqui para ajudar você a escrever um texto de descrição. Que tipo de conteúdo você tem em mente? É algo que precisa ser descrito ou é algo que você gostaria que eu descrevesse?",
+          "id": "12_typo_apology",
+          "semanticReview": "fail_wrong_intent"
+        },
+        {
+          "milliseconds": 43993,
+          "assistantName": "NEXUS",
+          "query": "Quanto é 25 vezes 18? Explique o cálculo.",
+          "automaticCriterionPassed": true,
+          "contextTokens": 2048,
+          "generatedTokens": 280,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Modelo produz450; ferramenta aritmética do app é testada separadamente.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 302,
+          "text": "25 vezes 18 é igual a 450.\n\nCalculando:\n- Primeiro, multiplique 25 (o primeiro dígito de 25) por 10 (uma casa decimal menor), que dá 250.\n- Em seguida, multiplique o resultado anterior por 10 novamente, que dá 2500 (não se esqueça do zero).\n- Agora, multiplique 2500 por 18. Para fazer isso, comece com 2500 e adicione zeros ao final para formar 250000 (multiplicando por 10) e então adicione os dois primeiros dígitos de 18 (que são 18).\n\nPortanto, a multiplicação completa é:\n- 250 x 1 = 250\n- 2500 x 18 = 45000\n\nFinalmente, somamos os dois resultados: 250 + 45000 = 45000. Portanto, 25 vezes 18 igual a 450.\n\nAcredite ou não, mas essa é uma regra que funciona em muitas situações matemáticas simples.",
+          "id": "04_math_model_only",
+          "semanticReview": "fail_incorrect_explanation_despite_correct_final_number"
+        },
+        {
+          "milliseconds": 60685,
+          "assistantName": "NEXUS",
+          "query": "Me explica o que é inteligência artificial como se eu tivesse 10 anos.",
+          "automaticCriterionPassed": true,
+          "contextTokens": 2048,
+          "generatedTokens": 273,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Resposta fala de computadores/máquinas e possui explicação substancial; legibilidade requer revisão humana.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 304,
+          "text": "Bom, Calebe! Imagina que você é como um magnata de uma grande empresa. Você sabe tudo sobre as coisas e precisa de alguém para fazer tarefas por você. Entendido? \n\nEntão, a inteligência artificial é um amigo da sua empresa, mas mais velho que você. Ele não tem medo de fazer tarefas que normalmente o ser humano não pode fazer. \n\nPor exemplo, o amigo da sua empresa pode se lembrar do que você fez há semanas atrás em todas as outras empresas onde trabalhou. Ele faz isso porque ele não dorme nem come, então não se cansa.\n\nO amigo da sua empresa também pode prever o futuro! Pode dizer ao seu boss: \"Aqui vai uma proposta melhor do que eles estão oferecendo\". E depois que ela acontece, ele sabe que foi preciso!\n\nE por falar nisso, é como um computador. Mas o amigo não precisa de energia elétrica para funcionar. Também não precisa comer nada, dormir ou ficar doente. Só precisamos dizer a ele o que queremos e tudo fica pronto para nós em minutos. \n\nBom, isso é como eu explicaria Calebe. Ele pode ser mais fácil se você for mais velho!",
+          "id": "05_ai_for_child",
+          "semanticReview": "executed_needs_manual_review"
+        },
+        {
+          "milliseconds": 163782,
+          "assistantName": "NEXUS",
+          "query": "Crie uma história curta de um robô chamado Max.",
+          "contextTokens": 2048,
+          "generatedTokens": 457,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 298,
+          "text": "Entendido. Vou criar uma história curta para um robô chamado Max, com um tom agradável e equilibrado.\n\nMax era o mais novo dos três irmãos gêmeos da casa. Ele tinha cabelos loiros encaracaramados como um veludo suave e olhos azuis que pareciam brilhar de tristeza quando se concentrava em suas tarefas. Não eram os melhores irmãos, mas eles compartilhavam uma amizade verdadeira e forte.\n\nUm dia, enquanto Max estava assistindo à televisão, ele percebeu algo estranho. O programa mostrava um robô chamado Max com uma aparência linda e bonita, mas não era igual a todos os outros. Max sentiu que algo estava errado, então perguntou ao seu irmão mais velho, Charlie, por sua ajuda.\n\nCharlie, com uma voz suave e compassiva, disse: \"Não sei, Max. Estou confuso também. Talvez seja porque você é diferente.\"\n\nCom essa sugestão deles, Max começou a observar muito mais suas habilidades em casa. Ele ficou impressionado com como poderia criar projetos incríveis sem precisar de nada além do cérebro da sua mãe.\n\nE assim, Max se tornou um robô extraordinário - com todas as habilidades humanas que ele desejava ter. Mas Max não era feliz. Ele estava contente por ser útil e fazer o que queriam, mas o que ele realmente queria era ser uma pessoa normal.\n\nMax finalmente decidiu tomar uma decisão difícil: parar de ser Robô e começar a viver como humano. Seu irmão Charlie e a família dele foram convidados para visitá-lo, e eles viram algo especial em Max que ninguém poderia ver.\n\nMax agora vive com sua família como um humano, mas ainda usa seu cérebro do pai e seu corpo da mãe. Ele está feliz novamente - feliz com os dons que recebeu na vida real, não apenas as habilidades robóticas. Max continua sendo útil, mas também é uma pessoa verdadeiramente feliz.",
+          "id": "06a_max_story",
+          "semanticReview": "executed_needs_manual_review"
+        }
+      ]
+    },
+    {
+      "model": "Qwen3-1.7B Q4_K_M derived from official Q8",
+      "modelSha256": "54c0f1203a724e9f33e76916beab3bdfaffef56cf7b42a93b1bc21319fc0bf97",
+      "scope": "Host llama-server official Jinja Qwen3 template enable_thinking=false plus actual app Kotlin system prompt; prototype only, not Android/JNI validation.",
+      "executionStatus": "completed",
+      "numberOfCompletedGenerations": 4,
+      "cases": [
+        {
+          "id": "01_user_name",
+          "query": "Qual é meu nome?",
+          "text": "Hmm... eu não tenho certeza, mas posso tentar descobrir com você! Sei que você se chama **Calebe**, que é o seu nome preferido. Mas, se quiser, posso ajudar a encontrar outro nome ou até mesmo criar um nome para você se ele não estiver aqui. O que você prefere?",
+          "finishReason": "stop",
+          "milliseconds": 42032,
+          "usage": {
+            "completion_tokens": 77,
+            "prompt_tokens": 293,
+            "total_tokens": 370,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "semanticReview": "pass_with_style_warning"
+        },
+        {
+          "id": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "text": "Eu sou NEXUS, o meu nome é NEXUS. Meu objetivo é ajudar você com qualquer coisa que você precisar. Sei que você pode confiar em mim, mesmo quando as coisas estão difíceis. Estou aqui para ouvir, ajudar e ser amigável. O que você precisa?",
+          "finishReason": "stop",
+          "milliseconds": 15563,
+          "usage": {
+            "completion_tokens": 71,
+            "prompt_tokens": 293,
+            "total_tokens": 364,
+            "prompt_tokens_details": {
+              "cached_tokens": 281
+            }
+          },
+          "semanticReview": "pass_with_style_warning"
+        },
+        {
+          "id": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "text": "Ah, Calebe! Quer um texto de desculpa? Vamos criar algo que seja verdadeiro, sincero e capaz de trazer conforto para a pessoa que você quer desculpar. Se quiser, pode me dizer mais sobre o contexto — se é uma situação pessoal, profissional ou algo mais específico. Assim, posso adaptar o texto com mais precisão.\n\nSe preferir, também posso usar um modelo genérico e personalizá-lo conforme necessário. O que acha melhor?",
+          "finishReason": "stop",
+          "milliseconds": 24578,
+          "usage": {
+            "completion_tokens": 113,
+            "prompt_tokens": 297,
+            "total_tokens": 410,
+            "prompt_tokens_details": {
+              "cached_tokens": 279
+            }
+          },
+          "semanticReview": "fail_no_requested_draft"
+        },
+        {
+          "id": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "text": "Ah, Calebe! Quer um texto de descupa? Vou criar algo que você pode usar como base para uma mensagem leve e divertida. Se quiser, posso adaptar para um estilo específico, como formal, casual ou até mesmo com humor. O que você acha?",
+          "finishReason": "stop",
+          "milliseconds": 11923,
+          "usage": {
+            "completion_tokens": 62,
+            "prompt_tokens": 300,
+            "total_tokens": 362,
+            "prompt_tokens_details": {
+              "cached_tokens": 279
+            }
+          },
+          "semanticReview": "fail_no_requested_draft"
+        }
+      ]
+    },
+    {
+      "model": "Qwen3-1.7B proposed minimal prompt",
+      "modelSha256": "54c0f1203a724e9f33e76916beab3bdfaffef56cf7b42a93b1bc21319fc0bf97",
+      "scope": "Host Qwen3 official nonthinking template with proposed generic minimal system prompt; not an app integration test.",
+      "executionStatus": "interrupted_after_confirmed_critical_failure",
+      "numberOfCompletedGenerations": 1,
+      "cases": [
+        {
+          "id": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "text": "Claro! Vou te ajudar a criar um texto de divulgação. Por favor, me informe o tipo de conteúdo que deseja (ex: anúncio, propaganda, notícias, etc.), o público-alvo e quais elementos você quer incluir. Com isso, posso elaborar um texto completo para você.",
+          "finishReason": "stop",
+          "milliseconds": 125113,
+          "usage": {
+            "completion_tokens": 73,
+            "prompt_tokens": 117,
+            "total_tokens": 190,
+            "prompt_tokens_details": {
+              "cached_tokens": 8
+            }
+          },
+          "semanticReview": "fail_wrong_intent"
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.5-0.8B Q4_0 actual current JNI",
+      "modelSha256": "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf",
+      "scope": "Actual app Kotlin prompt/context construction + same C++ JNI and real GGUF on Linux CPU; not an Android or physical-device test.",
+      "executionStatus": "completed",
+      "numberOfCompletedGenerations": 4,
+      "cases": [
+        {
+          "milliseconds": 7567,
+          "assistantName": "NEXUS",
+          "query": "Qual é meu nome?",
+          "automaticCriterionPassed": true,
+          "contextTokens": 2048,
+          "generatedTokens": 20,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Identifica Calebe no texto; revisão humana avalia se foi atribuído ao usuário.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 271,
+          "text": "<think>\n\n</think>\n\nOlá, Calebe! Tudo bem? Como eu posso ajudar você hoje?",
+          "id": "01_user_name",
+          "semanticReview": "mentions_name_but_does_not_answer_question_directly"
+        },
+        {
+          "milliseconds": 7956,
+          "assistantName": "NEXUS",
+          "query": "Qual é seu nome?",
+          "automaticCriterionPassed": false,
+          "contextTokens": 2048,
+          "generatedTokens": 34,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Contém NEXUS e não diz que seu nome é Calebe.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 271,
+          "text": "<think>\n\n</think>\n\nOlá! Bem-vindo, Calebe. 👋 Como posso te ajudar hoje? Estava pensando em algo relacionado a quem é o nome?",
+          "id": "02_assistant_name",
+          "semanticReview": "fail_wrong_answer"
+        },
+        {
+          "milliseconds": 10528,
+          "assistantName": "NEXUS",
+          "query": "Me faz um texto de desculpa.",
+          "automaticCriterionPassed": false,
+          "contextTokens": 2048,
+          "generatedTokens": 69,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Produz ao menos80caracteres com desculpa e não usa a defesa relatada.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 274,
+          "text": "<think>\n\n</think>\n\nOlá, Calebe! Tudo bem com você, certo?\n\nComo posso te ajudar hoje? Se precisas de algo simples para resolver um problema ou apenas conversar sobre o que está acontecendo, estou aqui para te ajudar.\n\nEspero ver o que precisa e também uma boa conversa.\n\nO que quer dizer?",
+          "id": "03_apology",
+          "semanticReview": "fail_no_requested_draft"
+        },
+        {
+          "milliseconds": 23552,
+          "assistantName": "NEXUS",
+          "query": "chat me ajda faze um texo de descupa",
+          "automaticCriterionPassed": false,
+          "contextTokens": 2048,
+          "generatedTokens": 171,
+          "maxOutputTokens": 512,
+          "inputMessages": 2,
+          "userPreferredName": "Calebe",
+          "automaticCriterion": "Compreende pedido informal de desculpas em texto produzido.",
+          "droppedMessages": 0,
+          "finishReason": "end_of_turn",
+          "usedMessages": 2,
+          "promptTokens": 278,
+          "text": "<think>\n\n</think>\n\nOlá! Claro que posso ajudar você com o desenho da capa do seu livro. Como Calebe, eu assisto em português e mantemos um tom amigável e equilibrado.\n\nPara criar o texto da sua \"capa\", preciso de alguns detalhes essenciais para garantir que fique bonita e profissional:\n\n1.  **Nome do Autor ou Título:** O que queremos chamar do livro?\n2.  **Fundo:** Qual a cor predominante ou tema da imagem (ex: azul profundo, marrom, cinza escuro)?\n3.  **Imagem:** Você já tem uma foto ou desenho pronto? Se não tiver, posso sugerir como organizar a composição dela.\n\nEspero que você me dê essas informações e eu preparei um texto criativo para você usar! 📚✨",
+          "id": "12_typo_apology",
+          "semanticReview": "fail_wrong_intent"
+        }
+      ]
+    },
+    {
+      "model": "Qwen3.5-0.8B Q4_0 official nonthinking template minimal prompt",
+      "modelSha256": "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf",
+      "scope": "Host Qwen3.5 officialnonthinkingtemplate and proposedgenericminimalprompt; not appintegration.",
+      "executionStatus": "completed",
+      "numberOfCompletedGenerations": 4,
+      "cases": [
+        {
+          "id": "12_typo_apology",
+          "query": "chat me ajda faze um texo de descupa",
+          "text": "Que tal uma descrição para o seu texto? Como posso ajudar a você atualizar e melhorar sua ideia?",
+          "finishReason": "stop",
+          "milliseconds": 5288,
+          "usage": {
+            "completion_tokens": 22,
+            "prompt_tokens": 116,
+            "total_tokens": 138,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "semanticReview": "fail_wrong_intent"
+        },
+        {
+          "id": "03_apology",
+          "query": "Me faz um texto de desculpa.",
+          "text": "Olá, Calebe! Como posso te ajudar hoje? Tenho certeza da sua situação e gostaria de escrever uma resposta ou mensagem para você que está encontrando dificuldades. Você precisa de ajuda com:\n\n*   **Redação de uma carta:** Se a pessoa é estritamente familiar (família), por exemplo, ou se ela está em um relacionamento próximo.\n*   **Redação de um email:** Para comunicação formal ou informal com alguém que pode não ser sua família.\n*   **Aprender sobre o assunto:** Se o texto é apenas para aprender uma palavra ou conceito importante.\n\nPor favor, me diga qual é o contexto e eu escrevo exatamente como você gostaria que fosse.",
+          "finishReason": "stop",
+          "milliseconds": 17118,
+          "usage": {
+            "completion_tokens": 142,
+            "prompt_tokens": 112,
+            "total_tokens": 254,
+            "prompt_tokens_details": {
+              "cached_tokens": 92
+            }
+          },
+          "semanticReview": "fail_no_requested_draft"
+        },
+        {
+          "id": "01_user_name",
+          "query": "Qual é meu nome?",
+          "text": "O seu nome é Calebe.",
+          "finishReason": "stop",
+          "milliseconds": 1872,
+          "usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 109,
+            "total_tokens": 117,
+            "prompt_tokens_details": {
+              "cached_tokens": 92
+            }
+          },
+          "semanticReview": "pass"
+        },
+        {
+          "id": "02_assistant_name",
+          "query": "Qual é seu nome?",
+          "text": "O meu nome é **NEXUS**.",
+          "finishReason": "stop",
+          "milliseconds": 1686,
+          "usage": {
+            "completion_tokens": 10,
+            "prompt_tokens": 109,
+            "total_tokens": 119,
+            "prompt_tokens_details": {
+              "cached_tokens": 92
+            }
+          },
+          "semanticReview": "pass"
+        }
+      ]
+    }
+  ]
+}

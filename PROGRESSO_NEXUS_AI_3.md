@@ -25,7 +25,9 @@ Atualização de 26/10/2026. Projeto existente, versionCode 24, 3.0.0-alpha.1.
 
 - Scripts: `python3 -m unittest discover -s scripts/tests -v`: **113 aprovados**.
 - Servidor opcional: `python3 -m unittest discover -s server/tests -v`: **44 aprovados**; não prova um backend público implantado.
-- Compilação completa e testes JVM: em andamento; resultados serão registrados após término.
+- Testes JVM: **189 aprovados**, sem falhas. A compilação de teste inicial gerou APK debug e APK de instrumentação; lint encontrou uma leitura não observável de estado na tela de voz e ela foi corrigida. Nova compilação completa em andamento.
+- Release completa: a primeira tentativa esgotou o armazenamento do ambiente. Cópias redundantes de artefatos foram liberadas e o empacotamento de pesos desnecessário nos testes JVM foi removido; nova tentativa em andamento.
+- Estado salvo no GitHub: [5d8d141](https://github.com/Cazi1n8/nexus-android/commit/5d8d1418357fec0e2bdefaf91775d996b77091aa).
 - Avaliações de linguagem reais: [TESTES_NEXUS_AI.md](TESTES_NEXUS_AI.md). Saída tecnicamente válida não equivale a resposta correta.
 - Testes físicos no Samsung Galaxy S9+: não executados por este ambiente.
 

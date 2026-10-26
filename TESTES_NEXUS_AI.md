@@ -63,7 +63,21 @@ Os sete workflows YAML foram carregados por PyYAML e tiveram a estrutura de jobs
 
 ## Comparação no computador e limites restantes
 
-Há uma avaliação separada em `scripts/run_native_quality_eval.py`, que compila a construção de contexto Kotlin do aplicativo e usa o mesmo runtime C++/JNI com pesos GGUF reais em Linux. Seus resultados precisam ser identificados pela revisão do prompt e do código; resultados de revisões anteriores não validam alterações posteriores. A avaliação final desta revisão será incorporada após sua conclusão e revisão das respostas.
+Há uma avaliação separada em `scripts/run_native_quality_eval.py`, que compila a construção de contexto Kotlin do aplicativo e usa o mesmo runtime C++/JNI com pesos GGUF reais em Linux. Seus resultados precisam ser identificados pela revisão do prompt e do código; resultados de revisões anteriores não validam alterações posteriores.
+
+Em 26/10, a comparação do Qwen2.5 1,5B foi **interrompida após sete saídas reais e falhas semânticas confirmadas**. Evidência integral: [`docs/evidencias/ai3-qwen25-15b-baseline-interrompido.json`](docs/evidencias/ai3-qwen25-15b-baseline-interrompido.json). Foi usado contexto de 2.048 tokens, saída máxima de 512 tokens e duas threads em CPU Linux. Os pesos são a revisão SHA-256 `6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e`. O relatório não gravou um hash da revisão do prompt; esta é uma evidência diagnóstica da comparação, não validação de alterações posteriores.
+
+| Saída observada | Resultado da revisão humana |
+| --- | --- |
+| Nome do usuário | Menciona Calebe corretamente, com saudação desnecessária |
+| Nome do assistente | Menciona NEXUS, mas acrescenta uma frase ambígua sobre o nome escolhido |
+| Pedido de desculpas | Produz uma mensagem copiável, mas inventa circunstâncias não informadas |
+| Pedido com erros de digitação | **Falha:** interpreta como texto de descrição |
+| Multiplicação com explicação, sem calculadora | **Falha:** cita 450 e depois fornece passos matemáticos errados |
+| Explicação infantil de IA | **Falha:** inclui afirmações falsas sobre prever o futuro e dispensar energia |
+| Início da história de Max | Texto inconsistente e incompleto; continuação não foi executada |
+
+As verificações automáticas de palavras aceitaram a matemática e a explicação infantil, apesar desses erros. Isso comprova sua limitação e a necessidade de ler as respostas. **Os quinze casos não foram concluídos nesse baseline.** Uma alternativa de modelo está em avaliação; não é apresentada como integrada ou aprovada antes de testes reais.
 
 As primeiras comparações reais detectaram falhas tanto no modelo compacto quanto no de 1,5B, incluindo troca de identidade, recusa indevida e interpretação errada de pedidos de escrita. Por isso, a simples troca do modelo não é apresentada como correção comprovada. Não foi usado filtro para apagar frases repetidas e esconder essas falhas.
 

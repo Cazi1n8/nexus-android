@@ -9,6 +9,7 @@ import java.util.Locale
 object ArithmeticTool {
     private val precision = MathContext.DECIMAL128
     private val prefix = Regex("^(?:(?:nexus[, :]+)?(?:quanto (?:e|da)|qual (?:e )?o resultado(?: de)?|calcule|calcular|resolva|resolve)(?:\\s*[:=])?\\s+)")
+    private val explanationSuffix = Regex("(?:[?!.;]\\s*|\\s+e\\s+)(?:explique(?:\\s+o\\s+calculo)?|mostre\\s+(?:o\\s+)?passo\\s+a\\s+passo)[.!?]*$")
     private val alphabet = Regex("[0-9\\s.,+\\-*/^()=]+")
 
     /** Returns null for ordinary conversation, including questions that merely contain numbers. */
@@ -16,6 +17,8 @@ object ArithmeticTool {
         var expression = Normalizer.normalize(input.trim().lowercase(Locale.ROOT), Normalizer.Form.NFD)
             .replace(Regex("\\p{M}+"), "")
             .replace('×', '*').replace('÷', '/').replace('−', '-')
+        val explanation = explanationSuffix.find(expression)
+        if (explanation != null) expression = expression.substring(0, explanation.range.first)
         expression = expression.replace(prefix, "").trim().trimEnd('?', '!', '=').trim()
         expression = expression.replace(Regex("\\bvezes\\b"), "*")
             .replace(Regex("\\bdividido por\\b"), "/").replace(Regex("\\bmais\\b"), "+")
@@ -26,8 +29,10 @@ object ArithmeticTool {
         if (expression.none { it in "+-*/^()" }) return null
         if (expression.length > 256) return "O cálculo é longo demais. Use uma expressão com até 256 caracteres."
         return try {
-            val result = Parser(expression).parse().stripTrailingZeros().toPlainString()
-            "${expression.replace('*', '×').replace('/', '÷')} = ${result.replace('.', ',')}"
+            val parser = Parser(expression)
+            val result = parser.parse()
+            val answer = "${expression.replace('*', '×').replace('/', '÷')} = ${format(result)}"
+            if (explanation == null) answer else answer + "\n\nOperações na ordem em que foram calculadas:\n" + parser.steps.mapIndexed { index, step -> "${index + 1}. $step" }.joinToString("\n")
         } catch (failure: ArithmeticFailure) {
             failure.message
         } catch (_: ArithmeticException) {
@@ -35,12 +40,19 @@ object ArithmeticTool {
         }
     }
 
+    private fun format(value: BigDecimal): String = value.stripTrailingZeros().toPlainString().replace('.', ',')
+
     private class ArithmeticFailure(message: String) : IllegalArgumentException(message)
 
     private class Parser(private val input: String) {
         private var position = 0
         private var depth = 0
         private var operations = 0
+        val steps = mutableListOf<String>()
+        private fun step(left: BigDecimal, operation: String, right: BigDecimal, result: BigDecimal): BigDecimal {
+            steps += "${format(left)} $operation ${format(right)} = ${format(result)}"
+            return result
+        }
 
         fun parse(): BigDecimal {
             val value = sum()
@@ -53,8 +65,8 @@ object ArithmeticTool {
             var value = product()
             while (true) {
                 value = when {
-                    take('+') -> bounded(value.add(product(), precision))
-                    take('-') -> bounded(value.subtract(product(), precision))
+                    take('+') -> { val right = product(); step(value, "+", right, bounded(value.add(right, precision))) }
+                    take('-') -> { val right = product(); step(value, "−", right, bounded(value.subtract(right, precision))) }
                     else -> return value
                 }
                 count()
@@ -65,11 +77,11 @@ object ArithmeticTool {
             var value = unary()
             while (true) {
                 value = when {
-                    take('*') -> bounded(value.multiply(unary(), precision))
+                    take('*') -> { val right = unary(); step(value, "×", right, bounded(value.multiply(right, precision))) }
                     take('/') -> {
                         val divisor = unary()
                         if (divisor.signum() == 0) throw ArithmeticFailure("Divisão por zero não é definida.")
-                        bounded(value.divide(divisor, precision))
+                        step(value, "÷", divisor, bounded(value.divide(divisor, precision)))
                     }
                     else -> return value
                 }
@@ -98,7 +110,7 @@ object ArithmeticTool {
             }
             if (integer !in -100..100) throw ArithmeticFailure("Neste calculador, use expoentes inteiros entre -100 e 100.")
             if (base.signum() == 0 && integer <= 0) throw ArithmeticFailure("Zero elevado a zero ou a um expoente negativo não é definido neste calculador.")
-            return bounded(if (integer < 0) BigDecimal.ONE.divide(base.pow(-integer, precision), precision) else base.pow(integer, precision))
+            return step(base, "^", exponent, bounded(if (integer < 0) BigDecimal.ONE.divide(base.pow(-integer, precision), precision) else base.pow(integer, precision)))
         }
 
         private fun primary(): BigDecimal {

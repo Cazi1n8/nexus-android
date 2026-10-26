@@ -89,7 +89,8 @@ android {
     androidResources { noCompress += listOf("task", "tflite", "gguf") }
     if (bundleModel) sourceSets.getByName("main").assets.srcDir(bundledAssets)
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
-    testOptions { unitTests.isIncludeAndroidResources = true }
+    // JVM tests use explicit streams/files; packaging gigabytes of Android assets here is unnecessary.
+    testOptions { unitTests.isIncludeAndroidResources = false }
     lint {
         abortOnError = true
         checkReleaseBuilds = true

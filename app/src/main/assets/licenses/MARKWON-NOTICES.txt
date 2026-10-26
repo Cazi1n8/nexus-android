@@ -1,0 +1,8 @@
+Markwon 4.6.2 — io.noties.markwon:core:4.6.2
+Projeto: https://github.com/noties/Markwon/tree/v4.6.2
+Licença obtida por HTTPS da versão oficial:
+https://raw.githubusercontent.com/noties/Markwon/v4.6.2/LICENSE
+SHA-256: cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14
+Licença completa: Markwon-Apache-2.0.txt
+Usado para renderizar Markdown textual e blocos de código no Chat.
+Não foi incluído plugin de carregamento de imagens remotas.

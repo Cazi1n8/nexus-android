@@ -1,0 +1,127 @@
+{
+  "apk": {
+    "bytes": 1738180171,
+    "min_sdk": 26,
+    "package": "br.com.nexus.assistant",
+    "path": "app/build/outputs/apk/debug/app-debug.apk",
+    "sha256": "1e336cc04c258a832b004372d63103682559c34989741efbe5655825cec7c628",
+    "target_sdk": 35,
+    "version_code": 24,
+    "version_name": "3.0.0-alpha.1"
+  },
+  "apksigner": {
+    "certificate_dn": "C=US, O=Android, CN=Android Debug",
+    "certificate_sha256": "ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79",
+    "exit_code": 0,
+    "key_algorithm": "RSA",
+    "key_bits": 2048,
+    "signers": 1,
+    "source_stamp": false,
+    "v1": false,
+    "v2": true,
+    "v3": false,
+    "v3_1": false,
+    "v4": false,
+    "verified": true
+  },
+  "compiled_manifest": {
+    "debuggable": true,
+    "evidence_path": "docs/evidencias/ai3-debug-compiled-manifest.xml",
+    "foreground_services": [
+      {
+        "exported": "false",
+        "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+        "stop_with_task": "false",
+        "type_mask": "0x80"
+      },
+      {
+        "exported": "false",
+        "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+        "stop_with_task": "false",
+        "type_mask": "0x40"
+      }
+    ],
+    "matches_merged_debug_permissions": true,
+    "sha256": "d0c24adf0a75923850b6dfb6e4e15924627f567478969fbe397c7b81fa4607c7",
+    "uses_permissions": [
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.CAMERA",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_CAMERA",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.INTERNET",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.RECORD_AUDIO",
+      "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    ]
+  },
+  "google_play_protect": {
+    "approved": false,
+    "prior_user_reported_block_cause": "unknown",
+    "tested": false
+  },
+  "inspected_at_utc": "2026-10-26T02:24:07.204471+00:00",
+  "license_assets": {
+    "assets/licenses/MEDIAPIPE-RUNTIME-NOTICES.txt": {
+      "bytes": 1732,
+      "sha256": "dff521de213508a2fe55763d6cdb08c015a3e8888da569f87064369a2c1f0f67"
+    },
+    "assets/licenses/MediaPipe-Apache-2.0.txt": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    }
+  },
+  "mediapipe_dex_factory": {
+    "command": "apkanalyzer dex code --class com.google.mediapipe.tasks.core.logging.TasksStatsLoggerFactory APK",
+    "evidence_path": "docs/evidencias/ai3-mediapipe-dex-factory.txt",
+    "exit_code": 0,
+    "proto_logger_reference_in_factory": false,
+    "selected_logger": "TasksStatsDummyLogger"
+  },
+  "mediapipe_native_libraries": {
+    "lib/arm64-v8a/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 10533648,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false,
+      "apk_sha256": "3e24311e736feedbab78b3c6c0122042233919384ac1ff0fe191d3586d319ab3",
+      "merged_matches_upstream_aar": true,
+      "merged_sha256": "c0497affbe5c60ddbb61b969403d053ae61d209dc6c7063f38427640c62b8f90",
+      "stripped_sha256": "3e24311e736feedbab78b3c6c0122042233919384ac1ff0fe191d3586d319ab3"
+    },
+    "lib/armeabi-v7a/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 7405000,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false,
+      "apk_sha256": "f63d308af5000e47bfa974d76ec1d17c189f68dda988fc105d0ddf4077dd5feb",
+      "merged_matches_upstream_aar": true,
+      "merged_sha256": "13156861846c2ab5924b7c6331bf541dbc9d0918c2c480ede118aca47bf75e2f",
+      "stripped_sha256": "f63d308af5000e47bfa974d76ec1d17c189f68dda988fc105d0ddf4077dd5feb"
+    },
+    "lib/x86/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 14961388,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false,
+      "apk_sha256": "233173370b189917a236c321580438d2ef0d5257af501307e9116d82688738b6",
+      "merged_matches_upstream_aar": true,
+      "merged_sha256": "db2d3d3217e5e16a91014d337bbb922fce7e0a66c0eb1b53b097fee1eec91e38",
+      "stripped_sha256": "233173370b189917a236c321580438d2ef0d5257af501307e9116d82688738b6"
+    },
+    "lib/x86_64/libmediapipe_tasks_jni.so": {
+      "apk_bytes": 13032736,
+      "apk_matches_gradle_stripped_output": true,
+      "apk_matches_original_aar_bytes": false,
+      "apk_sha256": "59bfe82577c40327a3072f0826c16b8c0a280cb95ce39ea88cbe5f3269d586a7",
+      "merged_matches_upstream_aar": true,
+      "merged_sha256": "67fe7c45ce672cc65d121996ad3fe2f87c82ab5419fddfcb7210e4771d011ae0",
+      "stripped_sha256": "59bfe82577c40327a3072f0826c16b8c0a280cb95ce39ea88cbe5f3269d586a7"
+    }
+  },
+  "native_transform_scope": "The documented AAR derivative preserves upstream native payloads; normal AGP/NDK stripDebugDebugSymbols transforms them. APK outputs match those stripped intermediates, not the original AAR byte hashes.",
+  "physical_device_privacy_tests": "pending",
+  "release_apk": "Not inspected in this report; build in progress.",
+  "scope": "Local debug APK actually inspected, not production signed, not installed or approved by Google Play Protect.",
+  "zipalign": {
+    "command": "zipalign -c -P 16 4 APK",
+    "exit_code": 0
+  }
+}

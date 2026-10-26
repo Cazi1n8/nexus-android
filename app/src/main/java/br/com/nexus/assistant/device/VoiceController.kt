@@ -11,6 +11,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import br.com.nexus.assistant.device.voice.VoiceSessionRuntime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,7 @@ import java.util.Locale
 import java.util.UUID
 
 /** One controller per visible UI or explicit foreground voice service; never starts a service itself. */
-class VoiceController(context: Context) : AutoCloseable {
+class VoiceController(context: Context, private val backgroundSessionOwner: Boolean = false) : AutoCloseable {
     private val appContext = context.applicationContext
     private val main = Handler(Looper.getMainLooper())
     private val onDeviceAvailable = runCatching {
@@ -130,6 +131,7 @@ class VoiceController(context: Context) : AutoCloseable {
         onEnd: (() -> Unit)? = null
     ) = onMain {
         if (closed || mutableState.value.isListening) return@onMain
+        if (!mayUseSessionAudio()) return@onMain
         if (!mutableState.value.available) {
             mutableState.value = mutableState.value.copy(error = "Nenhum serviço de reconhecimento de fala está instalado neste aparelho.")
             return@onMain
@@ -281,6 +283,7 @@ class VoiceController(context: Context) : AutoCloseable {
         onDone: (() -> Unit)? = null
     ) = onMain {
         if (closed || text.isBlank()) return@onMain
+        if (!mayUseSessionAudio()) return@onMain
         val engine = tts
         if (engine == null || !mutableState.value.ttsReady) {
             queuedSpeech = QueuedSpeech(text, language, rate, voiceName, pitch, onDone)
@@ -356,6 +359,16 @@ class VoiceController(context: Context) : AutoCloseable {
     }
 
     fun stopSpeaking() = onMain { stopSpeakingInternal() }
+
+    /** Guard the actual audio operation, not only a possibly stale button state. */
+    private fun mayUseSessionAudio(): Boolean {
+        if (backgroundSessionOwner || !VoiceSessionRuntime.state.value.active) return true
+        stopListeningInternal()
+        stopSpeakingInternal()
+        mutableState.value = mutableState.value.copy(
+            error = "A sessão de voz em segundo plano está usando o áudio. Use seus controles ou encerre a sessão antes de falar nesta tela.")
+        return false
+    }
 
     private fun stopSpeakingInternal() {
         queuedSpeech = null

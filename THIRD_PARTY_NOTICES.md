@@ -10,12 +10,26 @@ NEXUS identifica as tecnologias utilizadas e não apresenta modelos públicos co
 - Texto completo incluído no APK: `app/src/main/assets/licenses/llama.cpp-MIT.txt`.
 - A fonte é obtida explicitamente por `scripts/fetch_llama_cpp.py`, com SHA-256 do arquivo verificado antes da extração. Não há download de código durante a execução do aplicativo.
 
-## Modelo de linguagem incluído na versão completa
+## Modelos de linguagem incluídos na versão completa
 
-- Distribuidor: Qwen, modelo `Qwen2.5-0.5B-Instruct-GGUF`.
-- Fonte e licença Apache 2.0: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF
-- Os pesos não fazem parte do repositório Git. A compilação completa inclui o modelo compacto no APK, preparado por `scripts/fetch_bundled_model.py`; a variante de desenvolvimento `-PnexusBundleModel=false` mantém download separado com autorização. Revisão `9217f5db79a29953eb74d5343926648285ec7e67`, 491.400.032 bytes, SHA-256 `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db`. Licença completa incluída: `licenses/Qwen2.5-0.5B-Apache-2.0.txt`. O modelo e o APK ficam no aparelho; a preparação local não abre conexão.
-- O runtime e os pesos são projetos diferentes, com licenças próprias. O modelo compacto é de texto; sua inclusão não oferece compreensão de imagens ou vídeo.
+Os pesos Qwen são modelos públicos de terceiros; NEXUS não os apresenta como modelos treinados por sua equipe. Ambos são de texto, sob Apache 2.0. A preparação `scripts/fetch_bundled_model.py --with-balanced` inclui os dois perfis no mesmo APK, fora do Git. A cópia privada e verificação no telefone não fazem outro download. A variante de desenvolvimento `-PnexusBundleModel=false` mantém download autorizado para regressão.
+
+| Modelo / fonte oficial | Revisão | Bytes / SHA-256 | Licença no APK |
+| --- | --- | --- | --- |
+| [Qwen2.5-0.5B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF), Q4_K_M | `9217f5db79a29953eb74d5343926648285ec7e67` | 491.400.032 / `74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db` | `licenses/Qwen2.5-0.5B-Apache-2.0.txt` |
+| [Qwen2.5-1.5B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF), Q4_K_M | `91cad51170dc346986eccefdc2dd33a9da36ead9` | 1.117.320.736 / `6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e` | `licenses/Qwen2.5-1.5B-Apache-2.0.txt` |
+
+`licenses/QWEN-MODEL-NOTICES.txt` registra as fontes e a preparação. O runtime e os pesos têm licenças próprias. OCR e classificação de objetos podem fornecer evidências textuais ao modelo; isso não transforma o Qwen em um modelo multimodal. A avaliação atual ainda encontra falhas semânticas: [TESTES_NEXUS_AI.md](TESTES_NEXUS_AI.md).
+
+## Classificação visual local
+
+EfficientNet-Lite0 INT8, distribuição oficial MediaPipe versão 1, sob Apache 2.0. [Arquivo oficial](https://storage.googleapis.com/mediapipe-models/image_classifier/efficientnet_lite0/int8/1/efficientnet_lite0.tflite): 5.434.517 bytes, SHA-256 `bc2ffe19c1118de0c0c2a9088992da5589722656e0fba81421385300a4a34b16`. Preparação: `scripts/fetch_object_model.py`; inferência real pelo MediaPipe ImageClassifier. Licença e aviso incluídos: `licenses/EfficientNet-Lite0-Apache-2.0.txt` e `licenses/VISION-CLASSIFIER-NOTICES.txt`.
+
+O resultado é uma categoria aproximada de ImageNet, sem identificação de pessoas, localização espacial ou compreensão geral de cenas. A fotografia oficial usada pelos testes fica apenas no APK de instrumentação, não no APK do aplicativo.
+
+## Markdown: Markwon
+
+[Markwon 4.6.2](https://github.com/noties/Markwon/tree/v4.6.2), dependência `io.noties.markwon:core:4.6.2`, licença Apache 2.0. A [licença do tag oficial](https://raw.githubusercontent.com/noties/Markwon/v4.6.2/LICENSE) foi obtida por HTTPS: 11.325 bytes, SHA-256 `cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14`. Cópia e aviso: `licenses/Markwon-Apache-2.0.txt` e `licenses/MARKWON-NOTICES.txt`. Usado para Markdown textual e blocos de código; o app não inclui o plugin de carregamento de imagens remotas.
 
 ## OCR local: Tesseract4Android, Tesseract e idiomas
 
@@ -36,3 +50,9 @@ AndroidX (Compose, Room, DataStore, Lifecycle e CameraX), Kotlin, kotlinx.corout
 - OkHttp: https://github.com/square/okhttp — Apache 2.0.
 
 O arquivo de mãos é obtido pelo script `scripts/fetch_hand_model.py` a partir da distribuição oficial do MediaPipe. Nenhum modelo de linguagem é enviado a servidores junto com as conversas no modo NEXUS AI local. Um provedor personalizado usa sua própria política e exige consentimento separado no aplicativo.
+
+## MediaPipe: derivação documentada de privacidade
+
+O app usa `tasks-vision:0.10.35` com um AAR `tasks-core` derivado, preparado por `scripts/prepare_mediapipe_runtime.py`. A única classe alterada é `TasksStatsLoggerFactory`, para selecionar a fábrica no-op `TasksStatsDummyLogger` prevista pela geração padrão do [BUILD oficial v0.10.35](https://github.com/google-ai-edge/mediapipe/blob/v0.10.35/mediapipe/tasks/java/com/google/mediapipe/tasks/core/BUILD). Não se apresenta o derivado como um AAR Google original.
+
+A preparação verifica as entradas e conserva o payload das demais classes, recursos e bibliotecas nativas; a etapa Gradle/NDK posterior pode remover símbolos nativos. O AAR derivado tem 50.686.496 bytes, SHA-256 `25ac823c37f77d2870c32bfbe0dfae30b2b1a921b7fce395e743399c3b638bf3`. Licença e aviso incluídos: `licenses/MediaPipe-Apache-2.0.txt` e `licenses/MEDIAPIPE-RUNTIME-NOTICES.txt`. [Proveniência](docs/evidencias/ai3-mediapipe-runtime.json) e [auditoria](AUDITORIA_PLAY_PROTECT.md) descrevem o logger encontrado, a derivação e seus limites. Ela não comprova ausência de todo tráfego nem aprovação do Play Protect.
