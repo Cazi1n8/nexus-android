@@ -4,7 +4,7 @@ Esta é uma versão de teste em desenvolvimento. O projeto já existe e está sa
 
 ## 1. Baixar o arquivo certo
 
-Abra o [artefato de teste 15](https://github.com/Cazi1n8/nexus-android/actions/runs/40305428821/artifacts/12642117269) e entre na sua conta do GitHub. Ele baixa um **ZIP grande, aproximadamente 1,65 GB**. No gerenciador de arquivos do celular, extraia o ZIP e localize **app-debug.apk**. O arquivo `SHA256SUMS.txt` contém o resumo do APK gerado nessa compilação.
+Abra o [artefato de teste 16 — alpha.2](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109) e entre na sua conta do GitHub. Ele baixa um **ZIP grande, aproximadamente 1,65 GB**. No gerenciador de arquivos do celular, extraia o ZIP e localize **app-debug.apk**. O arquivo `SHA256SUMS.txt` contém o resumo do APK gerado nessa compilação.
 
 O botão verde **Code → Download ZIP** do repositório baixa o código-fonte, que não é o aplicativo instalável. Os artefatos do Actions expiram; este arquivo tem retenção de 30 dias. Reserve cerca de 8 GB livres para download, extração, instalação e preparação da IA; uma atualização pode exigir mais espaço.
 

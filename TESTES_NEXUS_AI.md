@@ -79,7 +79,17 @@ Verificações executadas nesta correção:
 - `python3 -m unittest discover -s scripts/tests -p 'test_run_android_ai3_evaluation.py' -v`: **12 aprovados**. Fixtures e ADB simulado comprovam consistência dos metadados, preservação das respostas, restauração da rede, recusa de dispositivos físicos e falha do gate quando o caso 9 falha.
 - A suíte completa de scripts registrou **115 testes aprovados**; são testes das ferramentas de desenvolvimento, não da inteligência.
 
-[Evidência e hashes das fontes](docs/evidencias/ai3-evaluation-checks-regressions.json). A compilação do novo APK de testes e a reexecução real dos quinze casos após a correção do avaliador ainda não foram concluídas neste registro. Nenhum resultado anterior foi recalculado ou marcado como aprovado retroativamente.
+[Evidência e hashes das fontes](docs/evidencias/ai3-evaluation-checks-regressions.json). O novo APK de testes foi compilado e as nove regressões passaram também no Android, dentro da suíte de 28 aprovados e quatro opt-in ignorados. A reexecução real dos quinze casos continua em andamento neste registro. Nenhum resultado anterior foi recalculado ou marcado como aprovado retroativamente.
+
+## Alpha.2: desempenho e testes técnicos novos
+
+A fonte `62ec1e3a714cdcc577e04f659185808bd6c9ab3f` inclui cache do prefixo KV, preservando o modelo e o prompt. A [regressão Android](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844498), o [primeiro chat offline](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844275) e a [inferência nativa](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844358) foram aprovados.
+
+O teste nativo executou seis inferências: entrada inicial, repetição com cache, recuperação após cancelar, registro de contexto, pergunta contextual e Unicode. A pergunta aritmética gerou `42` em 7.100 ms inicialmente e em 423 ms com 51 de 52 tokens reaproveitados. Após cancelar, o contador de cache voltou a zero. A comparação desse teste Android usa o texto com espaços das extremidades removidos; a prova de igualdade **byte a byte** do texto completo está nas vinte comparações separadas no host, com ambos os modelos. Esses números não são um benchmark do S9+.
+
+[Observações nativas](docs/evidencias/ai3-alpha2-native-observations.json), [primeiro chat](docs/evidencias/ai3-alpha2-bundled-observations.json), [regressão comum](docs/evidencias/ai3-alpha2-common-observations.json) e [relatório da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md). O primeiro chat confirmou preparação a partir do APK, resposta real, cálculo 20, OCR e persistência sem rede; não testou sensores físicos nem aprovação pelo Play Protect.
+
+Foram investigados LFM2.5, Gemma3 e um prompt curto em português, em **32 gerações reais**, com escopos e diferenças de amostragem registrados. Nenhum foi adotado: continuaram apresentando falhas críticas de identidade e interpretação. [Comparativo](docs/evidencias/ai3-alternative-models-quality.json) e [cinco testes com o sampler C++ de produção](docs/evidencias/ai3-qwen25-pt-short-native.json). Isso não demonstra que todo modelo dessa família falha, mas impede apresentar esses experimentos como uma correção validada do NEXUS.
 
 Os sete workflows YAML foram carregados por PyYAML e tiveram a estrutura de jobs conferida. Isso é uma verificação sintática local, não uma execução do GitHub Actions.
 

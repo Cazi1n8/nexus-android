@@ -1,0 +1,41 @@
+{
+  "sourceCommit": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+  "appMainSourceTree": "5daf21ac5a99032f4b225c35cbad2e648f86b597",
+  "versionCode": 25,
+  "versionName": "3.0.0-alpha.2",
+  "gradleTasks": [
+    "testDebugUnitTest",
+    "lintDebug",
+    "lintRelease",
+    "assembleDebug",
+    "assembleDebugAndroidTest",
+    "assembleRelease"
+  ],
+  "buildSuccessful": true,
+  "buildDuration": "8m45s",
+  "jvm": {
+    "tests": 190,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "scripts": {
+    "tests": 116,
+    "failures": 0
+  },
+  "lint": {
+    "debug": {
+      "Error": 0,
+      "Warning": 47,
+      "Information": 1
+    },
+    "release": {
+      "Error": 0,
+      "Warning": 47,
+      "Information": 1
+    }
+  },
+  "androidInstrumentedRun": "pending_new_CI",
+  "physicalDeviceTested": false,
+  "playProtectApproved": false
+}

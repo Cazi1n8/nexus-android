@@ -1,12 +1,13 @@
 # NEXUS AI 3.0 — progresso verificável
 
-Atualização de 26/10/2026. A base compilada e os APKs descritos abaixo são versionCode 24, 3.0.0-alpha.1. A retomada 3.0.0-alpha.2 (versionCode 25) está em implementação; sua nova compilação ainda não foi concluída neste registro.
+Atualização de 26/10/2026. A versão 3.0.0-alpha.2 (versionCode 25) foi compilada localmente; as seções históricas abaixo identificam separadamente a alpha.1 (versionCode 24).
 
-## Retomada alpha.2 em andamento
+## Retomada alpha.2 em validação
 
-- Reutilização segura do prefixo KV implementada para reduzir o reprocessamento do histórico. Vinte comparações reais com os dois modelos mantiveram o texto idêntico; testes de cancelamento, poda e recuperação passaram. A comparação no computador é uma prova separada; ainda faltam concluir a nova compilação Android e sua verificação. [Relatório da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md). Isso não corrige, por si só, interpretação ou conhecimento do modelo.
+- Reutilização segura do prefixo KV implementada para reduzir o reprocessamento do histórico. Vinte comparações reais com os dois modelos mantiveram o texto idêntico; testes de cancelamento, poda e recuperação passaram. A nova compilação debug/release concluiu em 8 min 45 s; a execução no Android está em andamento na CI. [Relatório, hashes e limites da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md). Isso não corrige, por si só, interpretação ou conhecimento do modelo.
 - Correção dos próprios testes de qualidade: a resposta real de desculpas assinada “Att., NEXUS” passa a ser rejeitada; um “não” sem relação com câmera deixa de servir como prova de limitação visual. O caso 9 foi incluído no gate crítico da CI.
 - O relatório distingue conclusão técnica, verificações automáticas e revisão humana obrigatória. Os testes de regressão passaram no computador: **9 Kotlin/JUnit e 12 Python**. Após ajustar também a validação do cache no executor nativo, a suíte completa registrou **116 aprovados**; os testes JVM da nova fonte registraram **190 aprovados**. [Evidência do avaliador](docs/evidencias/ai3-evaluation-checks-regressions.json). Não foi reexecutada a bateria real dos quinze casos após esta correção do avaliador.
+- A CI da alpha.2 confirmou **cinco execuções aprovadas**: build/APK, 28 testes comuns (quatro opt-in ignorados), primeiro chat offline, seis inferências nativas com cache/cancelamento e download real dos dois modelos. A avaliação longa está em execução. [Resumo de CI](docs/evidencias/ai3-alpha2-ci-summary-five-complete.json) e [APK de teste 16](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109).
 
 ## Base alpha.1 verificada
 
@@ -42,7 +43,7 @@ Atualização de 26/10/2026. A base compilada e os APKs descritos abaixo são ve
 ## Etapas seguintes verificáveis
 
 1. Corrigir a causa das falhas de interpretação, escrita e alegações indevidas do modelo. A avaliação real ainda não comprova a inteligência solicitada; filtros de exibição ou respostas fixas não substituem essa correção.
-2. Concluir a otimização do contexto em implementação, compilar e validar a reutilização segura do prefixo KV no Android; repetir a bateria de quinze casos e os vinte turnos até obter resultados completos, sem marcar o timeout como aprovação.
+2. Validar a reutilização segura do prefixo KV no Android; repetir a bateria de quinze casos e os vinte turnos até obter resultados completos, sem marcar o timeout como aprovação.
 3. Validar sessões globais, permissões, TTS, reconhecimento e aquecimento em aparelho físico.
 4. Configurar a assinatura definitiva protegida, preparar revisão oficial e testes de distribuição com Play Protect ativado.
 5. Evoluir reconhecimento validado de Libras, visão multimodal geral e eventual serviço online autenticado, sem apresentar esses recursos como concluídos.

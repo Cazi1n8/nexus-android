@@ -8,9 +8,9 @@ Projeto Android existente em Kotlin e Jetpack Compose, em português brasileiro,
 
 ## APK de teste e estado atual
 
-O [artefato 15 da alpha.1](https://github.com/Cazi1n8/nexus-android/actions/runs/40305428821/artifacts/12642117269) permanece disponível enquanto a nova compilação é validada; **ele ainda não contém o cache da alpha.2**. Exige entrar no GitHub e extrair `app-debug.apk` do ZIP. A CI anterior aprovou 189 testes JVM, 19 testes Android comuns, inferência nativa e download real dos dois modelos. Isso não significa que os 15 testes de qualidade da IA ou a instalação pelo Play Protect foram aprovados.
+**[Baixar alpha.2 — artefato de teste 16](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109)**. Exige entrar no GitHub e extrair `app-debug.apk` do ZIP de aproximadamente 1,65 GB. O APK foi gerado pela CI. No Android, 28 testes comuns passaram (quatro opt-in ignorados), o primeiro chat offline e seis inferências nativas com reutilização/cancelamento de contexto passaram. Isso não significa que os 15 testes de qualidade da IA ou a instalação pelo Play Protect foram aprovados.
 
-A compilação local debug e release terminou. O release local está sem assinatura e não é instalável; o artefato acima contém o build debug para avaliação. A linguagem informal ainda produz erros reais e os serviços de câmera/voz precisam de teste físico. Mantenha o Play Protect ativado; se houver bloqueio, use o procedimento oficial da auditoria.
+A compilação local debug e release terminou em 8 min 45 s: 190 testes JVM e 116 testes de scripts aprovados; lint debug/release sem erros, com 47 avisos e uma informação. O release local está sem assinatura e não é instalável; o artefato acima contém o build debug para avaliação. A linguagem informal ainda produz erros reais e os serviços de câmera/voz precisam de teste físico. Mantenha o Play Protect ativado; se houver bloqueio, use o procedimento oficial da auditoria.
 
 ## Mudanças em validação
 
@@ -40,7 +40,7 @@ Android **8.0/API 26 ou superior**. Compatibilidade é verificada por recurso; n
 
 A conversa de voz opcional alterna escuta, resposta e fala por até **15 minutos ou 30 perguntas**, com no máximo duas tentativas após silêncio. O modo básico espera novo toque em OUVIR. **Não há detector permanente de “Ei, NEXUS”.** Android/fabricante pode interromper câmera, microfone ou processo por restrições de bateria, memória ou permissões. Vision, Libras, Mãos Livres e 3D usam câmera vinculada à tela; não são apresentados como serviços globais.
 
-A versão completa com os dois perfis incluídos é grande, aproximadamente 1,7 GB antes da medição final. Reserve pelo menos **8 GB livres** para download, instalação e cópia selecionada; atualizações podem precisar de mais espaço. Não há download de um APK diferente por modelo de telefone.
+A versão completa com os dois perfis incluídos é grande: o APK debug local tem 1.738.201.604 bytes. Reserve pelo menos **8 GB livres** para download, extração, instalação e cópia selecionada; atualizações podem precisar de mais espaço. Não há download de um APK diferente por modelo de telefone. O hash e a assinatura do APK do GitHub podem diferir do arquivo local; confira o `SHA256SUMS.txt` do próprio artefato.
 
 ## Play Protect e distribuição
 
@@ -73,4 +73,4 @@ Para testes de infraestrutura sem pesos, use `-PnexusBundleModel=false`; essa va
 
 Conversas/memórias autorizadas ficam em Room; preferências em DataStore. Token opcional fica protegido pelo Android Keystore. Diagnóstico técnico é local e não contém mensagens, fotos, nomes, caminhos ou chaves. Detalhes do aparelho só aparecem por escolha explícita. Não são usados IMEI, número de série, contatos, SMS ou leitura de janelas de outros aplicativos. O serviço de acessibilidade executa gestos autorizados; câmera/microfone são opcionais e visíveis.
 
-Nesta retomada, **189 testes JVM, 113 testes Python dos scripts e 44 do servidor passaram**. Os resultados completos do novo build, testes JVM, emulador e avaliações de linguagem são atualizados no [progresso 3.0](PROGRESSO_NEXUS_AI_3.md). Resultados da alpha.4 permanecem no relatório histórico e não são reutilizados como aprovação da nova versão.
+Nesta retomada da alpha.2, **190 testes JVM e 116 testes Python dos scripts passaram**, além dos testes Android identificados acima. O servidor opcional mantém 44 testes aprovados e continua sem implantação pública. Os resultados completos e a avaliação semântica são atualizados no [progresso 3.0](PROGRESSO_NEXUS_AI_3.md). Resultados anteriores permanecem identificados nos relatórios históricos.

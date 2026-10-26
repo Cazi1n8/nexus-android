@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+  "observedAt": "2026-10-26T19:57:41.258768+00:00",
+  "fiveShortWorkflowsCompleted": true,
+  "allFiveShortWorkflowsPassed": true,
+  "ai3EvaluationCompleted": false,
+  "workflows": [
+    {
+      "runId": 40389844327,
+      "jobs": [
+        {
+          "id": 121807646206,
+          "name": "build",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 121812229893,
+          "name": "publish-test-apk",
+          "status": "completed",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    {
+      "runId": 40389844498,
+      "jobs": [
+        {
+          "id": 121807668720,
+          "name": "instrumented-tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "runId": 40389844358,
+      "jobs": [
+        {
+          "id": 121807646066,
+          "name": "real-local-inference",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "runId": 40389844275,
+      "jobs": [
+        {
+          "id": 121807644899,
+          "name": "first-bundled-chat",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "runId": 40389844276,
+      "jobs": [
+        {
+          "id": 121807644896,
+          "name": "production-download",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "runId": 40389844392,
+      "jobs": [
+        {
+          "id": 121807646084,
+          "name": "actual-model-evaluation",
+          "status": "in_progress",
+          "conclusion": null
+        }
+      ]
+    }
+  ],
+  "jvmTests": {
+    "passed": 190,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "scriptsTestsPassed": 116,
+  "serverTestsPassed": 44,
+  "androidCommon": {
+    "tests": 32,
+    "passed": 28,
+    "skipped": 4,
+    "failures": 0,
+    "errors": 0
+  },
+  "lintDebug": {
+    "errors": 0,
+    "warnings": 48,
+    "information": 1
+  },
+  "artifactEvidenceFiles": [
+    "build-observations.json",
+    "common-observations.json",
+    "native-observations.json",
+    "bundled-observations.json",
+    "download-observations.json"
+  ],
+  "physicalDeviceTestsExecuted": false,
+  "playProtectApprovalVerified": false,
+  "largeGithubApkArtifactDownloadedOrInspected": false
+}

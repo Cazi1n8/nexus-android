@@ -1,0 +1,130 @@
+{
+  "sourceCommit": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+  "variants": [
+    {
+      "variant": "debug",
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "versionCode": "25",
+      "versionName": "3.0.0-alpha.2",
+      "debuggable": "true",
+      "services": [
+        {
+          "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": "0x80"
+        },
+        {
+          "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": "0x40"
+        },
+        {
+          "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+          "exported": "true",
+          "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE",
+          "foregroundServiceType": null
+        },
+        {
+          "name": "androidx.camera.core.impl.MetadataHolderService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": null
+        },
+        {
+          "name": "androidx.room.MultiInstanceInvalidationService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": null
+        },
+        {
+          "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": null
+        },
+        {
+          "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+          "exported": "false",
+          "permission": "android.permission.BIND_JOB_SERVICE",
+          "foregroundServiceType": null
+        }
+      ]
+    },
+    {
+      "variant": "release",
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_CAMERA",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+      ],
+      "versionCode": "25",
+      "versionName": "3.0.0-alpha.2",
+      "debuggable": "false",
+      "services": [
+        {
+          "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": "0x80"
+        },
+        {
+          "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": "0x40"
+        },
+        {
+          "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+          "exported": "true",
+          "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE",
+          "foregroundServiceType": null
+        },
+        {
+          "name": "androidx.camera.core.impl.MetadataHolderService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": null
+        },
+        {
+          "name": "androidx.room.MultiInstanceInvalidationService",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": null
+        },
+        {
+          "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
+          "exported": "false",
+          "permission": null,
+          "foregroundServiceType": null
+        },
+        {
+          "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+          "exported": "false",
+          "permission": "android.permission.BIND_JOB_SERVICE",
+          "foregroundServiceType": null
+        }
+      ]
+    }
+  ],
+  "playProtectVerificationPerformed": false,
+  "physicalInstallationPerformed": false,
+  "debugCertificateReport": "Signer #1 certificate DN: C=US, O=Android, CN=Android Debug\nSigner #1 certificate SHA-256 digest: ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79\nSigner #1 certificate SHA-1 digest: ca2d6b7b315ad023823925cfbc55f138bd7b15e2\nSigner #1 certificate MD5 digest: 9f61257597705832900106f94920a171\n"
+}

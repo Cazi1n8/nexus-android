@@ -2,6 +2,8 @@
 
 Atualizado em **25/10/2026, 14:06 UTC**.
 
+**Registro histórico do APK bloqueado:** a minuta e os identificadores abaixo pertencem à alpha.4. A IA 3.0 alpha.2 tem uma [auditoria separada](RELATORIO_IA3_ALPHA_2.md), sem verificação de instalação pelo Play Protect. Se houver bloqueio de outra versão, identifique seu arquivo e certificado exatos; os hashes locais da alpha.2 não identificam automaticamente o APK do GitHub Actions. Não misture dados de versões na solicitação.
+
 O usuário informou que a **alpha.4 foi bloqueada novamente**. Este é um relato do celular; o bloqueio não foi reproduzido pelo ambiente de desenvolvimento. A instalação e o funcionamento no Samsung Galaxy S9+ continuam sem aprovação. Os testes do aplicativo e a integridade do arquivo não substituem a análise do Google.
 
 Este documento reúne o APK exato e uma minuta para a revisão oficial. **Nenhuma solicitação foi enviada ao Google por esta sessão.** Não há protocolo de atendimento nem aprovação. A decisão e a causa exata do bloqueio permanecem desconhecidas.

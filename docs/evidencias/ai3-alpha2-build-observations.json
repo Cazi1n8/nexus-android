@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+  "runId": 40389844327,
+  "jobId": 121807646206,
+  "workflowConclusion": "success",
+  "junit": {
+    "tests": 190,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 190
+  },
+  "lint": {
+    "Warning": 48,
+    "Information": 1
+  },
+  "pythonTestRunCounts": [
+    116,
+    44
+  ],
+  "buildSummaries": [
+    "BUILD SUCCESSFUL in 5m 56s",
+    "BUILD SUCCESSFUL in 4s"
+  ],
+  "reportsArtifactId": 12682711351,
+  "reportsArtifactSha256": "539a437faf31809132c1fbb03e722dc4e925f6280f2daf7d3cc163c2635f8d96",
+  "apkArtifact": {
+    "id": 12682941109,
+    "name": "nexus-debug-16",
+    "zipBytes": 1645767106,
+    "zipSha256": "c9898979c7f301712970949c0cbf260c92e946127caeab0e980d43983f25ba36",
+    "downloadedOrInspectedLocally": false,
+    "expiresAt": "2026-11-25T19:54:50Z",
+    "url": "https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109"
+  },
+  "publicDebugReleaseJobConclusion": "skipped"
+}

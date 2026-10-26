@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "executionStatus": "passed",
+  "androidApi": 29,
+  "abis": [
+    "x86_64",
+    "x86"
+  ],
+  "runtime": "llama.cpp b11838 packaged JNI",
+  "contextTokens": 512,
+  "threads": 1,
+  "cases": [
+    {
+      "name": "arithmetic",
+      "answer": "42",
+      "milliseconds": 7100,
+      "outputTokenLimit": 16,
+      "promptTokens": 52,
+      "cachedPromptTokens": 0,
+      "evaluatedPromptTokens": 52
+    },
+    {
+      "name": "same_prompt_warm_cache",
+      "answer": "42",
+      "milliseconds": 423,
+      "outputTokenLimit": 16,
+      "promptTokens": 52,
+      "cachedPromptTokens": 51,
+      "evaluatedPromptTokens": 1
+    },
+    {
+      "name": "after_idle_cancellation",
+      "answer": "42",
+      "milliseconds": 6481,
+      "outputTokenLimit": 16,
+      "promptTokens": 52,
+      "cachedPromptTokens": 0,
+      "evaluatedPromptTokens": 52
+    },
+    {
+      "name": "context_acknowledgement",
+      "answer": "Um cubo ciano é meu favorito.",
+      "milliseconds": 4283,
+      "outputTokenLimit": 32,
+      "promptTokens": 52,
+      "cachedPromptTokens": 28,
+      "evaluatedPromptTokens": 24
+    },
+    {
+      "name": "context_follow_up",
+      "answer": "Ciano.",
+      "milliseconds": 3719,
+      "outputTokenLimit": 16,
+      "promptTokens": 89,
+      "cachedPromptTokens": 62,
+      "evaluatedPromptTokens": 27
+    },
+    {
+      "name": "unicode",
+      "answer": "Olá, coração! 🚀",
+      "milliseconds": 3412,
+      "outputTokenLimit": 32,
+      "promptTokens": 47,
+      "cachedPromptTokens": 28,
+      "evaluatedPromptTokens": 19
+    }
+  ],
+  "scope": "Real text inference in Android; no camera, microphone or claim of general model quality.",
+  "model": "Qwen2.5 0.5B Instruct • Q4_K_M",
+  "modelBytes": 491400032,
+  "modelSha256": "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db",
+  "loadMilliseconds": 164,
+  "arithmeticMatchedExpected42": true,
+  "contextMatchedExpectedCiano": true,
+  "unicodeMatchedRequestedText": true,
+  "semanticAssessment": "observations_only_not_general_quality_certification",
+  "evidence": {
+    "sourceCommit": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+    "runId": 40389844358,
+    "jobId": 121807646066,
+    "artifactId": 12684340121,
+    "artifactSha256": "833b8999b8b210ea12551cc8e8ee99641ccea8750b8aec00390c161eeebb7469",
+    "workflowConclusion": "success"
+  },
+  "junit": {
+    "tests": "1",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": null
+  }
+}

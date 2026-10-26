@@ -145,6 +145,14 @@ Os cenários abaixo são um plano de validação em aparelho. **Nenhum foi marca
 | 12. Voz foreground e interrupção | Início explícito, tipo correto, aviso, resposta audível, interrupção e parada do microfone; testar serviço instalado real | Pendente |
 | 13. Dados e rede | Verificar tráfego por capacidade, telemetria de SDK, consentimento remoto, exportação/exclusão e ausência de conteúdo privado nos logs | Pendente |
 
+## Verificação adicional da IA 3.0 alpha.2
+
+Em 26/10/2026, o mesmo aplicativo foi compilado como `3.0.0-alpha.2`/25, fonte `62ec1e3a714cdcc577e04f659185808bd6c9ab3f`. A alteração reaproveita o contexto de inferência local e o descarta nas mudanças de dados pessoais; não adiciona permissões ou serviços.
+
+Os manifestos finais debug/release foram extraídos dos novos APKs e conferidos: **9 declarações de permissão em cada variante**, mesmas permissões entre elas, release sem `debuggable`, sem `SYSTEM_ALERT_WINDOW`, `QUERY_ALL_PACKAGES`, Usage Stats, SMS ou contatos. [Manifestos e certificado](docs/evidencias/ai3-alpha2-manifest-signature-summary.json). O debug local possui assinatura v2 válida; o release continua sem assinatura e não instalável. Modelos, licenças, quatro ABIs e alinhamento foram inspecionados: [relatório da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md).
+
+Não foi feita instalação física ou consulta do novo arquivo ao Play Protect. A causa do bloqueio relatado continua desconhecida. O certificado e o hash do APK local não identificam a compilação separada do GitHub.
+
 ## Fontes oficiais consultadas
 
 As oito páginas abaixo retornaram HTTP 200 em nova consulta em 26/10/2026, 02:05 UTC; isso comprova acesso à documentação, não aprovação do NEXUS.
