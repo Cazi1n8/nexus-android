@@ -23,7 +23,7 @@ class VisionUiTest {
         lateinit var model: NexusViewModel
         lateinit var reset: Job
         compose.runOnUiThread {
-            model = ViewModelProvider(compose.activity)[NexusViewModel::class.java]
+            model = br.com.nexus.assistant.device.voice.SharedNexusModel.get(compose.activity)
             reset = model.deleteAllData()
         }
         runBlocking { reset.join() }

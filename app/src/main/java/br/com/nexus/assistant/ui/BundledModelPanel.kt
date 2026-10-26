@@ -46,8 +46,8 @@ internal fun BundledModelPanel(model: NexusViewModel, onUseCustom: () -> Unit, s
             }
             state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
             if (showDetails) {
-                Text("Qwen2.5 0.5B · texto · processamento ajustado à RAM e CPU. A IA pode errar. Imagens: leitura de texto local; descrição de cenas exige provedor multimodal opcional.", style = MaterialTheme.typography.bodySmall)
-                Text("A preparação usa cerca de 492 MB adicionais. Apagar a cópia não reduz o APK; abrir o Chat permite prepará-la novamente.", style = MaterialTheme.typography.bodySmall)
+                Text("${spec.displayName} · texto · processamento ajustado à RAM e CPU. A IA pode errar. Imagens: texto e categorias aproximadas de objetos; interpretação completa exige provedor multimodal opcional.", style = MaterialTheme.typography.bodySmall)
+                Text("A preparação usa cerca de ${spec.bytes / 1_000_000} MB adicionais. Apagar a cópia não reduz o APK; abrir o Chat permite prepará-la novamente.", style = MaterialTheme.typography.bodySmall)
                 if (!preparing) TextButton(onClick = { confirmRemove = true }, enabled = !busy) { Text("Remover cópia preparada") }
                 OutlinedButton(onClick = onUseCustom, enabled = !preparing) { Text("Configurar provedor opcional") }
             }

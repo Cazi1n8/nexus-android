@@ -67,6 +67,19 @@ Java_br_com_nexus_assistant_data_local_NexusNativeBridge_nativeGenerate(
     } catch (...) { translate_exception(env); return nullptr; }
 }
 
+extern "C" JNIEXPORT jbyteArray JNICALL
+Java_br_com_nexus_assistant_data_local_NexusNativeBridge_nativeGenerateResult(
+    JNIEnv * env, jobject, jlong handle, jbyteArray chat_json, jint maximum_tokens) {
+    try {
+        auto payload = read_bytes(env, chat_json, 1024 * 1024);
+        if (env->ExceptionCheck()) return nullptr;
+        auto result = nexus::generate_result(static_cast<std::uint64_t>(handle), payload, maximum_tokens);
+        auto bytes = env->NewByteArray(static_cast<jsize>(result.size()));
+        if (bytes != nullptr) env->SetByteArrayRegion(bytes, 0, static_cast<jsize>(result.size()), reinterpret_cast<const jbyte *>(result.data()));
+        return bytes;
+    } catch (...) { translate_exception(env); return nullptr; }
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_br_com_nexus_assistant_data_local_NexusNativeBridge_nativeCancel(JNIEnv *, jobject, jlong handle) {
     nexus::cancel(static_cast<std::uint64_t>(handle));

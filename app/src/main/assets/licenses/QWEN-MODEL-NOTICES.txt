@@ -1,0 +1,29 @@
+NEXUS — modelos locais Qwen2.5 Instruct
+
+Os pesos são preparados explicitamente pelo desenvolvedor e não ficam no Git.
+O APK com os dois modelos permite selecionar uma IA conforme os recursos do
+aparelho sem exigir outro download de modelo no celular.
+
+Qwen2.5-0.5B-Instruct-GGUF — Q4_K_M
+Origem: https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF
+Revisão: 9217f5db79a29953eb74d5343926648285ec7e67
+Arquivo: qwen2.5-0.5b-instruct-q4_k_m.gguf
+Bytes: 491400032
+SHA-256: 74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db
+Licença: Apache-2.0, texto em Qwen2.5-0.5B-Apache-2.0.txt
+
+Qwen2.5-1.5B-Instruct-GGUF — Q4_K_M
+Origem: https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF
+Revisão: 91cad51170dc346986eccefdc2dd33a9da36ead9
+Arquivo: qwen2.5-1.5b-instruct-q4_k_m.gguf
+Bytes: 1117320736
+SHA-256: 6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e
+Licença: Apache-2.0, texto em Qwen2.5-1.5B-Apache-2.0.txt
+Licença obtida da revisão acima em 2026-10-26:
+https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/raw/91cad51170dc346986eccefdc2dd33a9da36ead9/LICENSE
+SHA-256 da licença: 832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e
+
+Esses modelos processam texto. Observações de OCR e de classificação local de
+objetos podem ser fornecidas como texto, mas não tornam o modelo multimodal.
+Os modelos podem produzir respostas incorretas e não garantem desempenho
+adequado em todos os aparelhos.

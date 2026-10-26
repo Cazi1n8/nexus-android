@@ -21,6 +21,12 @@ class ArithmeticToolTest {
         assertEquals("0,125", result("2^-3"))
         assertEquals("6", result("2 x 3"))
     }
+    @Test fun `spoken operators produce exact results without an automatic commentary footer`() {
+        assertEquals("450", result("Quanto é 25 vezes 18?"))
+        assertEquals("20", result("10 mais 10 dividido por 10 vezes 10"))
+        assertFalse(ArithmeticTool.answerFor("25 vezes 18")!!.contains('\n'))
+        assertNull(ArithmeticTool.answerFor("Escreva um texto sobre mais oportunidades"))
+    }
     @Test fun `ordinary conversation and embedded calculations are left to language provider`() {
         listOf("Olá", "10", "Explique 10+10", "Tenho 10 anos", "Como programar 2+2 em Kotlin?", "abra configurações").forEach {
             assertNull(it, ArithmeticTool.answerFor(it))

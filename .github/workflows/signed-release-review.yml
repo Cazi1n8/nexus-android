@@ -48,9 +48,11 @@ jobs:
         run: |
           python3 scripts/fetch_llama_cpp.py
           python3 scripts/fetch_hand_model.py
+          python3 scripts/prepare_mediapipe_runtime.py
+          python3 scripts/fetch_object_model.py --with-test-fixture
           python3 scripts/fetch_ocr_models.py
           python3 scripts/fetch_ocr_runtime.py
-          python3 scripts/fetch_bundled_model.py
+          python3 scripts/fetch_bundled_model.py --with-balanced
       - name: Testes, lint e APK release com assinatura obrigatória
         env:
           NEXUS_RELEASE_STORE_PASSWORD: ${{ secrets.NEXUS_RELEASE_STORE_PASSWORD }}

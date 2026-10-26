@@ -60,7 +60,7 @@ class BundledChatFirstRunTest {
         try {
             report.put("stage", "reset_application")
             lateinit var model: NexusViewModel
-            compose.runOnUiThread { model = ViewModelProvider(compose.activity)[NexusViewModel::class.java] }
+            compose.runOnUiThread { model = br.com.nexus.assistant.device.voice.SharedNexusModel.get(compose.activity) }
             activeModel = model
             lateinit var reset: Job
             compose.runOnUiThread { reset = model.deleteAllData() }
@@ -153,7 +153,7 @@ class BundledChatFirstRunTest {
 
             report.put("stage", "recreate_activity")
             compose.activityRule.scenario.recreate()
-            compose.runOnUiThread { model = ViewModelProvider(compose.activity)[NexusViewModel::class.java] }
+            compose.runOnUiThread { model = br.com.nexus.assistant.device.voice.SharedNexusModel.get(compose.activity) }
             activeModel = model
             compose.waitUntil(10_000) { !model.settings.value.automaticProfile }
             assertEquals(AiMode.NEXUS_LOCAL, model.settings.value.aiMode)

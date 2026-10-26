@@ -41,4 +41,17 @@ class TrackingCadenceTest {
         high.observeCost(0)
         assertEquals(500L, high.intervalMs)
     }
+
+    @Test fun pointerModeHasExplicitFiftyMillisecondFloorAndStillBacksOffForSlowHardware() {
+        val pointer = TrackingCadence(50, minimumIntervalMs = 50)
+        assertTrue(pointer.shouldAnalyze(0))
+        assertFalse(pointer.shouldAnalyze(49))
+        assertTrue(pointer.shouldAnalyze(50))
+        repeat(30) { pointer.observeCost(250) }
+        assertTrue(pointer.intervalMs in 300L..400L)
+        repeat(120) { pointer.observeCost(15) }
+        assertEquals(50L, pointer.intervalMs)
+        // Normal Libras/3D camera calls retain their previous pacing.
+        assertEquals(160L, TrackingCadence(160).intervalMs)
+    }
 }

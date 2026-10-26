@@ -66,6 +66,7 @@ fun NexusDiagnosticsScreen(
     val voiceState by voice.state.collectAsStateWithLifecycle()
     val voices by voice.voices.collectAsStateWithLifecycle()
     val localModel by model.localModelState.collectAsStateWithLifecycle()
+    val generation by model.generationDiagnostics.collectAsStateWithLifecycle()
     val policy by model.devicePolicy.collectAsStateWithLifecycle()
     val effectiveProfile by model.effectiveLocalProfile.collectAsStateWithLifecycle()
     val startupCapabilities by model.deviceCapabilities.collectAsStateWithLifecycle()
@@ -109,6 +110,13 @@ fun NexusDiagnosticsScreen(
         if (showDetails) {
             Text("Informações fornecidas pelo Android deste aparelho, consultadas apenas aqui. O nome pode ser um código do fabricante ou da ROM. RAM e núcleos disponíveis ao app não são uma ficha técnica comercial. Não consultamos IMEI, número de série ou identificadores de publicidade.", style = MaterialTheme.typography.bodySmall)
             hardwareSnapshot(capabilities).forEach { CheckRow(it) }
+            Text("Diagnóstico de geração local · sem conteúdo de conversa", style = MaterialTheme.typography.titleSmall)
+            CheckRow(LocalCheck("Estado da geração", generation.state))
+            CheckRow(LocalCheck("Mensagens enviadas/utilizadas", "${generation.inputMessages} / ${generation.usedMessages}"))
+            CheckRow(LocalCheck("Tokens de entrada/saída", "${generation.promptTokens} / ${generation.generatedTokens}"))
+            CheckRow(LocalCheck("Tempo da resposta", "${generation.elapsedMilliseconds} ms"))
+            generation.finishReason?.let { CheckRow(LocalCheck("Finalização", it)) }
+            generation.qualityIssue?.let { CheckRow(LocalCheck("Falha técnica", it)) }
             CheckRow(LocalCheck("Modelo de IA em uso", LocalModelCatalog.forProfile(effectiveProfile).displayName))
             CheckRow(LocalCheck("Processamento adaptativo", if (compatibleLocal) "${policy.inferenceThreads} threads · ${policy.contextTokens} tokens de contexto · até ${policy.maxOutputTokens} tokens por resposta" else "Não ativado neste perfil"))
             CheckRow(LocalCheck("Análise de câmera", "${policy.cameraWidth} × ${policy.cameraHeight} · intervalo mínimo ${policy.analysisIntervalMs} ms · até ${policy.maxHands} mão(s)"))

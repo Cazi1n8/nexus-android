@@ -25,8 +25,8 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 23
-        versionName = "2.0.0-alpha.4"
+        versionCode = 24
+        versionName = "3.0.0-alpha.1"
         buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -123,31 +123,51 @@ val verifyOcrRuntime by tasks.registering {
     }
 }
 
-// Full builds fail before packaging if the pinned bundled model is absent or altered.
+// Both verified offline profiles ship in one APK; choose one by the stable device budget.
 val verifyBundledModel by tasks.registering {
-    val model = File(bundledAssets, "models/qwen2.5-0.5b-instruct-q4_k_m.gguf")
-    inputs.files(model)
+    val expected = listOf(
+        Triple("qwen2.5-0.5b-instruct-q4_k_m.gguf", 491_400_032L, "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"),
+        Triple("qwen2.5-1.5b-instruct-q4_k_m.gguf", 1_117_320_736L, "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"),
+    )
+    inputs.files(expected.map { File(bundledAssets, "models/${it.first}") })
     onlyIf { bundleModel }
     doLast {
-        check(model.isFile && model.length() == 491_400_032L) {
-            "Execute python3 scripts/fetch_bundled_model.py para preparar a IA incluída no APK."
-        }
-        val digest = MessageDigest.getInstance("SHA-256")
-        model.inputStream().buffered().use { input ->
-            val buffer = ByteArray(1024 * 1024)
-            while (true) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                digest.update(buffer, 0, count)
+        expected.forEach { (name, size, sha) ->
+            val model = File(bundledAssets, "models/$name")
+            check(model.isFile && model.length() == size) {
+                "Execute python3 scripts/fetch_bundled_model.py --with-balanced para preparar os modelos incluídos no APK."
             }
-        }
-        val actual = digest.digest().joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
-        check(actual == "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db") {
-            "Modelo incluído inválido. Prepare novamente com fetch_bundled_model.py."
+            check(sha256(model) == sha) { "Modelo incluído inválido: $name. Prepare novamente os arquivos verificados." }
         }
     }
 }
-tasks.named("preBuild").configure { if (bundleModel) dependsOn(verifyBundledModel) }
+fun sha256(file: File): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().buffered().use { input ->
+        val buffer = ByteArray(1024 * 1024)
+        while (true) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            digest.update(buffer, 0, count)
+        }
+    }
+    return digest.digest().joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
+}
+// Transparent upstream-default no-usage-logging build, prepared reproducibly from a pinned AAR.
+val mediaPipeRuntime = rootProject.file(".build-deps/mediapipe/tasks-core-0.10.35-no-usage-logging.aar")
+val verifyMediaPipeRuntime by tasks.registering {
+    inputs.file(mediaPipeRuntime)
+    doLast {
+        check(mediaPipeRuntime.isFile && mediaPipeRuntime.length() == 50_686_496L &&
+            sha256(mediaPipeRuntime) == "25ac823c37f77d2870c32bfbe0dfae30b2b1a921b7fce395e743399c3b638bf3") {
+            "Execute python3 scripts/prepare_mediapipe_runtime.py para preparar o MediaPipe sem envio de métricas de uso."
+        }
+    }
+}
+tasks.named("preBuild").configure {
+    dependsOn(verifyMediaPipeRuntime)
+    if (bundleModel) dependsOn(verifyBundledModel)
+}
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.05.01")
@@ -160,6 +180,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
     implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation("androidx.compose.ui:ui")
+    implementation("io.noties.markwon:core:4.6.2")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
@@ -177,7 +198,19 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.4.2")
     implementation("androidx.camera:camera-lifecycle:1.4.2")
     implementation("androidx.camera:camera-view:1.4.2")
-    implementation("com.google.mediapipe:tasks-vision:0.10.35")
+    implementation("com.google.mediapipe:tasks-vision:0.10.35") {
+        exclude(group = "com.google.mediapipe", module = "tasks-core")
+    }
+    implementation(files(mediaPipeRuntime).builtBy(verifyMediaPipeRuntime))
+    // Explicit dependencies from the pinned upstream core POM; remote classes stay
+    // present but the factory follows the upstream no-op usage-logging default.
+    implementation("com.google.flogger:flogger:0.6")
+    implementation("com.google.flogger:flogger-system-backend:0.6")
+    implementation("com.google.guava:guava:27.0.1-android")
+    implementation("com.google.protobuf:protobuf-javalite:4.26.1")
+    implementation("com.google.android.datatransport:transport-api:3.0.0")
+    implementation("com.google.android.datatransport:transport-backend-cct:3.1.0")
+    implementation("com.google.android.datatransport:transport-runtime:3.1.0")
     implementation(files(ocrRuntime).builtBy(verifyOcrRuntime))
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")

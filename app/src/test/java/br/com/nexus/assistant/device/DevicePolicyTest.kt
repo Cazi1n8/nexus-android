@@ -14,13 +14,13 @@ class DevicePolicyTest {
         hasFrontCamera = true, hasRearCamera = true, hasMicrophone = true, glesVersion = 0x30000,
     )
 
-    @Test fun sixGbClassUsesTheSameBaseAndAdaptsRuntimeWithoutAssumingPhoneModel() {
+    @Test fun sixGbClassSelectsStrongerIncludedModelWithoutAssumingPhoneModel() {
         val policy = DevicePolicy.evaluate(device())
         assertTrue(policy.localAiSupported)
-        assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
-        assertEquals(1024, policy.contextTokens)
+        assertEquals(LocalModelProfile.BALANCED, policy.recommendedProfile)
+        assertEquals(2048, policy.contextTokens)
         assertEquals(3, policy.inferenceThreads)
-        assertEquals(128, policy.maxOutputTokens)
+        assertEquals(512, policy.maxOutputTokens)
         assertTrue(policy.handTrackingSupported)
         assertTrue(policy.supportsGles2)
     }
@@ -48,9 +48,9 @@ class DevicePolicyTest {
         val policy = DevicePolicy.evaluate(hardware)
         assertTrue(policy.localAiSupported)
         assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
-        assertEquals(512, policy.contextTokens)
+        assertEquals(2048, policy.contextTokens)
         assertEquals(1, policy.inferenceThreads)
-        assertEquals(96, policy.maxOutputTokens)
+        assertEquals(384, policy.maxOutputTokens)
         assertEquals(320, policy.cameraWidth)
         assertEquals(240, policy.cameraHeight)
         assertEquals(220L, policy.analysisIntervalMs)
@@ -60,10 +60,10 @@ class DevicePolicyTest {
 
     @Test fun strongestProfileStillCapsNativeMemoryAndCpuBudgets() {
         val policy = DevicePolicy.evaluate(device().copy(totalRamBytes = 12 * gb, availableRamBytes = 5 * gb, cpuCores = 16))
-        assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
-        assertEquals(1536, policy.contextTokens)
+        assertEquals(LocalModelProfile.BALANCED, policy.recommendedProfile)
+        assertEquals(4096, policy.contextTokens)
         assertEquals(3, policy.inferenceThreads)
-        assertEquals(192, policy.maxOutputTokens)
+        assertEquals(768, policy.maxOutputTokens)
         assertEquals(640, policy.cameraWidth)
         assertEquals(2, policy.maxHands)
     }
@@ -118,12 +118,12 @@ class DevicePolicyTest {
         assertTrue(DevicePolicy.evaluate(hardware.copy(freeDiskBytes = missing + margin - 1)).reason.contains("falta armazenamento"))
     }
 
-    @Test fun aCompleteLegacyBalancedPartialNeedsNoSecondDownloadButCannotSelectAnotherBase() {
+    @Test fun aCompleteBalancedPartialCanBeSelectedWithoutAdditionalStorage() {
         val hardware = device().copy(freeDiskBytes = 400_000_000,
             downloadedModelBytes = mapOf(LocalModelProfile.BALANCED to LocalModelCatalog.balanced.bytes))
         assertEquals(0L, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.BALANCED))
         assertTrue(DevicePolicy.canRunProfile(hardware, LocalModelProfile.BALANCED))
-        assertEquals(LocalModelProfile.COMPACT, DevicePolicy.evaluate(hardware).recommendedProfile)
+        assertEquals(LocalModelProfile.BALANCED, DevicePolicy.evaluate(hardware).recommendedProfile)
         assertEquals(LocalModelProfile.COMPACT,
             DevicePolicy.evaluate(hardware.copy(availableRamBytes = 1_100_000_000)).recommendedProfile)
     }
@@ -145,6 +145,22 @@ class DevicePolicyTest {
             assertEquals(required, DevicePolicy.requiredModelPreparationBytes(hardware, LocalModelProfile.COMPACT))
             assertTrue(DevicePolicy.evaluate(hardware).reason.contains("falta armazenamento"))
         }
+    }
+
+    @Test fun measuredFiveGbCapacitySupportsMarketedSixGbPhonesWithoutModelSpoofing() {
+        val hardware = device().copy(totalRamBytes = 5_300_000_000L, availableRamBytes = 1_900_000_000L)
+        assertEquals(LocalModelProfile.BALANCED, DevicePolicy.evaluate(hardware).recommendedProfile)
+        assertTrue(DevicePolicy.canRunProfile(hardware, LocalModelProfile.BALANCED))
+        assertEquals(LocalModelProfile.COMPACT,
+            DevicePolicy.evaluate(hardware.copy(availableRamBytes = 1_799_999_999L)).recommendedProfile)
+        assertFalse(DevicePolicy.canRunProfile(hardware.copy(availableRamBytes = 1_799_999_999L), LocalModelProfile.BALANCED))
+    }
+
+    @Test fun strongerModelFallsBackToCompactWhenOnlyCompactPreparationFits() {
+        val hardware = device().copy(freeDiskBytes = LocalModelCatalog.compact.bytes + 64L * 1024 * 1024)
+        val policy = DevicePolicy.evaluate(hardware)
+        assertEquals(LocalModelProfile.COMPACT, policy.recommendedProfile)
+        assertTrue(policy.reason.contains("qualidade limitada"))
     }
 
     @Test fun unsupportedAndroidAndUnknownAbiNeverEnableLocalInference() {

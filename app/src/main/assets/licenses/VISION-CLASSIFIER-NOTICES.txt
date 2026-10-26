@@ -1,0 +1,11 @@
+NEXUS local object classification
+
+Model: EfficientNet-Lite0 INT8, official MediaPipe model distribution version 1.
+Source: https://storage.googleapis.com/mediapipe-models/image_classifier/efficientnet_lite0/int8/1/efficientnet_lite0.tflite
+Size: 5,434,517 bytes
+SHA-256: bc2ffe19c1118de0c0c2a9088992da5589722656e0fba81421385300a4a34b16
+Model architecture source: https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite
+License: Apache License 2.0. A full license copy is included in EfficientNet-Lite0-Apache-2.0.txt.
+Inference: Google AI Edge MediaPipe Tasks ImageClassifier, already declared as the Android vision dependency.
+This is ImageNet category classification. It is not a vision-language model, does not identify people, and does not provide scene grounding or bounding boxes.
+The separately fetched official burger photograph is only an automated-test fixture and is not included in the NEXUS application APK.

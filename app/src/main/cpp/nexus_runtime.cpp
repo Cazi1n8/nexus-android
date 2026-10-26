@@ -71,8 +71,8 @@ std::vector<Message> parse_messages(const std::string & payload) {
         // JSON parser messages can contain user text: never forward them.
         throw std::invalid_argument("O histórico local está em um formato inválido.");
     }
-    if (!document.is_array() || document.empty() || document.size() > 64) {
-        throw std::invalid_argument("Envie entre uma e 64 mensagens para a IA local.");
+    if (!document.is_array() || document.empty() || document.size() > 256) {
+        throw std::invalid_argument("Envie entre uma e 256 mensagens para a IA local.");
     }
     std::vector<Message> messages;
     messages.reserve(document.size());
@@ -142,12 +142,19 @@ std::vector<llama_token> tokenize(const Engine & engine, const std::string & pro
     return tokens;
 }
 
-std::vector<llama_token> fit_context(const Engine & engine, std::vector<Message> messages, int output_tokens) {
+struct PromptContext {
+    std::vector<llama_token> tokens;
+    int input_messages = 0;
+    int used_messages = 0;
+};
+
+PromptContext fit_context(const Engine & engine, std::vector<Message> messages, int output_tokens) {
+    const auto input_messages = static_cast<int>(messages.size());
     const auto maximum_prompt = static_cast<std::size_t>(engine.context_tokens - output_tokens);
     for (;;) {
         check_cancelled(engine);
         auto tokens = tokenize(engine, format_prompt(engine, messages));
-        if (tokens.size() <= maximum_prompt) return tokens;
+        if (tokens.size() <= maximum_prompt) return {std::move(tokens), input_messages, static_cast<int>(messages.size())};
         const std::size_t first_turn = messages.front().role == "system" ? 1 : 0;
         if (messages.size() <= first_turn + 1) {
             throw std::invalid_argument("A mensagem e as memórias excedem o contexto da IA local. Divida o texto ou reduza as memórias.");
@@ -198,8 +205,8 @@ void trim_incomplete_utf8_tail(std::string & text) {
 
 std::uint64_t load(const std::string & path, int context_tokens, int threads) {
     if (path.empty() || path.find('\0') != std::string::npos) throw std::invalid_argument("O caminho do modelo local é inválido.");
-    if (context_tokens < 512 || context_tokens > 2048 || threads < 1 || threads > 4) {
-        throw std::invalid_argument("Use contexto entre 512 e 2048 tokens e uma a quatro threads.");
+    if (context_tokens < 512 || context_tokens > 4096 || threads < 1 || threads > 4) {
+        throw std::invalid_argument("Use contexto entre 512 e 4096 tokens e uma a quatro threads.");
     }
     std::ifstream file(path, std::ios::binary);
     char magic[4]{};
@@ -249,11 +256,24 @@ std::uint64_t load(const std::string & path, int context_tokens, int threads) {
     return id;
 }
 
-std::string generate(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
+namespace {
+
+struct Generation {
+    std::string text;
+    std::string finish_reason = "token_limit";
+    int prompt_tokens = 0;
+    int generated_tokens = 0;
+    int input_messages = 0;
+    int used_messages = 0;
+    int context_tokens = 0;
+    int maximum_tokens = 0;
+};
+
+Generation generate_internal(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
     auto engine = lookup(handle);
     if (!engine) throw std::runtime_error("A sessão da IA local foi encerrada. Inicie uma nova conversa.");
-    if (maximum_tokens < 1 || maximum_tokens > 512 || maximum_tokens >= engine->context_tokens - 64) {
-        throw std::invalid_argument("O limite de resposta local deve ficar entre um e 512 tokens e caber no contexto.");
+    if (maximum_tokens < 1 || maximum_tokens > 1024 || maximum_tokens >= engine->context_tokens - 64) {
+        throw std::invalid_argument("O limite de resposta local deve ficar entre um e 1024 tokens e caber no contexto.");
     }
     const auto epoch = engine->cancellation_epoch.load(std::memory_order_relaxed);
     std::unique_lock<std::mutex> lock(engine->generation_mutex);
@@ -261,31 +281,73 @@ std::string generate(std::uint64_t handle, const std::string & chat_json, int ma
     if (engine->closed.load(std::memory_order_relaxed) || engine->cancellation_epoch.load(std::memory_order_relaxed) != epoch) throw Cancelled();
     ClearContextOnExit cleanup{*engine};
     llama_memory_clear(llama_get_memory(engine->context), true);
-    auto tokens = fit_context(*engine, parse_messages(chat_json), maximum_tokens);
+    auto prompt = fit_context(*engine, parse_messages(chat_json), maximum_tokens);
+    auto & tokens = prompt.tokens;
     for (std::size_t start = 0; start < tokens.size(); start += 128) {
         decode(*engine, tokens, start, std::min<std::size_t>(128, tokens.size() - start));
     }
     using Sampler = std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)>;
-    Sampler sampler(llama_sampler_init_greedy(), llama_sampler_free);
+    auto sampling_parameters = llama_sampler_chain_default_params();
+    sampling_parameters.no_perf = true;
+    Sampler sampler(llama_sampler_chain_init(sampling_parameters), llama_sampler_free);
     if (!sampler) throw std::runtime_error("Não foi possível iniciar a geração local.");
-    std::string answer;
+    // A small candidate set bounds the cost of penalties over Qwen's large
+    // vocabulary. Penalties observe the generated tokens accepted by sample().
+    // Never penalize the user's instructions or all history as repeated output.
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_k(40));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_penalties(
+        llama_vocab_n_tokens(engine->vocabulary), 128, 1.08f, 0.0f, 0.0f));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_p(0.9f, 1));
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_temp(0.65f));
+    // A recorded fixed seed makes regression comparisons reproducible. Sampling
+    // still depends on the actual context and is not a table of ready responses.
+    llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(42));
+    Generation result;
+    result.prompt_tokens = static_cast<int>(tokens.size());
+    result.input_messages = prompt.input_messages;
+    result.used_messages = prompt.used_messages;
+    result.context_tokens = engine->context_tokens;
+    result.maximum_tokens = maximum_tokens;
     for (int generated = 0; generated < maximum_tokens; ++generated) {
         check_cancelled(*engine);
         const auto token = llama_sampler_sample(sampler.get(), engine->context, -1);
-        if (llama_vocab_is_eog(engine->vocabulary, token)) break;
-        answer.append(token_piece(*engine, token));
-        if (answer.size() > maximum_answer_bytes) throw std::runtime_error("A resposta local ultrapassou o limite de segurança.");
+        if (llama_vocab_is_eog(engine->vocabulary, token)) {
+            result.finish_reason = "end_of_turn";
+            break;
+        }
+        result.text.append(token_piece(*engine, token));
+        ++result.generated_tokens;
+        if (result.text.size() > maximum_answer_bytes) throw std::runtime_error("A resposta local ultrapassou o limite de segurança.");
         if (generated + 1 < maximum_tokens) {
             std::vector<llama_token> next{token};
             decode(*engine, next, 0, 1);
         }
     }
     check_cancelled(*engine);
-    // BPE tokens can end in the middle of a multibyte character at the output
-    // limit. Return only complete UTF-8 characters, never JNI modified UTF-8.
-    trim_incomplete_utf8_tail(answer);
-    if (answer.empty()) throw std::runtime_error("O modelo local não produziu texto. Tente uma pergunta mais curta.");
-    return answer;
+    // Repair only an incomplete final UTF-8 token at a real token limit. This
+    // does not remove repeated words, paragraphs or change generated content.
+    trim_incomplete_utf8_tail(result.text);
+    if (result.text.empty()) throw std::runtime_error("O modelo local não produziu texto. Tente uma pergunta mais curta.");
+    return result;
+}
+
+} // namespace
+
+std::string generate(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
+    return generate_internal(handle, chat_json, maximum_tokens).text;
+}
+
+std::string generate_result(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
+    const auto result = generate_internal(handle, chat_json, maximum_tokens);
+    return nlohmann::json({
+        {"text", result.text}, {"finishReason", result.finish_reason},
+        {"promptTokens", result.prompt_tokens}, {"generatedTokens", result.generated_tokens},
+        {"inputMessages", result.input_messages}, {"usedMessages", result.used_messages},
+        {"droppedMessages", result.input_messages - result.used_messages},
+        {"contextTokens", result.context_tokens}, {"maxOutputTokens", result.maximum_tokens},
+        {"sampling", {{"temperature", 0.65}, {"topP", 0.9}, {"topK", 40},
+                      {"repeatPenalty", 1.08}, {"repeatLastTokens", 128}, {"seed", 42}}}
+    }).dump();
 }
 
 void cancel(std::uint64_t handle) noexcept {

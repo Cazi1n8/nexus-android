@@ -8,7 +8,7 @@ import org.json.JSONObject
 /** An untrusted model can propose only these actions. The UI must confirm every proposal. */
 class ActionProposal private constructor(val id: String, val action: String, val label: String) {
     companion object {
-        val routes = setOf("home", "chat", "voice", "vision", "mouse", "hands", "cube", "libras", "commands", "personality", "memory", "settings", "diagnostics")
+        val routes = setOf("home", "chat", "voice", "vision", "mouse", "hands", "cube", "libras", "commands", "control", "personality", "memory", "settings", "diagnostics")
         private val packagePattern = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")
 
         fun parse(name: String, arguments: JSONObject): ActionProposal {

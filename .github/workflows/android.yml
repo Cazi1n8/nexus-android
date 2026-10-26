@@ -43,12 +43,16 @@ jobs:
         run: python3 scripts/fetch_llama_cpp.py
       - name: Baixar modelo oficial de mãos
         run: python3 scripts/fetch_hand_model.py
+      - name: Preparar rastreamento sem registro de uso do SDK
+        run: python3 scripts/prepare_mediapipe_runtime.py
+      - name: Preparar classificação visual local e imagem de teste
+        run: python3 scripts/fetch_object_model.py --with-test-fixture
       - name: Preparar português e inglês para leitura offline
         run: python3 scripts/fetch_ocr_models.py
       - name: Preparar biblioteca OCR com SHA-256 fixado
         run: python3 scripts/fetch_ocr_runtime.py
-      - name: Preparar IA compacta incluída no APK
-        run: python3 scripts/fetch_bundled_model.py
+      - name: Preparar os dois perfis de IA incluídos no APK
+        run: python3 scripts/fetch_bundled_model.py --with-balanced
       - name: Testar servidor intermediário
         run: python3 -m unittest discover -s server/tests -v
       - name: Testes, lint e APK de depuração

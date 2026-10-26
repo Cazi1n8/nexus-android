@@ -16,7 +16,7 @@ class FirstRunFlowsTest {
 
     @Before fun resetApplication() {
         lateinit var model: NexusViewModel
-        compose.runOnUiThread { model = ViewModelProvider(compose.activity)[NexusViewModel::class.java] }
+        compose.runOnUiThread { model = br.com.nexus.assistant.device.voice.SharedNexusModel.get(compose.activity) }
         lateinit var reset: kotlinx.coroutines.Job
         compose.runOnUiThread { reset = model.deleteAllData() }
         runBlocking { reset.join() }
@@ -28,7 +28,7 @@ class FirstRunFlowsTest {
         compose.onNode(hasSetTextAction()).performTextInput("Quanto é 2 + 2?")
         compose.onNodeWithContentDescription("Enviar mensagem").performClick()
         compose.onNode(hasSetTextAction()).assert(hasText("Quanto é 2 + 2?"))
-        compose.onNodeWithText("0 mensagens • contexto limitado").assertIsDisplayed()
+        compose.onNodeWithText("0 mensagens salvas • contexto por tokens").assertIsDisplayed()
         compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
         compose.onNodeWithContentDescription("Voltar").performClick()
         compose.onNodeWithText("Preparar NEXUS AI").performScrollTo().assertIsDisplayed()

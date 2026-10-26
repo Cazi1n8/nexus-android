@@ -13,10 +13,11 @@ import java.util.concurrent.TimeUnit;
 
 /** Host JNI verification only; this Java class is outside Android source sets. */
 public final class NexusNativeBridge {
-    private native long nativeLoad(byte[] pathUtf8, int contextTokens, int threads);
-    private native byte[] nativeGenerate(long handle, byte[] chatJsonUtf8, int maxTokens);
-    private native void nativeCancel(long handle);
-    private native void nativeClose(long handle);
+    native long nativeLoad(byte[] pathUtf8, int contextTokens, int threads);
+    native byte[] nativeGenerate(long handle, byte[] chatJsonUtf8, int maxTokens);
+    native byte[] nativeGenerateResult(long handle, byte[] chatJsonUtf8, int maxTokens);
+    native void nativeCancel(long handle);
+    native void nativeClose(long handle);
 
     private static String quote(String text) {
         StringBuilder result = new StringBuilder("\"");

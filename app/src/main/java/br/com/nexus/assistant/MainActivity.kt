@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
+import br.com.nexus.assistant.device.voice.SharedNexusModel
+import br.com.nexus.assistant.device.voice.VoiceSessionRuntime
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.nexus.assistant.device.VoiceController
@@ -12,7 +13,7 @@ import br.com.nexus.assistant.ui.NexusApp
 import br.com.nexus.assistant.ui.NexusTheme
 
 class MainActivity : ComponentActivity() {
-    private val model: NexusViewModel by viewModels()
+    internal val model: NexusViewModel get() = SharedNexusModel.get(application)
     private lateinit var voice: VoiceController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,13 +25,18 @@ class MainActivity : ComponentActivity() {
             NexusTheme(reducedEffects = reducedEffects) { NexusApp(model, voice) }
         }
     }
+    override fun onStart() {
+        super.onStart()
+        SharedNexusModel.onUiStarted()
+    }
     override fun onResume() {
         super.onResume()
         if (::voice.isInitialized) voice.refreshLanguageVoices()
     }
     override fun onStop() {
         if (::voice.isInitialized) { voice.stopListening(); voice.stopSpeaking() }
-        model.onAppBackgrounded()
+        SharedNexusModel.onUiStopped()
+        if (!VoiceSessionRuntime.state.value.active) model.onAppBackgrounded()
         super.onStop()
     }
     override fun onDestroy() {

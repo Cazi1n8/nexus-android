@@ -50,7 +50,8 @@ internal fun HandCamera(
     onFrame: (HandFrame) -> Unit,
     onError: (String) -> Unit,
     requestedHands: Int = 1,
-    showPreview: Boolean = true
+    showPreview: Boolean = true,
+    pointerMode: Boolean = false,
 ) {
     val context = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -71,7 +72,7 @@ internal fun HandCamera(
     if (showPreview) AndroidView(factory = { previewView }, modifier = modifier)
     else Box(modifier)
 
-    DisposableEffect(context, owner, useFrontCamera, handCount, policy, showPreview) {
+    DisposableEffect(context, owner, useFrontCamera, handCount, policy, showPreview, pointerMode) {
         val stopped = AtomicBoolean(false)
         if (!policy.handTrackingSupported) {
             ContextCompat.getMainExecutor(context).execute {
@@ -123,7 +124,8 @@ internal fun HandCamera(
             }
         }
 
-        val cadence = TrackingCadence(policy.analysisIntervalMs)
+        val cadence = if (pointerMode) TrackingCadence((policy.analysisIntervalMs / 2).coerceIn(50L, 110L), 50L)
+            else TrackingCadence(policy.analysisIntervalMs)
         var inferenceFailed = false
         analysis.setAnalyzer(executor) { proxy ->
             var bitmap: Bitmap? = null

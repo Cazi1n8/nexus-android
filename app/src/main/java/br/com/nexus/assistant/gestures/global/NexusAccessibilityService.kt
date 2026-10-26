@@ -96,9 +96,12 @@ class NexusAccessibilityService : AccessibilityService() {
         pointer.visibility = if (point == null) View.GONE else View.VISIBLE
         if (point != null) {
             val size = screenSize()
-            params.x = (point.x.coerceIn(0f, 1f) * size.x - params.width / 2).toInt().coerceIn(0, (size.x - params.width).coerceAtLeast(0))
-            params.y = (point.y.coerceIn(0f, 1f) * size.y - params.height / 2).toInt().coerceIn(0, (size.y - params.height).coerceAtLeast(0))
-            runCatching { windows.updateViewLayout(pointer, params) }
+            val nextX = (point.x.coerceIn(0f, 1f) * size.x - params.width / 2).toInt().coerceIn(0, (size.x - params.width).coerceAtLeast(0))
+            val nextY = (point.y.coerceIn(0f, 1f) * size.y - params.height / 2).toInt().coerceIn(0, (size.y - params.height).coerceAtLeast(0))
+            if (params.x != nextX || params.y != nextY) {
+                params.x = nextX; params.y = nextY
+                runCatching { windows.updateViewLayout(pointer, params) }
+            }
         }
     }
 

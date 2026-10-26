@@ -57,16 +57,20 @@ fun GlobalMousePanel(onBeforeStart: () -> Unit) {
             return
         }
         starting = true
+        val stopGeneration = GlobalMouseRuntime.stopGeneration
         onBeforeStart()
         scope.launch {
             // Let the Compose camera host unbind before acquiring the camera in the service.
             delay(350)
             try {
+                if (stopGeneration != GlobalMouseRuntime.stopGeneration) return@launch
                 if (!owner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                     GlobalMouseRuntime.fail("Abra esta tela para iniciar uma sessão de câmera visível.")
                     return@launch
                 }
-                ContextCompat.startForegroundService(context, Intent(context, GlobalMouseCameraService::class.java))
+                ContextCompat.startForegroundService(context, Intent(context, GlobalMouseCameraService::class.java)
+                    .setAction(GlobalMouseCameraService.ACTION_START)
+                    .putExtra(GlobalMouseCameraService.EXTRA_START_GENERATION, stopGeneration))
             } catch (_: Exception) {
                 GlobalMouseRuntime.fail("O Android não permitiu iniciar a câmera em primeiro plano. Volte a esta tela e tente novamente.")
             } finally {
@@ -94,7 +98,9 @@ fun GlobalMousePanel(onBeforeStart: () -> Unit) {
             }
             if (state.active) {
                 Text(if (state.cameraReady) "Câmera global ativa · ${state.hands} mão(s) · ${state.processingMs} ms" else "Iniciando câmera global…")
-                Button(onClick = { context.stopService(Intent(context, GlobalMouseCameraService::class.java)) }) { Text("PARAR câmera e mouse global") }
+                state.message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                OutlinedButton(onClick = { GlobalMouseRuntime.calibrate(context) }, enabled = state.cameraReady) { Text("Centralizar cursor pela mão") }
+                Button(onClick = { GlobalMouseRuntime.stop(context) }) { Text("PARAR câmera e mouse global") }
             } else {
                 Button(onClick = {
                     val required = mutableListOf(Manifest.permission.CAMERA)

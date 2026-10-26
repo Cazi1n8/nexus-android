@@ -34,3 +34,6 @@ app/src/main/cpp/vendor/
 # Verified OCR assets are prepared before compilation and bundled into the APK.
 app/src/main/assets/ocr/*.traineddata
 app/src/main/assets/ocr/.ocr-model-*
+# Verified object classification model and official test image are prepared by CI.
+app/src/main/assets/vision/*.tflite
+app/src/androidTest/assets/vision/*.jpg

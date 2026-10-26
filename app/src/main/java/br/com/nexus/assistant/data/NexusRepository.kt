@@ -16,6 +16,11 @@ class NexusRepository(database: NexusDatabase, private val chatImagesDirectory: 
     fun messages(conversationId: String): Flow<List<MessageEntity>> = dao.observeMessages(conversationId)
     suspend fun conversationMessages(id: String): List<MessageEntity> = dao.messages(id)
 
+    /** Search stays in the local Room database. Wildcards are treated as literal user text. */
+    fun searchConversations(query: String): Flow<List<ConversationEntity>> =
+        if (query.isBlank()) conversations else dao.searchConversations(conversationSearchPattern(query))
+
+
     suspend fun createConversation(title: String): String {
         val id = UUID.randomUUID().toString()
         dao.insertConversation(ConversationEntity(id, title.trim().take(80).ifBlank { "Nova conversa" }, System.currentTimeMillis()))
@@ -94,3 +99,7 @@ class NexusRepository(database: NexusDatabase, private val chatImagesDirectory: 
             .toString(2)
     }
 }
+
+/** A literal substring pattern, not SQL or a user-controlled LIKE expression. */
+internal fun conversationSearchPattern(query: String): String = "%" + query.trim().take(200)
+    .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"

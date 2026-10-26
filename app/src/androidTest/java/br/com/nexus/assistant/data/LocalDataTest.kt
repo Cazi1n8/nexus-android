@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
@@ -49,4 +50,18 @@ class LocalDataTest {
         assertFalse(exported.contains("/private/files"))
         assertFalse(exported.contains("sessionToken"))
     }
+
+    @Test fun historyCanBeRenamedSearchedAndContinuedWithoutChangingMessages() = runBlocking<Unit> {
+        val id = repository.createConversation("Rascunho")
+        repository.addMessage(id, "user", "Crie uma história de um robô chamado Max.")
+        repository.addMessage(id, "assistant", "Max encontrou um amigo na oficina.")
+        repository.renameConversation(id, "História do Max")
+        assertEquals(listOf(id), repository.searchConversations("História").first().map { it.id })
+        assertEquals(listOf(id), repository.searchConversations("oficina").first().map { it.id })
+        assertTrue(repository.searchConversations("%").first().isEmpty())
+        repository.addMessage(id, "user", "Agora faça um final feliz.")
+        assertEquals(3, repository.conversationMessages(id).size)
+        assertEquals("História do Max", database.dao().allConversations().single().title)
+    }
+
 }

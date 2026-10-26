@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -26,6 +28,8 @@ class LocalAiProvider(
     private val handle = AtomicLong(0)
     private val epoch = AtomicLong(0)
     private val closed = AtomicBoolean(false)
+    private val _diagnostics = MutableStateFlow(LocalGenerationDiagnostics())
+    val diagnostics = _diagnostics.asStateFlow()
 
     override suspend fun complete(
         settings: NexusSettings,
@@ -35,11 +39,10 @@ class LocalAiProvider(
     ): String = mutex.withLock {
         val policy = resourcePolicy()
         if (policy != null && !policy.localAiSupported) throw AiException(policy.reason)
-        val contextTokens = policy?.contextTokens ?: 1024
+        val contextTokens = policy?.contextTokens ?: 2048
         val threads = policy?.inferenceThreads ?: 2
-        val outputTokens = policy?.maxOutputTokens ?: 192
+        val outputTokens = policy?.maxOutputTokens ?: 384
         val path = models.requireReadyFile().absolutePath
-        val chat = LocalChatContext.build(settings, messages, memories, contextTokens)
         val requestEpoch = epoch.get()
         suspendCancellableCoroutine { continuation ->
             continuation.invokeOnCancellation {
@@ -53,6 +56,12 @@ class LocalAiProvider(
                     try {
                         if (!continuation.isActive) return@execute
                         if (closed.get() || requestEpoch != epoch.get()) throw CancellationException("A sessão local foi interrompida.")
+                        val started = System.nanoTime()
+                        _diagnostics.value = LocalGenerationDiagnostics(state = "preparing", model = models.spec.displayName,
+                            inputMessages = messages.size, contextTokens = contextTokens)
+                        // Prompt construction, metadata traversal and JNI run on this
+                        // one worker, never on the Activity's main thread.
+                        val chat = LocalChatContext.build(settings, messages, memories, contextTokens, outputTokens)
                         var native = handle.get()
                         if (native == 0L) {
                             native = NexusNativeBridge.load(path, nCtx = contextTokens, threads = threads)
@@ -63,11 +72,28 @@ class LocalAiProvider(
                             closeNative()
                             throw CancellationException("A sessão local foi interrompida.")
                         }
-                        val answer = NexusNativeBridge.generate(native, chat, maxTokens = outputTokens).toString(Charsets.UTF_8).trim()
+                        _diagnostics.value = _diagnostics.value.copy(state = "generating")
+                        val result = NexusNativeBridge.generateResult(native, chat, maxTokens = outputTokens)
                         if (requestEpoch != epoch.get()) throw CancellationException("A sessão local foi interrompida.")
-                        if (answer.isBlank()) throw AiException("O modelo local não gerou texto. Tente uma pergunta mais curta.")
-                        if (continuation.isActive) continuation.resume(answer)
+                        val issue = GenerationQuality.inspect(result.text)
+                        _diagnostics.value = LocalGenerationDiagnostics(
+                            state = if (issue == null) "completed" else "failed", model = models.spec.displayName,
+                            inputMessages = result.inputMessages, usedMessages = result.usedMessages,
+                            promptTokens = result.promptTokens, generatedTokens = result.generatedTokens,
+                            contextTokens = result.contextTokens, elapsedMilliseconds = (System.nanoTime() - started) / 1_000_000,
+                            finishReason = result.finishReason, qualityIssue = issue?.name,
+                        )
+                        if (issue != null) throw AiException(when (issue) {
+                            GenerationQualityIssue.EMPTY -> "O modelo local não gerou uma resposta. Tente novamente."
+                            GenerationQualityIssue.INTERNAL_MARKERS -> "A geração devolveu marcadores internos em vez de uma resposta válida. Tente novamente."
+                            GenerationQualityIssue.EXCESSIVE_REPETITION -> "A geração entrou em repetição excessiva e foi recusada. Tente novamente ou utilize um modelo de maior capacidade."
+                        })
+                        // Preserve exactly what the model generated. Completion/length
+                        // notices belong to UI state, never to a programmed text suffix.
+                        if (continuation.isActive) continuation.resume(result.text)
                     } catch (failure: Throwable) {
+                        _diagnostics.value = _diagnostics.value.copy(
+                            state = if (failure is CancellationException) "cancelled" else "failed")
                         if (failure !is CancellationException) closeNative()
                         if (!continuation.isActive) return@execute
                         val translated = when (failure) {

@@ -21,7 +21,7 @@ class AiProviderTest {
 
     @Test fun `request sends context and session credential only as header`() {
         val request = OpenAiCompatibleProvider(allowInsecureLocal = false).buildRequest(
-            settings.copy(userName = "Ana", personality = "Professor"), "session-for-test",
+            settings.copy(userPreferredName = "Ana", assistantPersonality = "Professor"), "session-for-test",
             listOf(AiMessage("user", "Explique uma fração")), listOf("Prefiro exemplos curtos"),
         )
         val buffer = Buffer().also { request.body!!.writeTo(it) }

@@ -82,7 +82,14 @@ object LibrasPracticeEvaluator {
 }
 
 /** Require continuous evidence and multiple distinct frames; a delayed single frame cannot pass. */
-class PracticeHoldGate(private val requiredMs: Long = 1_200L, private val minimumFrames: Int = 7) {
+class PracticeHoldGate(
+    private val requiredMs: Long = 1_200L,
+    private val minimumFrames: Int = 7,
+    // TrackingCadence may deliberately deliver only every 500ms on modest phones.
+    // Requiring <400ms reset every frame forever. Still reject long gaps and a
+    // single delayed frame; positive evidence must span multiple distinct frames.
+    private val maximumFrameGapMs: Long = 1_500L,
+) {
     private var startedAt: Long? = null
     private var lastAt: Long? = null
     private var frames = 0
@@ -91,7 +98,7 @@ class PracticeHoldGate(private val requiredMs: Long = 1_200L, private val minimu
     fun update(observation: PracticeObservation, now: Long): Boolean {
         if (observation != PracticeObservation.MATCH || now < 0L) { reset(); return false }
         val last = lastAt
-        if (last != null && (now <= last || now - last > 400L)) { reset() }
+        if (last != null && (now <= last || now - last > maximumFrameGapMs)) { reset() }
         if (startedAt == null) startedAt = now
         lastAt = now
         frames++

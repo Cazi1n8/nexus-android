@@ -1,5 +1,7 @@
 package br.com.nexus.assistant.data
 
+import br.com.nexus.assistant.commands.LocalActionRouter
+
 /** Provider selection is explicit; local conversations are never forwarded to a server. */
 class AiCoordinator(
     private val local: AiProvider,
@@ -13,6 +15,7 @@ class AiCoordinator(
     ): String {
         val latest = messages.lastOrNull()
         if (latest?.role == "user" && latest.imagePath == null) {
+            LocalActionRouter.propose(latest.content)?.let { return it }
             ArithmeticTool.answerFor(latest.content)?.let { return it }
         }
         return when (settings.aiMode) {

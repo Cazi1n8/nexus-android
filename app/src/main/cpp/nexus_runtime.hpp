@@ -15,6 +15,8 @@ public:
 // call owns the engine until completion even when another thread closes its ID.
 std::uint64_t load(const std::string & path, int context_tokens, int threads);
 std::string generate(std::uint64_t handle, const std::string & chat_json, int maximum_tokens);
+// JSON result adds technical metadata without appending instructions/footers to model text.
+std::string generate_result(std::uint64_t handle, const std::string & chat_json, int maximum_tokens);
 void cancel(std::uint64_t handle) noexcept;
 void close(std::uint64_t handle) noexcept;
 

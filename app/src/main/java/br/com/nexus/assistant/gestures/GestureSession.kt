@@ -160,11 +160,11 @@ fun GestureSessionHost(
             Text("Câmera · mouse ativo", style = MaterialTheme.typography.labelSmall, color = Color(0xFF31E7FA))
             if (session.showPreview) {
                 Box(Modifier.fillMaxWidth().height(126.dp)) {
-                    HandCamera(session.frontCamera, Modifier.fillMaxSize(), session::onFrame, session::fail)
+                    HandCamera(session.frontCamera, Modifier.fillMaxSize(), session::onFrame, session::fail, pointerMode = true)
                     HandSkeleton(session.frame, Modifier.fillMaxSize())
                 }
             } else {
-                HandCamera(session.frontCamera, Modifier.size(1.dp), session::onFrame, session::fail, showPreview = false)
+                HandCamera(session.frontCamera, Modifier.size(1.dp), session::onFrame, session::fail, showPreview = false, pointerMode = true)
             }
             Text(when {
                 session.frame.timestampMs == 0L -> "Iniciando rastreador…"

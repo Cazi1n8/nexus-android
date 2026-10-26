@@ -56,6 +56,15 @@ interface NexusDao {
     @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt ASC, rowid ASC")
     fun observeMessages(conversationId: String): Flow<List<MessageEntity>>
 
+    @Query("""
+        SELECT c.* FROM conversations AS c
+        WHERE c.title LIKE :pattern ESCAPE '\'
+           OR EXISTS (SELECT 1 FROM messages AS m
+                      WHERE m.conversationId = c.id AND m.content LIKE :pattern ESCAPE '\')
+        ORDER BY c.createdAt DESC, c.id DESC
+    """)
+    fun searchConversations(pattern: String): Flow<List<ConversationEntity>>
+
     @Query("SELECT * FROM memories ORDER BY createdAt DESC, id DESC")
     fun observeMemories(): Flow<List<MemoryEntity>>
 

@@ -72,4 +72,34 @@ class HandGeometryTest {
         assertTrue(rotated.all { it.x.isFinite() && it.y.isFinite() && it.depth.isFinite() })
         assertTrue(initial != rotated)
     }
+
+    @Test fun `cursor smoothing uses elapsed time so slow camera frames do not add half second lag`() {
+        fun response(step: Long): Float {
+            val filter = CursorFilter()
+            filter.update(HandPoint(0f, 0f), 1f, 0)
+            var x = 0f
+            var time = step
+            while (time <= 160) {
+                x = filter.update(HandPoint(1f, 1f), 1f, time).x
+                time += step
+            }
+            return x
+        }
+        // An identical 160 ms movement settles equally at 6.25 or 50 frames/s.
+        val lowFps = response(160)
+        val highFps = response(20)
+        assertEquals(highFps, lowFps, .0001f)
+        assertTrue(lowFps > .84f)
+    }
+
+    @Test fun `recalibration clears timestamp history without discarding the new center`() {
+        val filter = CursorFilter()
+        filter.update(HandPoint(.1f, .1f), 1.3f, 0)
+        filter.update(HandPoint(.9f, .9f), 1.3f, 500)
+        val center = HandPoint(.85f, .15f)
+        filter.center(center, 1.3f)
+        val result = filter.update(center, 1.3f, 550)
+        assertEquals(.5f, result.x, .0001f)
+        assertEquals(.5f, result.y, .0001f)
+    }
 }

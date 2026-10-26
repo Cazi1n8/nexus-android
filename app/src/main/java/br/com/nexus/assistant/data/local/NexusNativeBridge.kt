@@ -3,7 +3,7 @@ package br.com.nexus.assistant.data.local
 /**
  * llama.cpp CPU bridge. Call load/generate/close on Dispatchers.IO, never on the
  * main thread. cancel is lock-free with respect to inference and may be called
- * from a coroutine cancellation handler. The downloaded GGUF is not in the APK.
+ * from a coroutine cancellation handler. A GGUF may be bundled or explicitly downloaded, depending on the build.
  * All chat bytes use ordinary UTF-8, including accents, emoji and supplementary
  * characters; JNI's modified UTF-8 string conversion is deliberately avoided.
  */
@@ -28,6 +28,11 @@ object NexusNativeBridge {
         return nativeGenerate(handle, chatJson.toByteArray(Charsets.UTF_8), maxTokens)
     }
 
+    fun generateResult(handle: Long, chatJson: String, maxTokens: Int): LocalGenerationResult {
+        ensureAvailable()
+        return LocalGenerationResult.parse(nativeGenerateResult(handle, chatJson.toByteArray(Charsets.UTF_8), maxTokens))
+    }
+
     fun cancel(handle: Long) { if (available && handle != 0L) nativeCancel(handle) }
     fun close(handle: Long) { if (available && handle != 0L) nativeClose(handle) }
 
@@ -38,6 +43,7 @@ object NexusNativeBridge {
 
     private external fun nativeLoad(pathUtf8: ByteArray, nCtx: Int, threads: Int): Long
     private external fun nativeGenerate(handle: Long, chatJsonUtf8: ByteArray, maxTokens: Int): ByteArray
+    private external fun nativeGenerateResult(handle: Long, chatJsonUtf8: ByteArray, maxTokens: Int): ByteArray
     private external fun nativeCancel(handle: Long)
     private external fun nativeClose(handle: Long)
 }

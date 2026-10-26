@@ -55,6 +55,8 @@ jobs:
         run: |
           python3 scripts/fetch_llama_cpp.py
           python3 scripts/fetch_hand_model.py
+          python3 scripts/prepare_mediapipe_runtime.py
+          python3 scripts/fetch_object_model.py --with-test-fixture
           python3 scripts/fetch_ocr_models.py
           python3 scripts/fetch_ocr_runtime.py
       # This explicit developer/CI download is not an automatic download on a user's phone.

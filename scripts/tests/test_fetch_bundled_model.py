@@ -81,6 +81,44 @@ class BundledModelPreparationTest(unittest.TestCase):
                 bundled.prepare(link / model.MODEL_NAME)
         self.assertEqual([], list(destination.iterdir()))
 
+    def test_balanced_offline_asset_is_verified_and_reused_without_network(self):
+        output = self.output.with_name(bundled.BALANCED_NAME)
+        source = self.root / "balanced.gguf"
+        source.write_bytes(self.payload)
+        with patch.object(bundled, "BALANCED_BYTES", len(self.payload)), \
+                patch.object(bundled, "BALANCED_SHA256", self.digest), \
+                patch.object(bundled.urllib.request, "build_opener", side_effect=AssertionError("network forbidden")):
+            self.assertEqual(self.digest, bundled.prepare_balanced(output, source))
+            self.assertEqual(self.digest, bundled.prepare_balanced(output))
+        self.assertEqual(self.payload, output.read_bytes())
+        self.assertEqual([], list(output.parent.glob(".nexus-balanced-asset-*")))
+
+    def test_balanced_corruption_and_symlinks_cannot_enter_apk(self):
+        output = self.output.with_name(bundled.BALANCED_NAME)
+        source = self.root / "balanced.gguf"
+        source.write_bytes(self.payload[:-1] + b"X")
+        with patch.object(bundled, "BALANCED_BYTES", len(self.payload)), \
+                patch.object(bundled, "BALANCED_SHA256", self.digest):
+            with self.assertRaises(ValueError):
+                bundled.prepare_balanced(output, source)
+            source.write_bytes(self.payload)
+            link = self.root / "balanced-link.gguf"
+            link.symlink_to(source)
+            with self.assertRaises(ValueError):
+                bundled.prepare_balanced(output, link)
+        self.assertFalse(output.exists())
+
+    def test_balanced_redirects_reject_http_before_following(self):
+        request = bundled.urllib.request.Request(bundled.BALANCED_URL)
+        with self.assertRaises(ValueError):
+            bundled.HttpsRedirectHandler().redirect_request(request, None, 302, "Found", {}, "http://example.com/model")
+
+    def test_balanced_manifest_is_distinct_and_pinned(self):
+        self.assertNotEqual(model.MODEL_SHA256, bundled.BALANCED_SHA256)
+        self.assertEqual(1_117_320_736, bundled.BALANCED_BYTES)
+        self.assertIn(bundled.BALANCED_REVISION, bundled.BALANCED_URL)
+        self.assertEqual(bundled.DEFAULT_OUTPUT.parent / bundled.BALANCED_NAME, bundled.DEFAULT_BALANCED_OUTPUT)
+
 
 if __name__ == "__main__":
     unittest.main()

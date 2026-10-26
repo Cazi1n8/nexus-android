@@ -11,8 +11,10 @@ data class NexusSettings(
     val automaticProfile: Boolean = true,
     val endpoint: String = "",
     val model: String = "",
-    val userName: String = "",
-    val personality: String = "Amigável",
+    val userPreferredName: String = "",
+    val assistantPersonality: String = "Amigável",
+    val assistantInstructions: String = "",
+    val userPreferences: String = "",
     val detail: String = "Equilibrado",
     val language: String = "pt-BR",
     val voiceRate: Float = 1f,
@@ -20,4 +22,13 @@ data class NexusSettings(
     val voiceName: String = "",
     val autoSpeak: Boolean = false,
     val remoteConsent: Boolean = false,
-)
+) {
+    /** The assistant's identity is not an editable user-profile preference. */
+    val assistantName: String get() = AssistantIdentity.NAME
+
+    @Deprecated("Use userPreferredName; this is the user's name, never the assistant's.")
+    val userName: String get() = userPreferredName
+
+    @Deprecated("Use assistantPersonality and assistantInstructions separately.")
+    val personality: String get() = assistantPersonality
+}

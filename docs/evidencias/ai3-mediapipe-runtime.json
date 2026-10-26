@@ -1,0 +1,34 @@
+{
+  "class_target": "Java 8 / major 52; no debug metadata",
+  "compiler": "javac 17",
+  "factory_modified_sha256": "ec2215d4f930743d7351706d105cc00ee0463ed62f2ed4787eaa7630f4ccb54b",
+  "factory_original_sha256": "fc88676ca1ca1543d6e0b495bbe9c948161f87f51c369eeb6d7478e094aa8944",
+  "factory_source_sha256": "adb9fca5841c6c80215d4a095fc4f81e7f2884bea5dc3e0c64a760504a5e74f5",
+  "only_changed_class": "com/google/mediapipe/tasks/core/logging/TasksStatsLoggerFactory.class",
+  "output_bytes": 50686496,
+  "output_sha256": "25ac823c37f77d2870c32bfbe0dfae30b2b1a921b7fce395e743399c3b638bf3",
+  "python_tests": {
+    "executed": 11,
+    "failed": 0,
+    "passed": 11
+  },
+  "scope": "No-op factory selection and byte-identical remaining AAR/JAR payloads, not proof of all network behavior or Google approval.",
+  "unchanged_aar_payload_sha256": {
+    "AndroidManifest.xml": "1a289da385ccbc6bc0b53f8f679152ba587ac5feaec49fafced23aa9f21dd25b",
+    "R.txt": "7b9482eeb535b5200f2b06cc033767d9a5d95205be3bf098c04365cf6e08264f",
+    "jni/arm64-v8a/libmediapipe_tasks_jni.so": "c0497affbe5c60ddbb61b969403d053ae61d209dc6c7063f38427640c62b8f90",
+    "jni/armeabi-v7a/libmediapipe_tasks_jni.so": "13156861846c2ab5924b7c6331bf541dbc9d0918c2c480ede118aca47bf75e2f",
+    "jni/x86/libmediapipe_tasks_jni.so": "db2d3d3217e5e16a91014d337bbb922fce7e0a66c0eb1b53b097fee1eec91e38",
+    "jni/x86_64/libmediapipe_tasks_jni.so": "67fe7c45ce672cc65d121996ad3fe2f87c82ab5419fddfcb7210e4771d011ae0",
+    "res/": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "unchanged_jar_entries": 818,
+  "upstream_aar_bytes": 21342753,
+  "upstream_aar_sha256": "4edf2f33c840d682c751b3ca951b1ae0465373734776d7fb37dcef936de28ad0",
+  "upstream_aar_url": "https://dl.google.com/dl/android/maven2/com/google/mediapipe/tasks-core/0.10.35/tasks-core-0.10.35.aar",
+  "upstream_build_sha256": "bab1d480c5bc5808e1788c91e1e067120d7348137d50fe2ca764611cf5e0a6d7",
+  "upstream_build_url": "https://raw.githubusercontent.com/google-ai-edge/mediapipe/v0.10.35/mediapipe/tasks/java/com/google/mediapipe/tasks/core/BUILD",
+  "variant": "MediaPipe tasks-core no usage logging (NEXUS documented derivative)",
+  "verification_status": "build-time derivative prepared; final APK and physical privacy tests pending",
+  "version": "0.10.35"
+}

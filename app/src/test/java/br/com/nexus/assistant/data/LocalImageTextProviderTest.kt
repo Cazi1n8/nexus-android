@@ -1,6 +1,8 @@
 package br.com.nexus.assistant.data
 
 import kotlinx.coroutines.runBlocking
+import br.com.nexus.assistant.device.vision.ImageObservation
+import br.com.nexus.assistant.device.vision.ObjectCandidate
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -24,17 +26,41 @@ class LocalImageTextProviderTest {
         val provider = LocalImageTextProvider(delegate) { reads++; "Enunciado real. ".repeat(500) }
         val input = listOf(AiMessage("user", "explique este exercício", "photo.jpg"))
         val answer = provider.complete(NexusSettings(), "", input, emptyList())
-        assertTrue(answer.contains("Explicação do texto")); assertTrue(answer.contains("sem análise visual"))
+        assertEquals("Explicação do texto", answer)
         assertNull(delegate.input.single().imagePath)
         assertTrue(delegate.input.single().content.contains("Você não viu a imagem"))
-        assertTrue(delegate.input.single().content.length < 1_800)
+        assertTrue(delegate.input.single().content.length < 4_000)
         provider.complete(NexusSettings(), "", input, emptyList())
         assertEquals(1, reads)
     }
     @Test fun `blank OCR cannot produce a scene description`() = runBlocking<Unit> {
         val delegate = CapturingProvider()
         val answer = LocalImageTextProvider(delegate) { "  " }.complete(NexusSettings(), "", listOf(AiMessage("user", "o que é isso?", "photo.jpg")), emptyList())
-        assertTrue(answer.contains("Não encontrei texto legível")); assertTrue(answer.contains("não reconhece objetos")); assertEquals(0, delegate.calls)
+        assertTrue(answer.contains("Não encontrei texto legível")); assertTrue(answer.contains("classificação de objetos não está disponível")); assertEquals(0, delegate.calls)
+    }
+    @Test fun `object question forwards actual classifier evidence without repeated response decorations`() = runBlocking<Unit> {
+        val delegate = CapturingProvider()
+        var images = 0
+        val provider = LocalImageTextProvider(delegate, classifyImage = {
+            images++; ImageObservation(listOf(ObjectCandidate("cheeseburger", .91f)), 640, 480, 21)
+        }, readText = { "" })
+        val input = listOf(AiMessage("user", "O que é isso?", "food.jpg"))
+        assertEquals("Explicação do texto", provider.complete(NexusSettings(), "", input, emptyList()))
+        assertTrue(delegate.input.single().content.contains("cheeseburger"))
+        assertTrue(delegate.input.single().content.contains("hipóteses"))
+        assertNull(delegate.input.single().imagePath)
+        provider.complete(NexusSettings(), "", input, emptyList())
+        assertEquals(1, images)
+        provider.clearCache()
+        provider.complete(NexusSettings(), "", input, emptyList())
+        assertEquals(2, images)
+    }
+    @Test fun `uncertain empty visual evidence cannot become an invented object`() = runBlocking<Unit> {
+        val delegate = CapturingProvider()
+        val provider = LocalImageTextProvider(delegate, classifyImage = { ImageObservation(emptyList(), 640, 480, 20) }, readText = { "" })
+        val answer = provider.complete(NexusSettings(), "", listOf(AiMessage("user", "o que é?", "unknown.jpg")), emptyList())
+        assertTrue(answer.contains("Não consegui reconhecer"))
+        assertEquals(0, delegate.calls)
     }
     @Test fun `follow up keeps cached transcription without rereading or image rejection`() = runBlocking<Unit> {
         val delegate = CapturingProvider()

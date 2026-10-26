@@ -47,6 +47,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             val profile = effectiveProfile(settings)
             return localProviders.getValue(profile).complete(settings.copy(localModelProfile = profile), token, messages, memories)
         }
+    }, classifyImage = { path ->
+        br.com.nexus.assistant.device.vision.LocalObjectClassifier(application).use { classifier -> classifier.classify(File(path)) }
     }, readText = { path ->
         br.com.nexus.assistant.device.vision.LocalTextReader(application).use { reader -> reader.read(File(path)).text }
     }))
@@ -76,6 +78,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly,
             LocalModelState(status = if (BuildConfig.BUNDLED_MODEL) LocalModelStatus.ABSENT else LocalModelStatus.CHECKING))
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val generationDiagnostics = effectiveLocalProfile.flatMapLatest { localProviders.getValue(it).diagnostics }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, br.com.nexus.assistant.data.local.LocalGenerationDiagnostics())
+    private val _historyQuery = MutableStateFlow("")
+    val historyQuery = _historyQuery.asStateFlow()
+    fun searchHistory(query: String) { _historyQuery.value = query.take(200) }
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val historyResults = _historyQuery.flatMapLatest(repository::searchConversations)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val conversations = repository.conversations.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val memories = repository.memories.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val _selected = MutableStateFlow<String?>(null)
@@ -319,8 +330,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     private fun effectiveProfile(value: NexusSettings): LocalModelProfile =
-        if (BuildConfig.BUNDLED_MODEL) LocalModelProfile.COMPACT
-        else if (value.automaticProfile) devicePolicy.value.recommendedProfile ?: LocalModelProfile.COMPACT else value.localModelProfile
+        if (value.automaticProfile) devicePolicy.value.recommendedProfile ?: LocalModelProfile.COMPACT else value.localModelProfile
 
     private fun canUseAi(value: NexusSettings, hasImage: Boolean = false): Boolean {
         if (value.aiMode == AiMode.NEXUS_LOCAL) {
@@ -375,7 +385,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     // restored optional provider must not trigger asset copying.
                     if (preferences.settings.first().aiMode != AiMode.NEXUS_LOCAL) return@launch
                     manager.installBundled {
-                        getApplication<Application>().assets.open("models/${LocalModelCatalog.compact.fileName}")
+                        getApplication<Application>().assets.open("models/${LocalModelCatalog.forProfile(profile).fileName}")
                     }
                 } else manager.download()
             }
@@ -464,6 +474,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun saveMemory(content: String, id: String? = null) = mutate { repository.saveMemory(content, id) }
     fun deleteMemory(id: String) = mutate { repository.deleteMemory(id) }
+    fun renameConversation(id: String, title: String) = mutate { repository.renameConversation(id, title) }
     fun deleteConversation(id: String) = mutate {
         if (_selected.value == id) newConversation()
         runningResponses.filter { it.isCancelled }.forEach { it.join() }

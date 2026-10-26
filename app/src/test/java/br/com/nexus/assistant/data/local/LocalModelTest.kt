@@ -53,11 +53,11 @@ class LocalModelTest {
         } finally { file.delete() }
     }
 
-    @Test fun localContextRetainsUnicodeLastInputAndHasBoundedHistory() {
+    @Test fun localContextRetainsUnicodeAndAllHistoryWithinNativeTransport() {
         val messages = (1..20).map { AiMessage(if (it % 2 == 0) "user" else "assistant", "Mensagem $it") }
             .dropLast(1) + AiMessage("user", "Olá, NEXUS! 🧠")
         val json = JSONArray(LocalChatContext.build(NexusSettings(), messages, emptyList()))
-        assertTrue(json.length() <= 9)
+        assertEquals(messages.dropWhile { it.role != "user" }.size + 1, json.length())
         assertEquals("system", json.getJSONObject(0).getString("role"))
         assertEquals("Olá, NEXUS! 🧠", json.getJSONObject(json.length() - 1).getString("content"))
         assertFalse(json.toString().contains("Mensagem 1\""))
@@ -73,7 +73,7 @@ class LocalModelTest {
         val json = LocalChatContext.build(NexusSettings(), listOf(
             AiMessage("user", "Imagem", "/image.jpg"), AiMessage("assistant", "Texto"), AiMessage("user", "Olá"),
         ), emptyList())
-        assertTrue(json.contains("Imagem anterior indisponível"))
+        assertTrue(json.contains("Imagem anterior: sem acesso visual"))
     }
 
     @Test fun authorizedMemoryUsesRelevantEntriesFirst() {
@@ -99,10 +99,10 @@ class LocalModelTest {
         assertFalse(system.contains("open_app"))
     }
 
-    @Test fun smallRuntimeBudgetBoundsHistoryWithoutTruncatingLatestUserInput() {
+    @Test fun smallBudgetDefersExactTokenPruningToNativeWithoutTruncatingLatestUserInput() {
         val messages = (1..12).map { AiMessage(if (it % 2 == 0) "user" else "assistant", "Mensagem $it") }
         val context = JSONArray(LocalChatContext.build(NexusSettings(), messages, emptyList(), contextTokens = 512))
-        assertTrue(context.length() <= 5)
+        assertEquals(messages.dropWhile { it.role != "user" }.size + 1, context.length())
         assertEquals("Mensagem 12", context.getJSONObject(context.length() - 1).getString("content"))
     }
 

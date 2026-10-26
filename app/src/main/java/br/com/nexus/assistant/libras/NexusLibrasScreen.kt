@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.SystemClock
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,15 +50,18 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.nexus.assistant.gestures.HandCamera
 import br.com.nexus.assistant.gestures.HandFrame
 import br.com.nexus.assistant.gestures.HandPoint
+import br.com.nexus.assistant.gestures.global.GlobalMouseRuntime
 import br.com.nexus.assistant.device.DeviceCapabilities
 import br.com.nexus.assistant.device.DevicePolicy
 import br.com.nexus.assistant.ui.NexusCyan
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -73,6 +78,7 @@ fun NexusLibrasScreen() {
     val scope = rememberCoroutineScope()
     val capabilities = remember(context) { DeviceCapabilities.read(context) }
     val policy = remember(capabilities) { DevicePolicy.evaluate(capabilities) }
+    val globalMouse by GlobalMouseRuntime.state.collectAsStateWithLifecycle()
     val hasCamera = capabilities.hasFrontCamera || capabilities.hasRearCamera
     val canSwitchCamera = capabilities.hasFrontCamera && capabilities.hasRearCamera
     val repository = remember(context) { LibrasProgressRepository(context) }
@@ -80,6 +86,10 @@ fun NexusLibrasScreen() {
     var selected by rememberSaveable { mutableStateOf(PreparationExercise.EXTENDED) }
     var running by rememberSaveable { mutableStateOf(false) }
     var freeMode by rememberSaveable { mutableStateOf(false) }
+    var letterPractice by rememberSaveable { mutableStateOf(false) }
+    var selectedLetter by rememberSaveable { mutableStateOf(ManualLetterCandidate.L) }
+    var observedLetter by remember { mutableStateOf<ManualLetterCandidate?>(null) }
+    var letterMatched by remember { mutableStateOf(false) }
     var showPreview by rememberSaveable { mutableStateOf(true) }
     var frontCamera by remember { mutableStateOf(capabilities.hasFrontCamera) }
     var frame by remember { mutableStateOf(HandFrame()) }
@@ -88,16 +98,33 @@ fun NexusLibrasScreen() {
     var feedback by remember { mutableStateOf("Escolha um exercício e leia a orientação antes de ligar a câmera.") }
     var deleteDialog by remember { mutableStateOf(false) }
     val gate = remember { PracticeHoldGate() }
+    val letterGate = remember { StableLetterCandidate() }
     val modelAvailable = remember(context) {
         runCatching { context.assets.open("hand_landmarker.task").use { it.read() >= 0 } }.getOrDefault(false)
     }
 
-    fun stopCamera() { running = false; frame = HandFrame(); observedConfiguration = null; gate.reset() }
+    fun stopCamera() { running = false; frame = HandFrame(); observedConfiguration = null; observedLetter = null; letterMatched = false; gate.reset(); letterGate.reset() }
 
     fun startCamera() {
-        gate.reset(); completedThisSession = false; frame = HandFrame(); running = true
-        feedback = "Câmera ativa • mostre uma mão de frente e mantenha a posição por pelo menos 1,2 segundo."
+        if (GlobalMouseRuntime.state.value.active) { feedback = "O mouse global está usando a câmera. Encerre essa sessão antes de praticar aqui."; return }
+        gate.reset(); letterGate.reset(); observedLetter = null; letterMatched = false; completedThisSession = false; frame = HandFrame(); running = true
+        feedback = "Câmera ativa • mostre uma mão de frente e mantenha a posição até confirmar. Em aparelhos mais lentos, vários quadros podem levar alguns segundos."
         scope.launch { runCatching { repository.recordSession() }.onFailure { feedback = "O treino pode continuar, mas não consegui salvar o início da sessão." } }
+    }
+
+    LaunchedEffect(globalMouse.active) { if (globalMouse.active && running) stopCamera() }
+
+    LaunchedEffect(running, owner) {
+        if (running) owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                delay(500)
+                if (frame.timestampMs != 0L && SystemClock.elapsedRealtime() - frame.timestampMs > 3_000L) {
+                    frame = HandFrame(); observedLetter = null; observedConfiguration = null; letterMatched = false
+                    gate.reset(); letterGate.reset()
+                    feedback = "Sem quadro novo do rastreador. Nenhuma letra ou posição é aceita até a análise voltar. Verifique iluminação e se a câmera está disponível."
+                }
+            }
+        }
     }
 
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -126,25 +153,29 @@ fun NexusLibrasScreen() {
         // Continuous background tracking requires the separate foreground-service architecture.
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) {
-                frame = HandFrame(); observedConfiguration = null; gate.reset()
+                frame = HandFrame(); observedConfiguration = null; observedLetter = null; letterMatched = false; gate.reset(); letterGate.reset()
             }
         }
         owner.lifecycle.addObserver(observer)
-        onDispose { owner.lifecycle.removeObserver(observer); gate.reset() }
+        onDispose { owner.lifecycle.removeObserver(observer); gate.reset(); letterGate.reset() }
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("NEXUS Libras · preparação", style = MaterialTheme.typography.titleLarge)
         Text("Comece pela percepção e pelo controle dos dedos. São dois exercícios geométricos de nível inicial; não são sinais completos de Libras.")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { freeMode = false; gate.reset(); completedThisSession = false; observedConfiguration = null }) {
-                Text(if (!freeMode) "✓ Atividade" else "Atividade")
+            OutlinedButton(onClick = { freeMode = false; letterPractice = false; gate.reset(); letterGate.reset(); completedThisSession = false; observedConfiguration = null; observedLetter = null; letterMatched = false }) {
+                Text(if (!freeMode && !letterPractice) "✓ Atividade" else "Atividade")
             }
-            OutlinedButton(onClick = { freeMode = true; gate.reset(); observedConfiguration = null }) {
+            OutlinedButton(onClick = { freeMode = true; letterPractice = false; gate.reset(); letterGate.reset(); observedConfiguration = null; observedLetter = null; letterMatched = false }) {
                 Text(if (freeMode) "✓ Modo livre" else "Modo livre")
             }
         }
-        if (freeMode) Text("No modo livre, a configuração reconhecida aparece ao vivo. Letras e sinais completos ainda não são avaliados: falta um classificador validado do alfabeto de Libras.")
+        OutlinedButton(onClick = {
+            freeMode = false; letterPractice = true; gate.reset(); letterGate.reset()
+            observedLetter = null; letterMatched = false
+        }) { Text(if (letterPractice) "✓ Treino L / V / Y · experimental" else "Treino L / V / Y · experimental") }
+        if (freeMode || letterPractice) Text("O experimento procura configurações estáticas de L, V e Y. Mostra somente uma POSSÍVEL letra após vários quadros estáveis; outras letras ficam sem classificação. Não é reconhecimento validado do alfabeto completo.")
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Antes de praticar", style = MaterialTheme.typography.titleMedium)
@@ -152,7 +183,7 @@ fun NexusLibrasScreen() {
                 Text("Os exercícios e esquemas são próprios. O algoritmo ainda precisa de validação com pessoas sinalizantes e educadores; o resultado não é uma correção linguística.", style = MaterialTheme.typography.bodySmall)
             }
         }
-        PreparationExercise.entries.forEach { exercise ->
+        if (!letterPractice && !freeMode) PreparationExercise.entries.forEach { exercise ->
             OutlinedButton(onClick = {
                 gate.reset(); selected = exercise; completedThisSession = false; observedConfiguration = null
                 feedback = "Referência selecionada: ${exercise.title.lowercase()}."
@@ -161,10 +192,23 @@ fun NexusLibrasScreen() {
                 Text((if (selected == exercise) "✓ " else "") + exercise.title + learned)
             }
         }
-        Text(selected.title, style = MaterialTheme.typography.titleMedium)
-        Text(selected.instruction)
-        ReferenceIllustration(selected)
-        Text("Esquema estático de referência, sem significado linguístico. O polegar aparece apenas para orientar a leitura; não é avaliado.", style = MaterialTheme.typography.bodySmall)
+        if (letterPractice) {
+            ManualLetterCandidate.entries.forEach { letter ->
+                OutlinedButton(onClick = {
+                    selectedLetter = letter; letterGate.reset(); observedLetter = null; letterMatched = false
+                }, modifier = Modifier.fillMaxWidth()) { Text((if (selectedLetter == letter) "✓ " else "") + "Configuração da letra ${letter.name}") }
+            }
+            Text("Alvo: ${selectedLetter.name} · treino experimental", style = MaterialTheme.typography.titleMedium)
+            Text(selectedLetter.instruction)
+            Text("A correspondência verifica uma geometria limitada, não correção linguística. Ela não concede conquista ou certificação de Libras.", style = MaterialTheme.typography.bodySmall)
+        } else if (freeMode) {
+            Text("Mostre uma configuração de L, V ou Y. A hipótese estável aparece no canto da câmera; sem hipótese clara, nenhuma letra é exibida.", style = MaterialTheme.typography.bodyMedium)
+        } else {
+            Text(selected.title, style = MaterialTheme.typography.titleMedium)
+            Text(selected.instruction)
+            ReferenceIllustration(selected)
+            Text("Esquema estático de referência, sem significado linguístico. O polegar aparece apenas para orientar a leitura; não é avaliado neste exercício preparatório.", style = MaterialTheme.typography.bodySmall)
+        }
         Text("Apoie o celular, deixe espaço para os dedos e use boa iluminação. Pare se houver dor. O reconhecimento pode falhar por oclusão, perspectiva, iluminação ou limitações do modelo.", style = MaterialTheme.typography.bodySmall)
         if (!hasCamera) Text("Este aparelho não informa uma câmera frontal ou traseira. Os esquemas e as referências permanecem disponíveis; a avaliação com câmera está desativada.", color = MaterialTheme.colorScheme.error)
         else if (!capabilities.hasFrontCamera) Text("Não há câmera frontal disponível. O treino utilizará a câmera traseira; apoie o aparelho para conseguir enquadrar sua mão.", style = MaterialTheme.typography.bodySmall)
@@ -175,9 +219,13 @@ fun NexusLibrasScreen() {
                 if (running) stopCamera()
                 else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
                 else permission.launch(Manifest.permission.CAMERA)
-            }, enabled = modelAvailable && hasCamera && policy.handTrackingSupported) { Text(if (running) "Parar câmera" else "Praticar com câmera") }
+            }, enabled = running || modelAvailable && hasCamera && policy.handTrackingSupported && !globalMouse.active) { Text(if (running) "Parar câmera" else "Praticar com câmera") }
         }
-        if (canSwitchCamera) OutlinedButton(onClick = { gate.reset(); frame = HandFrame(); frontCamera = !frontCamera; observedConfiguration = null }) {
+        if (globalMouse.active) {
+            Text("A câmera está em uso pelo mouse global. A leitura das referências continua disponível.")
+            OutlinedButton(onClick = { GlobalMouseRuntime.stop(context) }) { Text("Parar mouse global e liberar câmera") }
+        }
+        if (canSwitchCamera) OutlinedButton(onClick = { gate.reset(); letterGate.reset(); frame = HandFrame(); frontCamera = !frontCamera; observedConfiguration = null; observedLetter = null; letterMatched = false }) {
             Text(if (frontCamera) "Usar câmera traseira" else "Usar câmera frontal")
         }
         OutlinedButton(onClick = { showPreview = !showPreview }) { Text(if (showPreview) "Ocultar imagem da câmera" else "Mostrar imagem da câmera") }
@@ -189,11 +237,21 @@ fun NexusLibrasScreen() {
                 .semantics { contentDescription = "Prévia da câmera ativa para treino preparatório. Os pontos detectados são sobrepostos e o resultado aparece em texto abaixo." }) {
                 HandCamera(frontCamera = frontCamera, showPreview = showPreview, modifier = Modifier.fillMaxSize(), onFrame = { detected ->
                     frame = detected
-                    val result = if (freeMode) LibrasPracticeEvaluator.observe(detected.hands)
-                        else LibrasPracticeEvaluator.evaluate(detected.hands, selected)
-                    observedConfiguration = result.configuration
-                    feedback = result.message
-                    if (!freeMode) {
+                    if (freeMode || letterPractice) {
+                        val letterResult = LibrasLetterCandidates.observe(detected.hands)
+                        observedLetter = letterGate.update(letterResult.candidate, detected.timestampMs)
+                        observedConfiguration = LibrasPracticeEvaluator.observe(detected.hands).configuration
+                        letterMatched = letterPractice && observedLetter == selectedLetter
+                        feedback = when {
+                            letterMatched -> "Configuração geométrica compatível com ${selectedLetter.name} mantida. Continue praticando; a atividade permanece ativa. Não é validação linguística."
+                            observedLetter != null -> "Possível letra ${observedLetter!!.name} · experimental." + if (letterPractice) " Alvo: ${selectedLetter.name}." else ""
+                            letterResult.candidate != null -> "Aguardando estabilidade da configuração; mantenha a mão visível."
+                            else -> letterResult.message
+                        }
+                    } else {
+                        val result = LibrasPracticeEvaluator.evaluate(detected.hands, selected)
+                        observedConfiguration = result.configuration
+                        feedback = result.message
                         if (!completedThisSession && gate.update(result.observation, detected.timestampMs)) {
                             completedThisSession = true
                             val completedExercise = selected
@@ -206,10 +264,12 @@ fun NexusLibrasScreen() {
                 Text("CÂMERA ATIVA • processamento local", Modifier.align(Alignment.TopCenter).background(Color.Black.copy(alpha = .7f)).padding(8.dp), color = NexusCyan)
                 Card(Modifier.align(Alignment.BottomEnd).padding(8.dp).width(155.dp)) {
                     Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (freeMode) {
-                            Text("Observação ao vivo", style = MaterialTheme.typography.labelMedium, color = NexusCyan)
-                            Text(observedConfiguration?.title ?: "Sem configuração reconhecida", style = MaterialTheme.typography.bodySmall)
-                            Text("Letra: não avaliada", style = MaterialTheme.typography.labelSmall)
+                        if (freeMode || letterPractice) {
+                            if (letterPractice) Text("Faça: ${selectedLetter.name}", style = MaterialTheme.typography.titleMedium, color = NexusCyan)
+                            Text(observedLetter?.let { "Possível letra ${it.name}" } ?: "Letra não identificada", style = MaterialTheme.typography.bodySmall)
+                            Text("EXPERIMENTAL · L / V / Y", style = MaterialTheme.typography.labelSmall)
+                            if (letterPractice) Text(if (letterMatched) "Configuração mantida • treino continua" else selectedLetter.instruction, style = MaterialTheme.typography.labelSmall)
+                            else Text(observedConfiguration?.title ?: "Mostre uma configuração suportada", style = MaterialTheme.typography.labelSmall)
                         } else {
                             Text("Faça esta configuração", style = MaterialTheme.typography.labelMedium, color = NexusCyan)
                             Text(selected.title, style = MaterialTheme.typography.bodySmall)
@@ -220,7 +280,8 @@ fun NexusLibrasScreen() {
                 }
             }
         }
-        Text(feedback, color = if (completedThisSession) NexusCyan else MaterialTheme.colorScheme.onSurface)
+        Text(feedback, color = if (completedThisSession && !freeMode && !letterPractice || letterMatched) NexusCyan else MaterialTheme.colorScheme.onSurface)
+        if (running) Text("${frame.hands.size} mão(s) · análise ${frame.processingMs} ms · o resultado usa geometria, não uma porcentagem de acerto em Libras.", style = MaterialTheme.typography.bodySmall)
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Seu progresso de preparação", style = MaterialTheme.typography.titleMedium)
@@ -237,6 +298,8 @@ fun NexusLibrasScreen() {
         Text("Para estudar sinais e sua execução completa, consulte conteúdos do INES e da UFSC. Essas instituições são referências de estudo; não validaram os exercícios nem o reconhecimento deste aplicativo.", style = MaterialTheme.typography.bodySmall)
         SourceLink("INES · Instituto Nacional de Educação de Surdos", "https://www.ines.gov.br/") { feedback = it }
         SourceLink("UFSC · estudos de Libras", "https://libras.ufsc.br/") { feedback = it }
+        SourceLink(ManualLetterCandidate.REFERENCE_TITLE, ManualLetterCandidate.REFERENCE_URL) { feedback = it }
+        Text("A referência descreve aspectos linguísticos e configurações de mão; não valida os limiares deste experimento. Ainda faltam avaliação com educadores e imagens de mãos reais antes de anunciar precisão no reconhecimento de letras.", style = MaterialTheme.typography.bodySmall)
     }
     if (deleteDialog) AlertDialog(onDismissRequest = { deleteDialog = false }, title = { Text("Excluir este progresso?") },
         text = { Text("As contagens e conquistas de preparação serão apagadas deste aparelho.") },

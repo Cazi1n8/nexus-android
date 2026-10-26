@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import java.util.UUID
 
-/** Owned by the foreground UI. This class never starts a background microphone service. */
+/** One controller per visible UI or explicit foreground voice service; never starts a service itself. */
 class VoiceController(context: Context) : AutoCloseable {
     private val appContext = context.applicationContext
     private val main = Handler(Looper.getMainLooper())
@@ -45,6 +45,10 @@ class VoiceController(context: Context) : AutoCloseable {
     private var selectedVoice: String? = null
     private var selectedLanguage = "pt-BR"
     private var recognitionTimeout: Runnable? = null
+    private var queuedSpeech: QueuedSpeech? = null
+    private var speechInitializationTimeout: Runnable? = null
+    private data class QueuedSpeech(val text: String, val language: String, val rate: Float,
+        val voiceName: String, val pitch: Float, val onDone: (() -> Unit)?)
 
     init {
         onMain {
@@ -85,6 +89,12 @@ class VoiceController(context: Context) : AutoCloseable {
             refreshVoices()
             mutableState.value = mutableState.value.copy(ttsReady = true)
             updateLanguageAvailability()
+            val pending = queuedSpeech
+            queuedSpeech = null
+            speechInitializationTimeout?.let(main::removeCallbacks)
+            speechInitializationTimeout = null
+            mutableState.value = mutableState.value.copy(preparingSpeech = false)
+            pending?.let { speak(it.text, it.language, it.rate, it.voiceName, it.pitch, it.onDone) }
         } catch (_: Exception) {
             mutableState.value = mutableState.value.copy(ttsReady = false,
                 error = "O mecanismo de voz não respondeu durante a inicialização. Confira as configurações de texto para fala do Android.")
@@ -109,9 +119,8 @@ class VoiceController(context: Context) : AutoCloseable {
     }
 
     private fun updateLanguageAvailability() {
-        val available = mutableVoices.value.isNotEmpty() && runCatching {
-            tts?.isLanguageAvailable(Locale.forLanguageTag(selectedLanguage))?.let { it >= TextToSpeech.LANG_AVAILABLE } == true
-        }.getOrDefault(false)
+        val available = mutableState.value.ttsReady && ttsSupportsLocale(selectedLanguage,
+            runCatching { tts?.isLanguageAvailable(Locale.forLanguageTag(selectedLanguage)) }.getOrNull())
         mutableState.value = mutableState.value.copy(languageReady = available, language = selectedLanguage)
     }
 
@@ -175,7 +184,8 @@ class VoiceController(context: Context) : AutoCloseable {
                         beginRecognition(language, preferOnDevice = false)
                         return
                     }
-                    mutableState.value = mutableState.value.copy(isListening = false, level = 0f, error = recognitionError(error))
+                    mutableState.value = mutableState.value.copy(isListening = false, level = 0f, error = recognitionError(error),
+                        lastRecognitionErrorCode = error)
                     finishRecognition(null)
                 }
                 override fun onResults(results: Bundle?) {
@@ -185,7 +195,8 @@ class VoiceController(context: Context) : AutoCloseable {
                         isListening = false,
                         level = 0f,
                         partialText = text,
-                        error = if (text.isBlank()) "Nenhuma fala foi reconhecida. Tente novamente." else null
+                        error = if (text.isBlank()) "Nenhuma fala foi reconhecida. Tente novamente." else null,
+                        lastRecognitionErrorCode = if (text.isBlank()) SpeechRecognizer.ERROR_NO_MATCH else null
                     )
                     finishRecognition(text.takeIf { it.isNotBlank() })
                 }
@@ -196,7 +207,7 @@ class VoiceController(context: Context) : AutoCloseable {
                 }
                 override fun onEvent(eventType: Int, params: Bundle?) = Unit
             })
-            mutableState.value = mutableState.value.copy(isListening = true, onDevice = useOnDevice, error = null, partialText = "", level = 0f)
+            mutableState.value = mutableState.value.copy(isListening = true, onDevice = useOnDevice, error = null, partialText = "", level = 0f, lastRecognitionErrorCode = null)
             armRecognitionTimeout(session, 15_000L)
             session.startListening(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
@@ -242,7 +253,8 @@ class VoiceController(context: Context) : AutoCloseable {
         val timeout = Runnable {
             if (!closed && recognizer === session) {
                 mutableState.value = mutableState.value.copy(isListening = false, level = 0f,
-                    error = "O serviço de fala demorou para responder. Toque no microfone para tentar novamente.")
+                    error = "O serviço de fala demorou para responder. Toque no microfone para tentar novamente.",
+                    lastRecognitionErrorCode = SpeechRecognizer.ERROR_SPEECH_TIMEOUT)
                 finishRecognition(null)
             }
         }
@@ -271,7 +283,19 @@ class VoiceController(context: Context) : AutoCloseable {
         if (closed || text.isBlank()) return@onMain
         val engine = tts
         if (engine == null || !mutableState.value.ttsReady) {
-            mutableState.value = mutableState.value.copy(error = "A voz ainda não está pronta. Confira o mecanismo de texto para fala do Android.")
+            queuedSpeech = QueuedSpeech(text, language, rate, voiceName, pitch, onDone)
+            speechInitializationTimeout?.let(main::removeCallbacks)
+            val timeout = Runnable {
+                if (!closed && queuedSpeech != null) {
+                    queuedSpeech = null
+                    speechInitializationTimeout = null
+                    mutableState.value = mutableState.value.copy(preparingSpeech = false,
+                        error = "A voz do Android não ficou pronta. Instale ou ative uma voz no idioma escolhido e tente novamente.")
+                }
+            }
+            speechInitializationTimeout = timeout
+            main.postDelayed(timeout, 12_000L)
+            mutableState.value = mutableState.value.copy(preparingSpeech = true, error = null)
             return@onMain
         }
         stopListeningInternal()
@@ -280,24 +304,35 @@ class VoiceController(context: Context) : AutoCloseable {
             selectedLanguage = language
             refreshVoices()
             updateLanguageAvailability()
-            if (!mutableState.value.languageReady || engine.setLanguage(Locale.forLanguageTag(language)) < TextToSpeech.LANG_AVAILABLE) {
-                mutableState.value = mutableState.value.copy(error = "O idioma selecionado não está instalado no mecanismo de voz do Android.")
-                return@onMain
-            }
+            val languageAvailability = engine.setLanguage(Locale.forLanguageTag(language))
+            val metadata = engine.voices.orEmpty().map { VoiceOption(it.name, it.name,
+                it.locale.toLanguageTag(), it.isNetworkConnectionRequired) }
             val requestedVoice = voiceName.takeIf { it.isNotBlank() } ?: selectedVoice
-            val eligible = engine.voices.orEmpty().filter { voiceMatchesLanguage(it.locale.toLanguageTag(), language) }
-                .sortedWith(compareBy({ it.isNetworkConnectionRequired }, { it.name }))
-            // A persisted foreign/missing voice is ignored. setVoice must never override pt-BR.
-            val chosenVoice = eligible.find { it.name == requestedVoice } ?: eligible.firstOrNull { !it.isNetworkConnectionRequired }
-            if (chosenVoice == null) {
-                mutableState.value = mutableState.value.copy(error = "Nenhuma voz local foi encontrada neste idioma. Instale os dados de voz ou selecione explicitamente uma voz de rede nas configurações do NEXUS.")
-                return@onMain
+            when (val choice = chooseSpeechVoice(language, requestedVoice, metadata, languageAvailability)) {
+                is SpeechVoiceChoice.Named -> {
+                    val selected = engine.voices.orEmpty().firstOrNull { it.name == choice.option.name }
+                    if (selected == null || engine.setVoice(selected) == TextToSpeech.ERROR) {
+                        mutableState.value = mutableState.value.copy(error = "O mecanismo de fala não conseguiu selecionar esta voz. Escolha outra voz nas configurações do NEXUS.")
+                        return@onMain
+                    }
+                    mutableState.value = mutableState.value.copy(speechUsesNetwork = choice.option.requiresNetwork,
+                        speechNetworkUsageUnknown = false)
+                }
+                SpeechVoiceChoice.EngineLanguageDefault -> {
+                    // setLanguage succeeded for the requested country, but this engine
+                    // hides voice metadata. Its network behavior cannot be asserted.
+                    mutableState.value = mutableState.value.copy(speechUsesNetwork = false,
+                        speechNetworkUsageUnknown = true)
+                }
+                SpeechVoiceChoice.ExplicitNetworkVoiceRequired -> {
+                    mutableState.value = mutableState.value.copy(error = "Este idioma só tem vozes de rede. Escolha uma delas explicitamente em Configurações ou instale uma voz local.")
+                    return@onMain
+                }
+                SpeechVoiceChoice.LanguageUnavailable -> {
+                    mutableState.value = mutableState.value.copy(error = "O idioma ou país selecionado não está instalado no mecanismo de voz do Android.")
+                    return@onMain
+                }
             }
-            if (chosenVoice != null && engine.setVoice(chosenVoice) == TextToSpeech.ERROR) {
-                mutableState.value = mutableState.value.copy(error = "O mecanismo de fala não conseguiu selecionar esta voz. Escolha outra voz nas configurações do NEXUS.")
-                return@onMain
-            }
-            mutableState.value = mutableState.value.copy(speechUsesNetwork = engine.voice?.isNetworkConnectionRequired == true)
             engine.setSpeechRate(if (rate.isFinite()) rate.coerceIn(0.5f, 2f) else 1f)
             engine.setPitch(if (pitch.isFinite()) pitch.coerceIn(0.5f, 2f) else 1f)
             val chunks = speechChunks(text)
@@ -323,6 +358,10 @@ class VoiceController(context: Context) : AutoCloseable {
     fun stopSpeaking() = onMain { stopSpeakingInternal() }
 
     private fun stopSpeakingInternal() {
+        queuedSpeech = null
+        speechInitializationTimeout?.let(main::removeCallbacks)
+        speechInitializationTimeout = null
+        mutableState.value = mutableState.value.copy(preparingSpeech = false)
         finalUtterance = null
         activeSpeechPrefix = null
         speechDone = null
@@ -379,7 +418,10 @@ data class VoiceState(
     val partialText: String = "",
     val speechUsesNetwork: Boolean = false,
     val languageReady: Boolean = false,
-    val language: String = "pt-BR"
+    val language: String = "pt-BR",
+    val preparingSpeech: Boolean = false,
+    val speechNetworkUsageUnknown: Boolean = false,
+    val lastRecognitionErrorCode: Int? = null,
 )
 
 data class VoiceOption(val name: String, val label: String, val language: String, val requiresNetwork: Boolean)

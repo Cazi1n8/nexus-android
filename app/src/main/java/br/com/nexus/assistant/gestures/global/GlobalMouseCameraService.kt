@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
@@ -33,6 +34,7 @@ import br.com.nexus.assistant.MainActivity
 import br.com.nexus.assistant.R
 import br.com.nexus.assistant.device.DeviceCapabilities
 import br.com.nexus.assistant.device.DevicePolicy
+import br.com.nexus.assistant.device.voice.NexusSessionControls
 import br.com.nexus.assistant.gestures.HandFrame
 import br.com.nexus.assistant.gestures.HandPoint
 import br.com.nexus.assistant.gestures.MouseController
@@ -61,6 +63,15 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     private var lastFrameAt = 0L
     private var openedAt = 0L
     private var terminalError: String? = null
+    private var sensitivity = 1.3f
+    private var pinchThreshold = .35f
+    private var preferencesLoaded = false
+    private var calibrationRequested = false
+    private val gesturePreferences by lazy { getSharedPreferences("nexus_gestures", MODE_PRIVATE) }
+    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
+        if (key == "sensitivity") sensitivity = preferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f)
+        if (key == "pinch") pinchThreshold = preferences.getFloat("pinch", .35f).coerceIn(.2f, .55f)
+    }
     private val pendingFrame = AtomicReference<HandFrame?>(null)
     // At most one UI delivery is queued. A busy screen must not accumulate old camera frames.
     private val deliverFrame = Runnable {
@@ -94,8 +105,23 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == NexusSessionControls.ACTION_STOP_ALL) {
+            NexusSessionControls.stopAll(this)
+            return START_NOT_STICKY
+        }
         if (intent == null || intent.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
-        if (started) return START_NOT_STICKY
+        if (started) {
+            if (intent.action == ACTION_CALIBRATE) {
+                calibrationRequested = true
+                GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(message = "Mostre o indicador para centralizar o cursor."))
+            }
+            return START_NOT_STICKY
+        }
+        // A stale calibration request after PARAR must never open the camera.
+        if (intent.action != ACTION_START) { stopSelf(); return START_NOT_STICKY }
+        if (intent.getLongExtra(EXTRA_START_GENERATION, Long.MIN_VALUE) != GlobalMouseRuntime.stopGeneration) {
+            stopSelf(); return START_NOT_STICKY
+        }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             fail("A permissão da câmera não foi concedida."); return START_NOT_STICKY
         }
@@ -124,6 +150,8 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
             executor.execute {
                 try {
                     val capabilities = DeviceCapabilities.read(this)
+                    val savedSensitivity = gesturePreferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f)
+                    val savedPinch = gesturePreferences.getFloat("pinch", .35f).coerceIn(.2f, .55f)
                     val policy = DevicePolicy.evaluate(capabilities)
                     main.post {
                         if (!stopped.get()) {
@@ -132,6 +160,10 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
                                     else "O rastreador de mãos não é compatível com a arquitetura deste aparelho. O mouse global foi desativado.")
                             } else {
                                 sessionPolicy = policy
+                                sensitivity = savedSensitivity
+                                pinchThreshold = savedPinch
+                                preferencesLoaded = true
+                                gesturePreferences.registerOnSharedPreferenceChangeListener(preferenceListener)
                                 useFrontCamera = capabilities.hasFrontCamera
                                 startCamera()
                             }
@@ -160,12 +192,16 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val open = PendingIntent.getActivity(this, 21, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val stopAll = PendingIntent.getService(this, 22,
+            Intent(this, GlobalMouseCameraService::class.java).setAction(NexusSessionControls.ACTION_STOP_ALL),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val builder = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_nexus)
             .setContentTitle("NEXUS · câmera e mouse global ativos")
             .setContentText("Controle autorizado por gestos. Toque em PARAR para encerrar.")
             .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true)
             .addAction(Notification.Action.Builder(null, "PARAR", stop).build())
+            .addAction(Notification.Action.Builder(null, "ENCERRAR TUDO", stopAll).build())
         if (Build.VERSION.SDK_INT >= 31) builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         return builder.build()
     }
@@ -197,7 +233,7 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()
         analysis = analyzer
-        val cadence = TrackingCadence(policy.analysisIntervalMs)
+        val cadence = TrackingCadence((policy.analysisIntervalMs / 2).coerceIn(50L, 110L), 50L)
         val inferenceFailed = AtomicBoolean(false)
         analyzer.setAnalyzer(executor) { proxy ->
             var bitmap: Bitmap? = null
@@ -258,14 +294,18 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
 
     private fun onFrame(frame: HandFrame) {
         lastFrameAt = frame.timestampMs
-        val preferences = getSharedPreferences("nexus_gestures", MODE_PRIVATE)
-        val update = controller.update(frame, preferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f),
-            preferences.getFloat("pinch", .35f).coerceIn(.2f, .55f))
+        if (calibrationRequested) frame.hands.firstOrNull()?.let { hand ->
+            controller.reset().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
+            controller.calibrate(hand.index, sensitivity)
+            calibrationRequested = false
+        }
+        val update = controller.update(frame, sensitivity, pinchThreshold)
         NexusAccessibilityService.instance?.let { accessibility ->
             accessibility.updateCursor(update.cursor)
             update.events.forEach(accessibility::dispatch)
         }
-        GlobalMouseRuntime.update(GlobalMouseState(active = true, cameraReady = true, hands = frame.hands.size, processingMs = frame.processingMs))
+        GlobalMouseRuntime.update(GlobalMouseState(active = true, cameraReady = true, hands = frame.hands.size, processingMs = frame.processingMs,
+            message = if (calibrationRequested) "Mostre o indicador para calibrar." else null))
     }
 
     private fun fail(message: String) {
@@ -294,6 +334,7 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
         main.removeCallbacks(deliverFrame)
         pendingFrame.set(null)
         analysis?.clearAnalyzer()
+        if (preferencesLoaded) gesturePreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
         analysis?.let { provider?.unbind(it) }
         registry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         registry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -310,6 +351,9 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     companion object {
         private const val CHANNEL = "nexus_global_mouse"
         private const val NOTIFICATION_ID = 2001
+        const val ACTION_START = "br.com.nexus.assistant.START_GLOBAL_MOUSE"
+        const val EXTRA_START_GENERATION = "start_generation"
+        const val ACTION_CALIBRATE = "br.com.nexus.assistant.CALIBRATE_GLOBAL_MOUSE"
         private const val ACTION_STOP = "br.com.nexus.assistant.STOP_GLOBAL_MOUSE"
     }
 }

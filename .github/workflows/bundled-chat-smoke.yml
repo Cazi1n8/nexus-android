@@ -47,9 +47,11 @@ jobs:
         run: |
           python3 scripts/fetch_llama_cpp.py
           python3 scripts/fetch_hand_model.py
+          python3 scripts/prepare_mediapipe_runtime.py
+          python3 scripts/fetch_object_model.py --with-test-fixture
           python3 scripts/fetch_ocr_models.py
           python3 scripts/fetch_ocr_runtime.py
-          python3 scripts/fetch_bundled_model.py
+          python3 scripts/fetch_bundled_model.py --with-balanced
       - name: Compilar APK completo e teste instrumentado
         run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
       - name: Habilitar KVM no executor temporário
@@ -69,7 +71,7 @@ jobs:
           heap-size: 512M
           disable-animations: true
           emulator-boot-timeout: 600
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -partition-size 4096 -camera-back none -camera-front none
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -partition-size 6144 -camera-back none -camera-front none
           script: python3 scripts/run_android_bundled_chat.py --allow-reset-emulator
       - name: Guardar somente observações e logs sintéticos
         if: always()

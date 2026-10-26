@@ -5,6 +5,8 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import br.com.nexus.assistant.data.local.LocalModelProfile
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -31,42 +33,10 @@ class SettingsRepository(context: Context) {
 
     val settings: Flow<NexusSettings> = appContext.nexusPreferences.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
-        .map { preferences ->
-            NexusSettings(
-                aiMode = preferences[Keys.aiMode]?.let { stored -> AiMode.entries.firstOrNull { it.name == stored } } ?: AiMode.NEXUS_LOCAL,
-                localModelProfile = preferences[Keys.localModelProfile]?.let { stored -> LocalModelProfile.entries.firstOrNull { it.name == stored } } ?: LocalModelProfile.COMPACT,
-                automaticProfile = preferences[Keys.automaticProfile] ?: true,
-                endpoint = preferences[Keys.endpoint].orEmpty(),
-                model = preferences[Keys.model].orEmpty(),
-                userName = preferences[Keys.userName].orEmpty(),
-                personality = preferences[Keys.personality] ?: "Amigável",
-                detail = preferences[Keys.detail] ?: "Equilibrado",
-                language = preferences[Keys.language] ?: "pt-BR",
-                voiceRate = preferences[Keys.voiceRate] ?: 1f,
-                voicePitch = preferences[Keys.voicePitch] ?: 1f,
-                voiceName = preferences[Keys.voiceName].orEmpty(),
-                autoSpeak = preferences[Keys.autoSpeak] ?: false,
-                remoteConsent = preferences[Keys.remoteConsent] ?: false,
-            )
-        }
+        .map(::decodeNexusSettings)
 
     suspend fun save(settings: NexusSettings) {
-        appContext.nexusPreferences.edit { preferences ->
-            preferences[Keys.aiMode] = settings.aiMode.name
-            preferences[Keys.localModelProfile] = settings.localModelProfile.name
-            preferences[Keys.automaticProfile] = settings.automaticProfile
-            preferences[Keys.endpoint] = settings.endpoint.trim()
-            preferences[Keys.model] = settings.model.trim()
-            preferences[Keys.userName] = settings.userName.take(100).trim()
-            preferences[Keys.personality] = settings.personality.take(2_000)
-            preferences[Keys.detail] = settings.detail.take(100)
-            preferences[Keys.language] = settings.language.take(50)
-            preferences[Keys.voiceRate] = settings.voiceRate.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f
-            preferences[Keys.voicePitch] = settings.voicePitch.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f
-            preferences[Keys.voiceName] = settings.voiceName.take(200)
-            preferences[Keys.autoSpeak] = settings.autoSpeak
-            preferences[Keys.remoteConsent] = settings.remoteConsent
-        }
+        appContext.nexusPreferences.edit { preferences -> encodeNexusSettings(preferences, settings) }
     }
 
     /** Store a backend session token here, never a provider's private API key. */
@@ -120,26 +90,74 @@ class SettingsRepository(context: Context) {
         return generator.generateKey()
     }
 
-    private object Keys {
-        val aiMode = stringPreferencesKey("ai_mode")
-        val localModelProfile = stringPreferencesKey("local_model_profile")
-        val automaticProfile = booleanPreferencesKey("automatic_profile")
-        val endpoint = stringPreferencesKey("endpoint")
-        val model = stringPreferencesKey("model")
-        val userName = stringPreferencesKey("user_name")
-        val personality = stringPreferencesKey("personality")
-        val detail = stringPreferencesKey("detail")
-        val language = stringPreferencesKey("language")
-        val voiceRate = floatPreferencesKey("voice_rate")
-        val voicePitch = floatPreferencesKey("voice_pitch")
-        val voiceName = stringPreferencesKey("voice_name")
-        val autoSpeak = booleanPreferencesKey("auto_speak")
-        val remoteConsent = booleanPreferencesKey("remote_consent")
-    }
-
     private companion object {
         const val KEY_ALIAS = "nexus.backend.session.v1"
         const val TOKEN_VALUE = "encrypted_token"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
     }
+}
+
+private object Keys {
+    val aiMode = stringPreferencesKey("ai_mode")
+    val localModelProfile = stringPreferencesKey("local_model_profile")
+    val automaticProfile = booleanPreferencesKey("automatic_profile")
+    val endpoint = stringPreferencesKey("endpoint")
+    val model = stringPreferencesKey("model")
+    val userName = stringPreferencesKey("user_name") // Legacy migration only.
+    val personality = stringPreferencesKey("personality") // Legacy combined style/instructions.
+    val userPreferredName = stringPreferencesKey("user_preferred_name")
+    val assistantPersonality = stringPreferencesKey("assistant_personality")
+    val assistantInstructions = stringPreferencesKey("assistant_instructions")
+    val userPreferences = stringPreferencesKey("user_preferences")
+    val detail = stringPreferencesKey("detail")
+    val language = stringPreferencesKey("language")
+    val voiceRate = floatPreferencesKey("voice_rate")
+    val voicePitch = floatPreferencesKey("voice_pitch")
+    val voiceName = stringPreferencesKey("voice_name")
+    val autoSpeak = booleanPreferencesKey("auto_speak")
+    val remoteConsent = booleanPreferencesKey("remote_consent")
+}
+
+/** Pure mapping keeps migrations testable without starting Android sensors or a database. */
+internal fun decodeNexusSettings(preferences: Preferences): NexusSettings {
+    val legacyStyle = preferences[Keys.personality]
+    val legacyCustomInstructions = legacyStyle?.takeUnless { it in AssistantIdentity.personalities }.orEmpty()
+    return NexusSettings(
+        aiMode = preferences[Keys.aiMode]?.let { value -> AiMode.entries.firstOrNull { it.name == value } } ?: AiMode.NEXUS_LOCAL,
+        localModelProfile = preferences[Keys.localModelProfile]?.let { value -> LocalModelProfile.entries.firstOrNull { it.name == value } } ?: LocalModelProfile.COMPACT,
+        automaticProfile = preferences[Keys.automaticProfile] ?: true,
+        endpoint = preferences[Keys.endpoint].orEmpty(), model = preferences[Keys.model].orEmpty(),
+        userPreferredName = preferences[Keys.userPreferredName] ?: preferences[Keys.userName].orEmpty(),
+        assistantPersonality = preferences[Keys.assistantPersonality]
+            ?: legacyStyle?.takeIf { it in AssistantIdentity.personalities }
+            ?: if (legacyCustomInstructions.isNotBlank()) "Personalizado" else "Amigável",
+        assistantInstructions = preferences[Keys.assistantInstructions] ?: legacyCustomInstructions,
+        userPreferences = preferences[Keys.userPreferences].orEmpty(),
+        detail = preferences[Keys.detail] ?: "Equilibrado", language = preferences[Keys.language] ?: "pt-BR",
+        voiceRate = preferences[Keys.voiceRate] ?: 1f, voicePitch = preferences[Keys.voicePitch] ?: 1f,
+        voiceName = preferences[Keys.voiceName].orEmpty(), autoSpeak = preferences[Keys.autoSpeak] ?: false,
+        remoteConsent = preferences[Keys.remoteConsent] ?: false,
+    )
+}
+
+internal fun encodeNexusSettings(preferences: MutablePreferences, settings: NexusSettings) {
+    preferences[Keys.aiMode] = settings.aiMode.name
+    preferences[Keys.localModelProfile] = settings.localModelProfile.name
+    preferences[Keys.automaticProfile] = settings.automaticProfile
+    preferences[Keys.endpoint] = settings.endpoint.trim()
+    preferences[Keys.model] = settings.model.trim()
+    preferences[Keys.userPreferredName] = settings.userPreferredName.take(100).trim()
+    preferences[Keys.assistantPersonality] = settings.assistantPersonality.take(100)
+    preferences[Keys.assistantInstructions] = settings.assistantInstructions.take(2_000)
+    preferences[Keys.userPreferences] = settings.userPreferences.take(2_000)
+    // Delete the old duplicated fields after migration, so a cleared/new name cannot revive.
+    preferences.remove(Keys.userName)
+    preferences.remove(Keys.personality)
+    preferences[Keys.detail] = settings.detail.take(100)
+    preferences[Keys.language] = settings.language.take(50)
+    preferences[Keys.voiceRate] = settings.voiceRate.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f
+    preferences[Keys.voicePitch] = settings.voicePitch.takeIf { it.isFinite() }?.coerceIn(0.5f, 2f) ?: 1f
+    preferences[Keys.voiceName] = settings.voiceName.take(200)
+    preferences[Keys.autoSpeak] = settings.autoSpeak
+    preferences[Keys.remoteConsent] = settings.remoteConsent
 }

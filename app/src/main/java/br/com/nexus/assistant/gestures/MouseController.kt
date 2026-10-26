@@ -56,7 +56,7 @@ class MouseController {
 
     fun update(frame: HandFrame, sensitivity: Float, threshold: Float): MouseUpdate {
         val chosen = hand.select(frame.hands, frame.timestampMs) ?: return lost()
-        val point = filter.update(chosen.index, sensitivity)
+        val point = filter.update(chosen.index, sensitivity, frame.timestampMs)
         val twoFingers = chosen.configuration(false) == HandConfiguration.TWO_FINGERS && chosen.pinchRatio > threshold + .16f
         val events = mutableListOf<MouseEvent>()
         if (twoFingers) {

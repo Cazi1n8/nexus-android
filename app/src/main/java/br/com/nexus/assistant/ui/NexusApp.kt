@@ -70,6 +70,10 @@ import br.com.nexus.assistant.data.local.LocalModelStatus
 import br.com.nexus.assistant.data.local.LocalModelProfile
 import br.com.nexus.assistant.data.local.LocalModelCatalog
 import br.com.nexus.assistant.device.*
+import br.com.nexus.assistant.device.voice.BackgroundVoicePanel
+import br.com.nexus.assistant.device.voice.VoiceSessionRuntime
+import br.com.nexus.assistant.gestures.global.GlobalMousePanel
+import br.com.nexus.assistant.device.vision.NexusVisionLivePanel
 import br.com.nexus.assistant.gestures.GestureFeatureScreen
 import br.com.nexus.assistant.gestures.GestureMode
 import br.com.nexus.assistant.gestures.GestureSessionHost
@@ -96,6 +100,7 @@ private val destinations = listOf(
     Destination("hands", "Mãos livres", "Associar poses a ações internas", Icons.Default.PanTool),
     Destination("cube", "NEXUS 3D", "Cubo controlado pelas mãos", Icons.Default.ViewInAr),
     Destination("libras", "NEXUS Libras", "Exercícios preparatórios", Icons.Default.SignLanguage),
+    Destination("control", "Central de controle", "Mouse, voz e 3D independentes", Icons.Default.Tune),
     Destination("commands", "Central de comandos", "Atalhos e aplicativos", Icons.Default.Terminal),
     Destination("personality", "Personalidade", "O seu jeito de conversar", Icons.Default.AutoAwesome),
     Destination("memory", "Memória e histórico", "Seus dados sob seu controle", Icons.Default.History),
@@ -134,7 +139,7 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
     LaunchedEffect(model, voice, lifecycle) {
         model.assistantReplies.collect { reply ->
             val current = latestSettings
-            if (current.autoSpeak && latestRoute != "voice" && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            if (current.autoSpeak && !VoiceSessionRuntime.state.value.active && latestRoute != "voice" && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                 voice.speak(reply, current.language, current.voiceRate, current.voiceName, current.voicePitch)
             }
         }
@@ -146,8 +151,13 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
         nav.navigate(target) { launchSingleTop = true }
     }
     val executeAction: (String) -> Unit = { action ->
-        if (action.startsWith("route:")) navigate(action.removePrefix("route:"))
-        else PhoneCommands.execute(context, action)?.let(model::report)
+        if (action.startsWith("route:")) {
+            navigate(action.removePrefix("route:"))
+            model.report("Tela selecionada no NEXUS.")
+        } else {
+            val failure = PhoneCommands.execute(context, action)
+            model.report(failure ?: "Solicitação de abertura enviada ao Android.")
+        }
     }
     val dispatch: (String) -> Boolean = { text ->
         when (PhoneCommands.normalize(PhoneCommands.removeWakePhrase(text))) {
@@ -250,12 +260,27 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
                 }
             }
             composable("libras") { GlobalCameraGate { br.com.nexus.assistant.libras.NexusLibrasScreen() } }
+            composable("control") {
+                ScrollPage {
+                    GlobalMousePanel(onBeforeStart = { gestureSession.stopMouse() })
+                    BackgroundVoicePanel(model, onBeforeStart = { voice.stopListening(); voice.stopSpeaking() })
+                    OutlinedButton(onClick = { navigate("mouse") }) { Text("Ajustar sensibilidade e calibrar mouse") }
+                    OutlinedButton(onClick = { navigate("voice") }) { Text("Configurar conversa e testar voz") }
+                    OutlinedButton(onClick = { navigate("settings") }) { Text("Escolher voz e velocidade") }
+                    OutlinedButton(onClick = { navigate("cube") }) { Text("Abrir NEXUS 3D independente") }
+                    Button(onClick = {
+                        VoiceSessionRuntime.stop(context); GlobalMouseRuntime.stop(context)
+                        gestureSession.stopMouse(); voice.stopListening(); voice.stopSpeaking(); model.cancelResponse()
+                    }) { Text("Encerrar todas as sessões") }
+                }
+            }
             composable("commands") { CommandsScreen(store, dispatch) }
             composable("personality") { PersonalityScreen(settings) { model.saveSettings(it) } }
             composable("memory") {
                 MemoryScreen(model, openChat = { navigate("chat") }, onBeforeDeleteAll = {
                     gestureSession.resetPreferences()
                     GlobalMouseRuntime.stop(context)
+                    VoiceSessionRuntime.stop(context)
                     voice.stopListening()
                     voice.stopSpeaking()
                 })
@@ -340,7 +365,7 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
     ScrollPage {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(if (settings.userName.isBlank()) "Olá. Eu sou o NEXUS." else "Olá, ${settings.userName}.", fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
+            Text(if (settings.userPreferredName.isBlank()) "Olá. Eu sou o NEXUS." else "Olá, ${settings.userPreferredName}.", fontSize = 25.sp, fontWeight = FontWeight.SemiBold)
             Text("Um espaço para conversar, explorar e aprender.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         NexusOrb(Modifier.size(76.dp), animated = true)
@@ -389,8 +414,10 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
 
 @Composable
 private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: NexusSettings, navigate: (String) -> Unit) {
+    val context = LocalContext.current
     val messages by model.messages.collectAsStateWithLifecycle()
     val selected by model.selected.collectAsStateWithLifecycle()
+    val generation by model.generationDiagnostics.collectAsStateWithLifecycle()
     val busy by model.busy.collectAsStateWithLifecycle()
     val importing by model.importing.collectAsStateWithLifecycle()
     val attachment by model.attachment.collectAsStateWithLifecycle()
@@ -408,7 +435,7 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
     val bundledReady = !local || !BuildConfig.BUNDLED_MODEL || localState.status == LocalModelStatus.READY
     Column(Modifier.fillMaxSize().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("${messages.size} mensagens • contexto limitado", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${messages.size} mensagens salvas • contexto por tokens", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TextButton(onClick = { model.newConversation() }) { Icon(Icons.Default.Add, null); Text("Nova") }
         }
         if (local && BuildConfig.BUNDLED_MODEL && localState.status != LocalModelStatus.READY) {
@@ -418,11 +445,14 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
         } else if (!local && (settings.endpoint.isBlank() || !settings.remoteConsent)) {
             TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Configurar provedor personalizado") }
         }
+        if (local && generation.finishReason == "token_limit" && !busy) {
+            Text("A resposta atingiu o limite de geração do aparelho. Você pode pedir a continuação.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall)
+        }
         if (messages.isEmpty()) {
             Column(Modifier.weight(1f).fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 NexusOrb(Modifier.size(108.dp), animated = busy)
                 Spacer(Modifier.height(20.dp)); Text("O que vamos explorar?", fontSize = 23.sp)
-                Text("Envie sua pergunta ou uma imagem com texto. A leitura de texto é local; objetos e cenas exigem um provedor multimodal opcional.", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Converse ou envie uma imagem. O modo local lê texto e sugere categorias de objetos; a interpretação completa de cenas exige um provedor multimodal opcional.", modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else LazyColumn(Modifier.weight(1f), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(messages, key = { it.id }) { message ->
@@ -430,12 +460,17 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
                     Column(Modifier.padding(14.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Text(if (message.role == "user") "VOCÊ" else "NEXUS", color = NexusCyan, style = MaterialTheme.typography.labelSmall)
+                            if (message.role == "assistant") IconButton(onClick = {
+                                context.getSystemService(ClipboardManager::class.java)
+                                    .setPrimaryClip(ClipData.newPlainText("Resposta NEXUS", message.content))
+                            }, modifier = Modifier.size(40.dp)) { Icon(Icons.Default.ContentCopy, "Copiar resposta") }
                             if (message.role == "assistant") IconButton(onClick = { voice.speak(message.content, settings.language, settings.voiceRate, settings.voiceName, settings.voicePitch) }, modifier = Modifier.size(40.dp)) {
                                 Icon(Icons.Default.VolumeUp, "Ler resposta em voz alta")
                             }
                         }
                         message.imagePath?.let { LocalImage(it, Modifier.fillMaxWidth().heightIn(max = 200.dp)) }
-                        SelectionContainer { Text(message.content, style = MaterialTheme.typography.bodyLarge) }
+                        if (message.role == "assistant") MarkdownMessage(message.content, Modifier.fillMaxWidth())
+                        else SelectionContainer { Text(message.content, style = MaterialTheme.typography.bodyLarge) }
                     }
                 }
             }
@@ -447,7 +482,7 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
         } else if (messages.lastOrNull()?.role == "user") TextButton(onClick = { model.retry() }, modifier = Modifier.align(Alignment.End)) { Text("Tentar novamente") }
         if (attachment != null) Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             LocalImage(attachment!!, Modifier.size(64.dp).clip(RoundedCornerShape(8.dp)))
-            Text("Imagem pronta · ${if (local) "leitura de texto local" else "envio ao provedor"}", Modifier.weight(1f).padding(8.dp))
+            Text("Imagem pronta · ${if (local) "texto e objetos no aparelho" else "envio ao provedor"}", Modifier.weight(1f).padding(8.dp))
             IconButton(onClick = model::removeAttachment) { Icon(Icons.Default.Close, "Remover imagem") }
         }
         if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -465,6 +500,7 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
 @Composable
 private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings: NexusSettings, dispatch: (String) -> Boolean) {
     val state by voice.state.collectAsStateWithLifecycle()
+    val backgroundVoice by VoiceSessionRuntime.state.collectAsStateWithLifecycle()
     val messages by model.messages.collectAsStateWithLifecycle()
     val busy by model.busy.collectAsStateWithLifecycle()
     val importing by model.importing.collectAsStateWithLifecycle()
@@ -501,9 +537,10 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
     }
     val currentReceive by rememberUpdatedState(receive)
     val last = messages.lastOrNull()
+    LaunchedEffect(backgroundVoice.active) { if (backgroundVoice.active) { continuous = false; awaitingQuery = null; voice.stopListening(); voice.stopSpeaking() } }
     LaunchedEffect(messages, awaitingQuery, busy) {
         val query = awaitingQuery
-        if (query != null && !busy && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+        if (!backgroundVoice.active && query != null && !busy && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             // Speak only a reply to a send accepted from this screen. Loading an existing
             // conversation, entering this screen, or returning from background stays silent.
             val userIndex = messages.indexOfLast {
@@ -524,7 +561,7 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
     }
     LaunchedEffect(continuous, busy, importing, awaitingQuery, state.isListening, state.isSpeaking, state.error, state.ttsReady, state.languageReady, settings.language) {
         if (voice.state.value.error != null) continuous = false
-        if (continuous && !busy && !importing && awaitingQuery == null && !state.isListening && !state.isSpeaking && state.ttsReady && state.languageReady) {
+        if (!backgroundVoice.active && continuous && !busy && !importing && awaitingQuery == null && !state.isListening && !state.isSpeaking && state.ttsReady && state.languageReady) {
             delay(900)
             val current = voice.state.value
             if (continuous && !model.busy.value && !model.importing.value && awaitingQuery == null &&
@@ -560,6 +597,7 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
         }
         Text(when { state.isListening -> "Ouvindo você"; state.isSpeaking -> "NEXUS falando"; busy -> "Pensando com a IA"; else -> "Vamos conversar" }, fontSize = 26.sp)
         Text(if (state.onDevice) "Reconhecimento local disponível" else "Reconhecimento pelo serviço Android; pode usar a rede", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (state.speechNetworkUsageUnknown) Text("O mecanismo Android não informou se a voz usa rede.", style = MaterialTheme.typography.bodySmall)
         if (state.speechUsesNetwork) Text("A voz selecionada exige rede e pode enviar texto ao mecanismo de fala do Android.", style = MaterialTheme.typography.bodySmall)
         if (state.isListening) LinearProgressIndicator(progress = { state.level.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
         if (state.partialText.isNotBlank()) Text(state.partialText, color = NexusCyan)
@@ -568,7 +606,7 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
                 awaitingQuery = null
                 if (state.isListening) { continuous = false; voice.stopListening() }
                 else { voice.clearError(); voice.stopSpeaking(); voice.startListening(settings.language, onResult = receive) }
-            }, enabled = state.available && !busy && !importing, modifier = Modifier.weight(1f)) {
+            }, enabled = !backgroundVoice.active && state.available && !busy && !importing, modifier = Modifier.weight(1f)) {
                 Icon(if (state.isListening) Icons.Default.MicOff else Icons.Default.Mic, null)
                 Text(if (state.isListening) " Parar" else " Falar")
             }
@@ -580,18 +618,21 @@ private fun VoiceScreen(model: NexusViewModel, voice: VoiceController, settings:
         ToggleRow("Conversa contínua nesta tela", continuous, {
             voice.clearError(); continuous = it
             if (!it) voice.stopListening()
-        })
+        }, enabled = !backgroundVoice.active)
         state.error?.let { InfoCard("ÁUDIO", it) }
         if (state.ttsReady && !state.languageReady) VoiceLanguageHelp(settings.language)
         if (!state.available) InfoCard("RECONHECEDOR AUSENTE", "Instale ou habilite um serviço de reconhecimento de fala do Android para usar o microfone.")
         if (attachment != null) {
-            InfoCard("IMAGEM ANEXADA", if (settings.aiMode == AiMode.NEXUS_LOCAL) "A próxima pergunta usará leitura local do texto da imagem anexada. Não descreve objetos ou cenas." else "A próxima pergunta também enviará a imagem selecionada anteriormente ao servidor configurado.")
+            InfoCard("IMAGEM ANEXADA", if (settings.aiMode == AiMode.NEXUS_LOCAL) "A próxima pergunta usará texto reconhecido e categorias aproximadas de objetos. A interpretação completa de cenas exige modelo multimodal." else "A próxima pergunta também enviará a imagem selecionada anteriormente ao servidor configurado.")
             TextButton(onClick = model::removeAttachment) { Text("Remover imagem antes de falar") }
         }
         if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (lastHeard.isNotBlank()) InfoCard("VOCÊ DISSE", lastHeard)
         last?.let { InfoCard(if (it.role == "assistant") "NEXUS" else "MENSAGEM", it.content) }
-        InfoCard("EI, NEXUS", "Você pode começar a fala com “Ei, NEXUS”. A escuta precisa estar ativada nesta tela. A sessão termina ao sair do aplicativo. Erros e silêncio interrompem o modo contínuo.")
+        BackgroundVoicePanel(model, onBeforeStart = {
+            continuous = false; awaitingQuery = null; voice.stopListening(); voice.stopSpeaking()
+        })
+        InfoCard("EI, NEXUS", "Você pode começar sua pergunta com “Ei, NEXUS” depois de ativar a escuta. Ainda não existe detector permanente da frase. Para continuar fora desta tela, use a sessão de voz acima.")
     }
 }
 
@@ -608,6 +649,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
     val scope = rememberCoroutineScope()
     // Sensors and OCR work never resume merely because this screen is restored.
     var cameraActive by remember { mutableStateOf(false) }
+    var liveActive by remember { mutableStateOf(false) }
     var front by rememberSaveable { mutableStateOf(!capabilities.hasRearCamera && capabilities.hasFrontCamera) }
     var question by rememberSaveable { mutableStateOf("O que aparece nesta imagem?") }
     var reader by remember { mutableStateOf<LocalTextReader?>(null) }
@@ -653,7 +695,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
         else model.report("O microfone foi recusado. Você pode escrever sua pergunta.")
     }
     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !globalMouse.active) cameraActive = true
+        if (granted && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !globalMouse.active && !liveActive) cameraActive = true
         else if (!granted) model.report("A câmera foi recusada. Você pode escolher uma imagem da galeria para ler o texto localmente.")
     }
     val chooseImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -700,6 +742,9 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
     }
     val visibleResult = recognized.takeIf { recognizedFor == attachment }
     ScrollPage {
+        if (!cameraActive) NexusVisionLivePanel(onError = model::report,
+            onSpeak = { voice.speak(it, settings.language, settings.voiceRate, settings.voiceName, settings.voicePitch) },
+            onActiveChanged = { liveActive = it; if (it) { cameraActive = false; stopReading(clearResult = false) } })
         InfoCard("VISÃO POR CAPTURA", "A câmera mostra uma prévia ao vivo. A leitura de texto acontece no aparelho sobre a foto escolhida. A IA multimodal recebe somente a imagem enviada ao tocar em Analisar; não recebe vídeo contínuo.")
         if (globalMouse.active) {
             InfoCard("CÂMERA EM USO PELO MOUSE GLOBAL", "Encerre o mouse global antes de abrir a câmera aqui. A galeria e a leitura de texto continuam disponíveis.")
@@ -722,7 +767,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
                     voice.stopListening()
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraActive = true
                     else cameraPermission.launch(Manifest.permission.CAMERA)
-                }, enabled = capabilities.hasCamera && !busy && !importing && !reading && !voiceState.isListening) {
+                }, enabled = !liveActive && capabilities.hasCamera && !busy && !importing && !reading && !voiceState.isListening) {
                     Icon(Icons.Default.CameraAlt, null); Text(" Abrir câmera")
                 }
                 if (!capabilities.hasCamera) Text("Nenhuma câmera foi informada pelo Android. Escolha uma imagem para continuar.", style = MaterialTheme.typography.bodySmall)
@@ -847,8 +892,10 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
 
 @Composable
 private fun PersonalityScreen(settings: NexusSettings, save: (NexusSettings) -> Unit) {
-    var name by rememberSaveable(settings.userName) { mutableStateOf(settings.userName) }
-    var style by rememberSaveable(settings.personality) { mutableStateOf(settings.personality) }
+    var name by rememberSaveable(settings.userPreferredName) { mutableStateOf(settings.userPreferredName) }
+    var style by rememberSaveable(settings.assistantPersonality) { mutableStateOf(settings.assistantPersonality) }
+    var instructions by rememberSaveable(settings.assistantInstructions) { mutableStateOf(settings.assistantInstructions) }
+    var preferences by rememberSaveable(settings.userPreferences) { mutableStateOf(settings.userPreferences) }
     var detail by rememberSaveable(settings.detail) { mutableStateOf(settings.detail) }
     var language by rememberSaveable(settings.language) { mutableStateOf(settings.language) }
     ScrollPage {
@@ -856,10 +903,12 @@ private fun PersonalityScreen(settings: NexusSettings, save: (NexusSettings) -> 
         Text("Estas preferências entram no contexto das próximas perguntas.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedTextField(name, { name = it.take(100) }, label = { Text("Como devo chamar você?") }, modifier = Modifier.fillMaxWidth())
         ChoiceField("Personalidade", style, listOf("Amigável", "Profissional", "Divertido", "Direto", "Professor", "Técnico")) { style = it }
-        OutlinedTextField(style, { style = it.take(2000) }, label = { Text("Estilo ou instruções personalizadas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        Text("Nome do assistente: ${settings.assistantName}", color = NexusCyan)
+        OutlinedTextField(instructions, { instructions = it.take(2000) }, label = { Text("Instruções de comunicação") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(preferences, { preferences = it.take(2000) }, label = { Text("Suas preferências autorizadas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
         ChoiceField("Detalhamento", detail, listOf("Curto", "Equilibrado", "Detalhado")) { detail = it }
         ChoiceField("Idioma das respostas", language, listOf("pt-BR", "en-US", "es-ES")) { language = it }
-        Button(onClick = { save(settings.copy(userName = name, personality = style, detail = detail, language = language)) }, modifier = Modifier.fillMaxWidth()) { Text("Salvar personalidade") }
+        Button(onClick = { save(settings.copy(userPreferredName = name, assistantPersonality = style, assistantInstructions = instructions, userPreferences = preferences, detail = detail, language = language)) }, modifier = Modifier.fillMaxWidth()) { Text("Salvar personalidade") }
         Text("A interface desta versão está em português. A tradução completa da interface está pendente.", style = MaterialTheme.typography.bodySmall)
     }
 }
@@ -931,13 +980,13 @@ private fun SettingsScreen(model: NexusViewModel, voice: VoiceController, settin
         }
         Text("A lista mostra somente vozes do idioma escolhido em Personalidade. Vozes de rede podem enviar texto ao mecanismo de fala do Android.", style = MaterialTheme.typography.bodySmall)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { voice.speak("Olá! Eu sou o NEXUS, seu assistente pessoal.", settings.language, rate, voiceName, pitch) }, enabled = voiceState.ttsReady && voices.isNotEmpty(), modifier = Modifier.weight(1f)) { Text("Testar voz") }
+            OutlinedButton(onClick = { voice.speak("Olá! Eu sou o NEXUS, seu assistente pessoal.", settings.language, rate, voiceName, pitch) }, enabled = voiceState.ttsReady && voiceState.languageReady, modifier = Modifier.weight(1f)) { Text("Testar voz") }
             OutlinedButton(onClick = { voice.stopSpeaking() }, enabled = voiceState.isSpeaking, modifier = Modifier.weight(1f)) { Text("Parar leitura") }
         }
         ToggleRow("Ler novas respostas automaticamente", autoSpeak, { autoSpeak = it })
         Text("A leitura automática acontece somente com o app aberto. O assistente por voz lê a resposta à sua fala mesmo com esta opção desligada.", style = MaterialTheme.typography.bodySmall)
         voiceState.error?.let { InfoCard("VOZ DO ANDROID", it) }
-        VoiceLanguageHelp(settings.language, missing = voiceState.ttsReady && voices.isEmpty())
+        VoiceLanguageHelp(settings.language, missing = voiceState.ttsReady && !voiceState.languageReady)
         Button(onClick = {
             val submittedToken = token
             model.saveSettings(settings.copy(aiMode = mode, endpoint = endpoint.trim(), model = aiModel.trim(), remoteConsent = consent,
@@ -1092,7 +1141,10 @@ private fun VoiceLanguageHelp(language: String, missing: Boolean = true) {
 @Composable
 private fun MemoryScreen(model: NexusViewModel, openChat: () -> Unit, onBeforeDeleteAll: () -> Unit) {
     val memories by model.memories.collectAsStateWithLifecycle()
-    val conversations by model.conversations.collectAsStateWithLifecycle()
+    val conversations by model.historyResults.collectAsStateWithLifecycle()
+    val historyQuery by model.historyQuery.collectAsStateWithLifecycle()
+    var renameId by remember { mutableStateOf<String?>(null) }
+    var renameTitle by rememberSaveable { mutableStateOf("") }
     var memoryDraft by rememberSaveable { mutableStateOf("") }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmDeleteAll by remember { mutableStateOf(false) }
@@ -1115,12 +1167,15 @@ private fun MemoryScreen(model: NexusViewModel, openChat: () -> Unit, onBeforeDe
                 }
             }
         }
-        Text("Conversas salvas (${conversations.size})", fontSize = 22.sp)
+        Text("Conversas encontradas (${conversations.size})", fontSize = 22.sp)
+        OutlinedTextField(historyQuery, model::searchHistory, label = { Text("Buscar título ou texto da conversa") }, modifier = Modifier.fillMaxWidth())
+        OutlinedButton(onClick = { model.newConversation(); openChat() }) { Text("Iniciar novo contexto e preservar histórico") }
         if (conversations.isEmpty()) Text("Suas próximas conversas aparecerão aqui.")
         conversations.forEach { conversation ->
             Card(Modifier.fillMaxWidth()) {
                 Row(Modifier.padding(start = 14.dp), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { model.openConversation(conversation.id); openChat() }, modifier = Modifier.weight(1f)) { Text(conversation.title) }
+                    IconButton(onClick = { renameId = conversation.id; renameTitle = conversation.title }) { Icon(Icons.Default.Edit, "Renomear conversa") }
                     IconButton(onClick = { model.deleteConversation(conversation.id) }) { Icon(Icons.Default.DeleteOutline, "Excluir conversa ${conversation.title}") }
                 }
             }
@@ -1129,6 +1184,10 @@ private fun MemoryScreen(model: NexusViewModel, openChat: () -> Unit, onBeforeDe
         Text("A exportação contém textos pessoais. Imagens e token não são incluídos.", style = MaterialTheme.typography.bodySmall)
         TextButton(onClick = { confirmDeleteAll = true }) { Text("Apagar dados e preferências", color = MaterialTheme.colorScheme.error) }
     }
+    renameId?.let { id -> AlertDialog(onDismissRequest = { renameId = null }, title = { Text("Renomear conversa") },
+        text = { OutlinedTextField(renameTitle, { renameTitle = it.take(80) }, label = { Text("Título") }) },
+        confirmButton = { TextButton(onClick = { model.renameConversation(id, renameTitle); renameId = null }, enabled = renameTitle.isNotBlank()) { Text("Salvar") } },
+        dismissButton = { TextButton(onClick = { renameId = null }) { Text("Cancelar") } }) }
     if (confirmDeleteAll) AlertDialog(onDismissRequest = { confirmDeleteAll = false }, title = { Text("Apagar os dados locais?") },
         text = { Text("Conversas, imagens anexadas, memórias, token, preferências, progresso de treino e o modelo de IA baixado serão removidos deste aparelho. As sessões de voz e mouse serão encerradas. A exclusão não pode ser desfeita.") },
         confirmButton = { TextButton(onClick = { confirmDeleteAll = false; onBeforeDeleteAll(); model.deleteAllData() }) { Text("Apagar") } },

@@ -1,8 +1,8 @@
 package br.com.nexus.assistant.gestures
 
 /** Bounded adaptive pacing, shared by visible CameraX and foreground-service analyzers. */
-class TrackingCadence(baseIntervalMs: Long) {
-    private val base = baseIntervalMs.coerceIn(100L, 500L)
+class TrackingCadence(baseIntervalMs: Long, minimumIntervalMs: Long = 100L) {
+    private val base = baseIntervalMs.coerceIn(minimumIntervalMs.coerceIn(50L, 500L), 500L)
     var intervalMs: Long = base; private set
     private var lastFrameAt: Long? = null
     private var smoothedCost: Double? = null

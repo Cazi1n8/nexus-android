@@ -17,6 +17,9 @@ object ArithmeticTool {
             .replace(Regex("\\p{M}+"), "")
             .replace('×', '*').replace('÷', '/').replace('−', '-')
         expression = expression.replace(prefix, "").trim().trimEnd('?', '!', '=').trim()
+        expression = expression.replace(Regex("\\bvezes\\b"), "*")
+            .replace(Regex("\\bdividido por\\b"), "/").replace(Regex("\\bmais\\b"), "+")
+            .replace(Regex("\\bmenos\\b"), "-")
         // Support x as a multiplication symbol only between numbers/parentheses.
         expression = expression.replace(Regex("(?<=[0-9)])\\s*x\\s*(?=[0-9(])"), "*")
         if (expression.isEmpty() || !alphabet.matches(expression) || expression.none { it.isDigit() }) return null
@@ -24,7 +27,7 @@ object ArithmeticTool {
         if (expression.length > 256) return "O cálculo é longo demais. Use uma expressão com até 256 caracteres."
         return try {
             val result = Parser(expression).parse().stripTrailingZeros().toPlainString()
-            "${expression.replace('*', '×').replace('/', '÷')} = ${result.replace('.', ',')}\n\nMultiplicação e divisão têm a mesma prioridade e são resolvidas da esquerda para a direita; depois, soma e subtração. Parênteses e potências vêm primeiro. Precisão de até 34 algarismos significativos."
+            "${expression.replace('*', '×').replace('/', '÷')} = ${result.replace('.', ',')}"
         } catch (failure: ArithmeticFailure) {
             failure.message
         } catch (_: ArithmeticException) {

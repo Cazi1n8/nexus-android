@@ -45,16 +45,23 @@ fun distance(a: HandPoint, b: HandPoint): Float = hypot(a.x - b.x, a.y - b.y)
 class CursorFilter {
     private var previous: HandPoint? = null
     private var offset = HandPoint(0f, 0f)
+    private var previousAt: Long? = null
 
-    fun update(point: HandPoint, sensitivity: Float): HandPoint {
+    fun update(point: HandPoint, sensitivity: Float, timestampMs: Long? = null): HandPoint {
         val adjusted = HandPoint(
             ((point.x - .5f) * sensitivity + .5f + offset.x).coerceIn(0f, 1f),
             ((point.y - .5f) * sensitivity + .5f + offset.y).coerceIn(0f, 1f)
         )
         val old = previous
+        // A fixed per-frame weight lagged badly at 4–6 camera frames/s.
+        // Time-based smoothing keeps an ~85ms response constant across frame rates;
+        // every position is still derived only from an actually observed fingertip.
+        val elapsed = previousAt?.let { last -> timestampMs?.minus(last) }?.coerceIn(1L, 500L)
+        val alpha = elapsed?.let { (1.0 - kotlin.math.exp(-it / 85.0)).toFloat() } ?: .32f
         val next = if (old == null) adjusted else HandPoint(
-            old.x + .32f * (adjusted.x - old.x), old.y + .32f * (adjusted.y - old.y)
+            old.x + alpha * (adjusted.x - old.x), old.y + alpha * (adjusted.y - old.y)
         )
+        previousAt = timestampMs
         previous = next
         return next
     }
@@ -62,9 +69,10 @@ class CursorFilter {
     fun center(point: HandPoint, sensitivity: Float) {
         offset = HandPoint(-((point.x - .5f) * sensitivity), -((point.y - .5f) * sensitivity))
         previous = null
+        previousAt = null
     }
 
-    fun reset() { previous = null }
+    fun reset() { previous = null; previousAt = null }
 }
 
 data class PinchEvent(

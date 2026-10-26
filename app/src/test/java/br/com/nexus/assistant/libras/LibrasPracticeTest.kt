@@ -92,6 +92,15 @@ class LibrasPracticeTest {
         assertFalse(gate.update(PracticeObservation.MATCH, 2_400L))
     }
 
+    @Test fun slowAdaptiveTrackingCanCompleteTheActivityInsteadOfResettingForever() {
+        val gate = PracticeHoldGate()
+        // TrackingCadence may use 500ms on modest devices. It must not be rejected
+        // by the old 400ms continuity threshold on every valid frame.
+        for (now in 1_000L..3_500L step 500L) assertFalse(gate.update(PracticeObservation.MATCH, now))
+        assertTrue(gate.update(PracticeObservation.MATCH, 4_000L))
+        assertFalse(gate.update(PracticeObservation.MATCH, 4_500L))
+    }
+
     @Test fun badFramesLongGapsAndDuplicateTimestampsCannotCompleteAHold() {
         val gate = PracticeHoldGate()
         for (now in 1_000L..2_000L step 200L) assertFalse(gate.update(PracticeObservation.MATCH, now))
