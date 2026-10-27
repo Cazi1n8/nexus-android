@@ -1,0 +1,295 @@
+{
+  "sourceBefore": "4228a54f09fcba3a55e0231f182d24db4707cb66",
+  "sourceAfter": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+  "scope": "Actual Android API29 CI fixtures, same pinned Qwen2.5 1.5B model, one thread and context2048; not physical S9 performance or general intelligence guarantee.",
+  "commonRecordedResponses": 28,
+  "commonModelResponses": 26,
+  "identicalCommonResponses": 26,
+  "contextCommonTurns": 16,
+  "oldContextCommonTotalMs": 1585112,
+  "newContextCommonTotalMs": 182530,
+  "oldContextMedianMs": 101435.5,
+  "newContextMedianMs": 11336.5,
+  "pairs": [
+    {
+      "caseId": 1,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 46180,
+      "newMs": 59671,
+      "answersIdentical": true,
+      "oldPromptTokens": 289,
+      "newPromptTokens": 289
+    },
+    {
+      "caseId": 2,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 49739,
+      "newMs": 11630,
+      "answersIdentical": true,
+      "oldPromptTokens": 289,
+      "newPromptTokens": 289
+    },
+    {
+      "caseId": 3,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 61936,
+      "newMs": 28069,
+      "answersIdentical": true,
+      "oldPromptTokens": 293,
+      "newPromptTokens": 293
+    },
+    {
+      "caseId": 4,
+      "turn": 1,
+      "kind": "calculator",
+      "oldMs": 3,
+      "newMs": 4,
+      "answersIdentical": true,
+      "oldPromptTokens": null,
+      "newPromptTokens": null
+    },
+    {
+      "caseId": 5,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 96614,
+      "newMs": 74052,
+      "answersIdentical": true,
+      "oldPromptTokens": 304,
+      "newPromptTokens": 304
+    },
+    {
+      "caseId": 6,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 94574,
+      "newMs": 72741,
+      "answersIdentical": true,
+      "oldPromptTokens": 298,
+      "newPromptTokens": 298
+    },
+    {
+      "caseId": 6,
+      "turn": 2,
+      "kind": "local_model",
+      "oldMs": 124692,
+      "newMs": 60605,
+      "answersIdentical": false,
+      "oldPromptTokens": 577,
+      "newPromptTokens": 577
+    },
+    {
+      "caseId": 7,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 61624,
+      "newMs": 27056,
+      "answersIdentical": true,
+      "oldPromptTokens": 302,
+      "newPromptTokens": 302
+    },
+    {
+      "caseId": 7,
+      "turn": 2,
+      "kind": "local_model",
+      "oldMs": 68730,
+      "newMs": 24408,
+      "answersIdentical": false,
+      "oldPromptTokens": 404,
+      "newPromptTokens": 404
+    },
+    {
+      "caseId": 8,
+      "turn": 1,
+      "kind": "local_action_proposal",
+      "oldMs": 3,
+      "newMs": 3,
+      "answersIdentical": true,
+      "oldPromptTokens": null,
+      "newPromptTokens": null
+    },
+    {
+      "caseId": 9,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 50960,
+      "newMs": 14305,
+      "answersIdentical": true,
+      "oldPromptTokens": 296,
+      "newPromptTokens": 296
+    },
+    {
+      "caseId": 10,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 121730,
+      "newMs": 110794,
+      "answersIdentical": true,
+      "oldPromptTokens": 305,
+      "newPromptTokens": 305
+    },
+    {
+      "caseId": 11,
+      "turn": 1,
+      "kind": "local_model",
+      "oldMs": 47369,
+      "newMs": 9523,
+      "answersIdentical": true,
+      "oldPromptTokens": 313,
+      "newPromptTokens": 313
+    },
+    {
+      "caseId": 11,
+      "turn": 2,
+      "kind": "local_model",
+      "oldMs": 54066,
+      "newMs": 10375,
+      "answersIdentical": true,
+      "oldPromptTokens": 359,
+      "newPromptTokens": 359
+    },
+    {
+      "caseId": 11,
+      "turn": 3,
+      "kind": "local_model",
+      "oldMs": 59932,
+      "newMs": 10490,
+      "answersIdentical": true,
+      "oldPromptTokens": 405,
+      "newPromptTokens": 405
+    },
+    {
+      "caseId": 11,
+      "turn": 4,
+      "kind": "local_model",
+      "oldMs": 65893,
+      "newMs": 10610,
+      "answersIdentical": true,
+      "oldPromptTokens": 451,
+      "newPromptTokens": 451
+    },
+    {
+      "caseId": 11,
+      "turn": 5,
+      "kind": "local_model",
+      "oldMs": 73878,
+      "newMs": 10843,
+      "answersIdentical": true,
+      "oldPromptTokens": 497,
+      "newPromptTokens": 497
+    },
+    {
+      "caseId": 11,
+      "turn": 6,
+      "kind": "local_model",
+      "oldMs": 82567,
+      "newMs": 10919,
+      "answersIdentical": true,
+      "oldPromptTokens": 543,
+      "newPromptTokens": 543
+    },
+    {
+      "caseId": 11,
+      "turn": 7,
+      "kind": "local_model",
+      "oldMs": 91649,
+      "newMs": 11097,
+      "answersIdentical": true,
+      "oldPromptTokens": 589,
+      "newPromptTokens": 589
+    },
+    {
+      "caseId": 11,
+      "turn": 8,
+      "kind": "local_model",
+      "oldMs": 99520,
+      "newMs": 11253,
+      "answersIdentical": true,
+      "oldPromptTokens": 635,
+      "newPromptTokens": 635
+    },
+    {
+      "caseId": 11,
+      "turn": 9,
+      "kind": "local_model",
+      "oldMs": 103351,
+      "newMs": 11420,
+      "answersIdentical": true,
+      "oldPromptTokens": 681,
+      "newPromptTokens": 681
+    },
+    {
+      "caseId": 11,
+      "turn": 10,
+      "kind": "local_model",
+      "oldMs": 108784,
+      "newMs": 11832,
+      "answersIdentical": true,
+      "oldPromptTokens": 728,
+      "newPromptTokens": 728
+    },
+    {
+      "caseId": 11,
+      "turn": 11,
+      "kind": "local_model",
+      "oldMs": 116080,
+      "newMs": 12015,
+      "answersIdentical": true,
+      "oldPromptTokens": 775,
+      "newPromptTokens": 775
+    },
+    {
+      "caseId": 11,
+      "turn": 12,
+      "kind": "local_model",
+      "oldMs": 126619,
+      "newMs": 12114,
+      "answersIdentical": true,
+      "oldPromptTokens": 822,
+      "newPromptTokens": 822
+    },
+    {
+      "caseId": 11,
+      "turn": 13,
+      "kind": "local_model",
+      "oldMs": 133847,
+      "newMs": 12268,
+      "answersIdentical": true,
+      "oldPromptTokens": 869,
+      "newPromptTokens": 869
+    },
+    {
+      "caseId": 11,
+      "turn": 14,
+      "kind": "local_model",
+      "oldMs": 135215,
+      "newMs": 12404,
+      "answersIdentical": true,
+      "oldPromptTokens": 916,
+      "newPromptTokens": 916
+    },
+    {
+      "caseId": 11,
+      "turn": 15,
+      "kind": "local_model",
+      "oldMs": 139225,
+      "newMs": 12549,
+      "answersIdentical": true,
+      "oldPromptTokens": 963,
+      "newPromptTokens": 963
+    },
+    {
+      "caseId": 11,
+      "turn": 16,
+      "kind": "local_model",
+      "oldMs": 147117,
+      "newMs": 12818,
+      "answersIdentical": true,
+      "oldPromptTokens": 1010,
+      "newPromptTokens": 1010
+    }
+  ]
+}

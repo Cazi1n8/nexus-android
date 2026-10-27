@@ -1,0 +1,28 @@
+{
+  "sourceCommit": "62ec1e3a714cdcc577e04f659185808bd6c9ab3f",
+  "runId": 40389844392,
+  "jobId": 121807646084,
+  "artifactId": 12686011069,
+  "artifactZipSha256": "03cc9fcaa3ad3f96b6535fbc4506d09597e27c98521e38755dbce9ec5bb7b0af",
+  "workflowConclusion": "failure",
+  "failureReason": "critical_semantic_gate",
+  "executionCompleted": true,
+  "casesExecuted": 15,
+  "modelGenerations": 35,
+  "calculatorExecutions": 1,
+  "actionProposals": 1,
+  "persistedResponses": 37,
+  "roomReopenedAndVerified": true,
+  "technicalFailures": 0,
+  "elapsedMilliseconds": 904636,
+  "contextTurns": 20,
+  "automaticChecksSatisfied": 9,
+  "criticalFailedCaseIds": [
+    3,
+    9,
+    12
+  ],
+  "humanReviewRequired": true,
+  "physicalDeviceTested": false,
+  "playProtectApproved": false
+}

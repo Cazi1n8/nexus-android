@@ -12,6 +12,8 @@ Projeto Android existente em Kotlin e Jetpack Compose, em português brasileiro,
 
 A compilação local debug e release terminou em 8 min 45 s: 190 testes JVM e 116 testes de scripts aprovados; lint debug/release sem erros, com 47 avisos e uma informação. O release local está sem assinatura e não é instalável; o artefato acima contém o build debug para avaliação. A linguagem informal ainda produz erros reais e os serviços de câmera/voz precisam de teste físico. Mantenha o Play Protect ativado; se houver bloqueio, use o procedimento oficial da auditoria.
 
+A avaliação completa terminou: **15 casos, 35 gerações reais e duas ferramentas**, 37 respostas persistidas e contexto recuperado após 20 turnos. **A qualidade foi reprovada**, incluindo desculpas mal interpretadas e alegação falsa de acesso à câmera. [Resultados reais e revisão](TESTES_NEXUS_AI.md). O ganho de desempenho não significa inteligência corrigida.
+
 ## Mudanças em validação
 
 - Identidade fixa **NEXUS**, separada de nome preferido do usuário, personalidade, instruções e preferências. Migração das configurações existentes.

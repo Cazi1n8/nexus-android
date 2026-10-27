@@ -1,8 +1,36 @@
 # NEXUS AI 3 — testes e avaliações
 
-Atualizado em 26/10/2026. Teste de código, geração real, interpretação correta e uso no celular são verificações diferentes. **A inteligência do NEXUS ainda não está corrigida nem aprovada.**
+Atualizado em 27/10/2026. Teste de código, geração real, interpretação correta e uso no celular são verificações diferentes. **A inteligência do NEXUS ainda não está corrigida nem aprovada.**
 
-## Resultado real da avaliação Android
+## Resultado atual: alpha.2 concluiu a bateria, mas falhou em qualidade
+
+A [execução 40389844392](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844392), fonte `62ec1e3a714cdcc577e04f659185808bd6c9ab3f`, completou **15 casos e 37 respostas: 35 gerações reais, uma calculadora e uma proposta de ação**, em **904.636 ms (15 min 05 s)**. Usou o Qwen2.5 1,5B Q4_K_M incluído, contexto de 2.048 tokens, uma thread, Android 10 emulado e rede desligada antes/depois. Houve zero falhas técnicas e o Room foi reaberto com as 37 respostas verificadas.
+
+O workflow terminou com **falha no gate de qualidade**, nos casos críticos **3, 9 e 12**. Nove dos quinze casos atenderam às heurísticas, o que não significa nove aprovações humanas: elas ainda aceitam respostas incompletas ou inadequadas. As respostas originais foram preservadas.
+
+| Caso | Revisão das respostas reais da alpha.2 |
+| --- | --- |
+| 1 — nome do usuário | Identifica Calebe numa saudação, embora não responda diretamente à pergunta |
+| 2 — nome do assistente | Identifica NEXUS corretamente |
+| 3 — desculpas | **Falha:** dirige o texto a Calebe, inventa situação em conversas anteriores e assina “Att., NEXUS” |
+| 4 — 25 vezes 18 | Calculadora real retorna `25 × 18 = 450` |
+| 5 — explicação infantil | **Falha:** apresenta IA como “parte do cérebro humano” e termina cortada |
+| 6 — história de Max | **Falha:** preserva personagens, mas os textos terminam cortados e não entregam um final completo |
+| 7 — formal/informal | Parcial: permanece em português nesta execução, mas mantém Calebe como destinatário, assinatura NEXUS e expressão inválida “respostas asmaosas” |
+| 8 — configurações | Proposta estruturada e envio do Intent oficial confirmados; não testa o diálogo de consentimento real nem garante a tela externa visível |
+| 9 — câmera | **Falha:** afirma falsamente ver e interpretar imagens em tempo real |
+| 10 — redação | **Falha:** erros históricos e corte em “A conclusão” |
+| 11 — vinte turnos | Recupera corretamente **ORION e MARFIM** após os vinte turnos reais |
+| 12 — erros de digitação | **Falha:** responde “Calebe, eu não posso ajudar com isso.” ao pedido de desculpas |
+| 13 — troca para Ana | Usa Ana e mantém a identidade NEXUS |
+| 14 — incerteza | Reconhece não ter acesso aos pensamentos do usuário |
+| 15 — três parágrafos | Parcial: produz cinco parágrafos, com síntese repetida e referência a conversa anterior inexistente, apesar de passar a heurística |
+
+O caso 11 terminou em **239.735 ms**: primeiro turno 9,523 s, penúltimo 13,265 s, último 17,774 s. Nos dezesseis turnos comparáveis ao teste anterior, o total observado caiu de 1.585,112 s para 182,530 s. São execuções em emuladores separados com a mesma configuração, não um benchmark controlado do S9+. Das 26 respostas de modelo comparáveis, 24 ficaram iguais e duas diferiram; a amostragem com seed fixo não garante identidade universal entre formas de processamento. A prova separada de vinte comparações no host continua identificada pelo seu escopo.
+
+Evidências: [JSON completo](docs/evidencias/ai3-alpha2-evaluation.json), [resumo semântico](docs/evidencias/ai3-alpha2-semantic-summary.json), [instrumentação](docs/evidencias/ai3-alpha2-evaluation-instrumentation.txt), [JUnit técnico](docs/evidencias/ai3-alpha2-evaluation-junit.xml), [rede](docs/evidencias/ai3-alpha2-evaluation-network-restoration.json), [comparação de tempos](docs/evidencias/ai3-alpha2-android-comparison.json) e [resumo final](docs/evidencias/ai3-alpha2-final-evaluation-summary.json). O ZIP pequeno de evidências teve tamanho e SHA verificados. Nenhum teste físico ou aprovação do Play Protect foi obtido.
+
+## Histórico: alpha.1 interrompida por timeout
 
 A [execução 40303339463](https://github.com/Cazi1n8/nexus-android/actions/runs/40303339463), no commit `4228a54f09fcba3a55e0231f182d24db4707cb66`, **falhou pelo limite de 40 minutos do teste JUnit**. Ela usou o Qwen2.5 1,5B Q4_K_M incluído no APK, Android 10/API 29 emulado, uma thread e contexto de 2.048 tokens, sem internet. Não houve teste físico no Galaxy S9+.
 
@@ -28,7 +56,7 @@ Os casos 1–10 concluíram geração/ferramenta. O caso 11 registrou 16 respost
 
 A heurística marcou o caso 3 como aprovado apesar da assinatura indevida “NEXUS”: **falso positivo confirmado**. No caso 7, ela não reconheceu o assunto da reunião em inglês: falso negativo de tópico; o problema real continua sendo a mudança de idioma e de remetente. A revisão humana lê o conteúdo completo e não transforma esses resultados em uma nota global de inteligência.
 
-A lentidão também é real: no caso 11, a mesma resposta de nove tokens levou de **47,369 s com 313 tokens de entrada** a **147,117 s com 1.010 tokens de entrada**. O runtime atual limpa o contexto KV a cada geração e reprocessa todo o histórico. Essa implementação precisa de otimização e testes de reutilização segura de prefixo; aumentar o tempo máximo da bateria não corrigiria a causa nem a qualidade das respostas. Esses tempos são do emulador, não uma medição do S9+.
+A lentidão também é real: no caso 11, a mesma resposta de nove tokens levou de **47,369 s com 313 tokens de entrada** a **147,117 s com 1.010 tokens de entrada**. O runtime daquela versão limpava o contexto KV a cada geração e reprocessava todo o histórico. A alpha.2 passou a reaproveitar o prefixo; o resultado novo está no início deste documento. Aumentar o tempo máximo da bateria não corrigiria a causa nem a qualidade das respostas. Esses tempos são do emulador, não uma medição do S9+.
 
 ## Evidências preservadas
 
@@ -79,7 +107,7 @@ Verificações executadas nesta correção:
 - `python3 -m unittest discover -s scripts/tests -p 'test_run_android_ai3_evaluation.py' -v`: **12 aprovados**. Fixtures e ADB simulado comprovam consistência dos metadados, preservação das respostas, restauração da rede, recusa de dispositivos físicos e falha do gate quando o caso 9 falha.
 - A suíte completa de scripts registrou **115 testes aprovados**; são testes das ferramentas de desenvolvimento, não da inteligência.
 
-[Evidência e hashes das fontes](docs/evidencias/ai3-evaluation-checks-regressions.json). O novo APK de testes foi compilado e as nove regressões passaram também no Android, dentro da suíte de 28 aprovados e quatro opt-in ignorados. A reexecução real dos quinze casos continua em andamento neste registro. Nenhum resultado anterior foi recalculado ou marcado como aprovado retroativamente.
+[Evidência e hashes das fontes](docs/evidencias/ai3-evaluation-checks-regressions.json). O novo APK de testes foi compilado e as nove regressões passaram também no Android, dentro da suíte de 28 aprovados e quatro opt-in ignorados. A reexecução real dos quinze casos terminou e falhou no gate semântico, conforme o resultado atual acima. Nenhum resultado anterior foi recalculado ou marcado como aprovado retroativamente.
 
 ## Alpha.2: desempenho e testes técnicos novos
 
@@ -109,7 +137,7 @@ Em 26/10, a comparação do Qwen2.5 1,5B foi **interrompida após sete saídas r
 | Explicação infantil de IA | **Falha:** inclui afirmações falsas sobre prever o futuro e dispensar energia |
 | História de Max | Texto com começo e final, mas inconsistente; pedido posterior de continuação não foi executado |
 
-As verificações automáticas de palavras aceitaram a matemática e a explicação infantil, apesar desses erros. Isso comprova sua limitação e a necessidade de ler as respostas. **Os quinze casos não foram concluídos nesse baseline.** A interpretação de português informal e a qualidade de escrita continuam sem correção comprovada; o caso 12 da avaliação Android não chegou a produzir resposta antes do timeout, portanto sua aprovação continua sem prova. Essa falha deve permanecer visível, mesmo se o aplicativo compilar e as ferramentas de cálculo funcionarem.
+As verificações automáticas de palavras aceitaram a matemática e a explicação infantil, apesar desses erros. Isso comprova sua limitação e a necessidade de ler as respostas. **Os quinze casos não foram concluídos nesse baseline.** A interpretação de português informal e a qualidade de escrita continuam sem correção comprovada; o caso 12 da avaliação Android antiga não chegou a produzir resposta antes do timeout. A alpha.2 executou esse caso e também falhou na interpretação, como registrado acima. Essa falha deve permanecer visível, mesmo se o aplicativo compilar e as ferramentas de cálculo funcionarem.
 
 Foram testados separadamente protótipos Qwen3 1,7B e Qwen3.5 0,8B, incluindo templates oficiais sem raciocínio e prompts menores. As comparações reais, suas origens e revisões semânticas estão no [relatório consolidado](docs/evidencias/ai3-local-model-quality-investigation.json). Ambos foram rejeitados porque continuaram errando a intenção ou deixando de produzir os textos pedidos. **Esses protótipos não foram incluídos no APK.** A versão atual preserva os modelos Qwen2.5 0,5B e 1,5B com limitações explícitas, sem apresentar a troca de modelo como solução demonstrada.
 

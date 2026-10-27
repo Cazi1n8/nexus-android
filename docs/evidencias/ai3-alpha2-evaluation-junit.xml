@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuite name="AndroidAi3Evaluation" tests="1" failures="1" errors="0" skipped="0"><testcase classname="br.com.nexus.assistant.Ai3EvaluationTest" name="evaluateTheFifteenRequestedCasesWithTheBundledModel" time="921.370"><failure message="Android AI evaluation did not complete">ValueError: A geração executou, mas falharam verificações críticas de identidade/redação/limites de visão nos casos: 3, 9, 12. As respostas reais foram preservadas.</failure></testcase></testsuite>

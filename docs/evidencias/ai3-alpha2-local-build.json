@@ -35,7 +35,7 @@
       "Information": 1
     }
   },
-  "androidInstrumentedRun": "pending_new_CI",
+  "androidInstrumentedRun": "completed_see_separate_CI_evidence",
   "physicalDeviceTested": false,
   "playProtectApproved": false
 }

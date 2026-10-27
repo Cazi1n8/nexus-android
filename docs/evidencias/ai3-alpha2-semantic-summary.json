@@ -1,0 +1,24 @@
+{
+  "executionStatus": "completed",
+  "casesExecuted": 15,
+  "executionCompleted": true,
+  "automaticSemanticChecksPassed": false,
+  "humanReviewRequired": true,
+  "automaticChecksSatisfied": 9,
+  "criticalCaseIds": [
+    1,
+    2,
+    3,
+    9,
+    12,
+    13
+  ],
+  "criticalFailedCaseIds": [
+    3,
+    9,
+    12
+  ],
+  "criticalGateRequired": true,
+  "criticalGatePassed": false,
+  "heuristicsAreNotQualityCertification": true
+}

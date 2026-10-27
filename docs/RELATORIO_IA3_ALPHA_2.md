@@ -20,7 +20,7 @@ Erros e cancelamento invalidam o cache. Trocar de conversa libera o engine. Alte
 
 ## Limites da correção
 
-**Esta alteração corrige processamento desnecessário, não comprova uma IA mais inteligente.** As falhas semânticas da alpha.1 permanecem registradas em [TESTES_NEXUS_AI.md](../TESTES_NEXUS_AI.md). A nova avaliação Android ainda precisa executar a bateria completa com o novo cache.
+**Esta alteração corrige processamento desnecessário, não comprova uma IA mais inteligente.** As falhas semânticas e os resultados completos da alpha.2 estão registrados em [TESTES_NEXUS_AI.md](../TESTES_NEXUS_AI.md). A nova avaliação Android executou os quinze casos e vinte turnos, mas reprovou a qualidade das respostas.
 
 Modelos alternativos foram investigados com inferência real, sem substituir silenciosamente os pesos incluídos. Nenhum foi aprovado como solução dos problemas de interpretação. [LFM2.5, Gemma3 e prompts curtos: 32 respostas reais](evidencias/ai3-alternative-models-quality.json), incluindo [cinco gerações com o sampler C++ de produção](evidencias/ai3-qwen25-pt-short-native.json). Os comparativos por servidor têm diferenças de amostragem explicitadas no relatório; não equivalem ao Android. Não existe backend NEXUS público implantado. A integração online opcional exige um serviço real configurado e autorizado.
 
@@ -47,4 +47,6 @@ A CI principal confirmou 190 testes JVM, 116 scripts e 44 do servidor; lint: zer
 
 **[Baixar o artefato 16](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109)**: ZIP de **1.645.767.106 bytes**, com `app-debug.apk` e `SHA256SUMS.txt`; exige login e extração. Expira em 25/11/2026. O GitHub informa SHA-256 **do ZIP** `c9898979c7f301712970949c0cbf260c92e946127caeab0e980d43983f25ba36`. O ZIP grande não foi baixado ou inspecionado localmente. A publicação debug em Releases permaneceu desativada.
 
-A [avaliação longa de qualidade](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844392) continua em execução neste registro. Sua conclusão e revisão semântica serão documentadas separadamente; os cinco resultados acima não a substituem.
+A [avaliação longa de qualidade](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844392) concluiu os **15 casos em 15 min 05 s**, com **35 gerações reais, uma calculadora e uma proposta de ação**, 37 respostas persistidas e reabertura do Room confirmada, sem rede nem falhas técnicas. O cenário de vinte turnos recuperou ORION e MARFIM. O workflow **falhou no gate semântico**, nos casos críticos **3, 9 e 12**. O modelo ainda assina o pedido de desculpas como NEXUS, inventa acesso à câmera e recusa o pedido informal de escrita.
+
+Nove dos quinze casos atenderam às heurísticas limitadas, não a uma certificação humana de inteligência. O caso 7 continuou em português nesta execução, mas manteve destinatário/assinatura inadequados; o caso 15 entregou cinco parágrafos quando foram pedidos três. Os textos e a revisão completa estão em [TESTES_NEXUS_AI.md](../TESTES_NEXUS_AI.md), com [JSON original](evidencias/ai3-alpha2-evaluation.json) e [resumo final](evidencias/ai3-alpha2-final-evaluation-summary.json). O teste foi concluído, e suas falhas permanecem abertas.
