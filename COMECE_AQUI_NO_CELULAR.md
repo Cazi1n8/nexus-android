@@ -4,9 +4,11 @@ Esta é uma versão de teste em desenvolvimento. O projeto já existe e está sa
 
 ## 1. Baixar o arquivo certo
 
-Abra o [artefato de teste 16 — alpha.2](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109) e entre na sua conta do GitHub. Ele baixa um **ZIP grande, aproximadamente 1,65 GB**. No gerenciador de arquivos do celular, extraia o ZIP e localize **app-debug.apk**. O arquivo `SHA256SUMS.txt` contém o resumo do APK gerado nessa compilação.
+Toque em **[Baixar NEXUS alpha.2 diretamente](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.2-download-16/NEXUS-3.0.0-alpha.2.apk)**. O navegador baixa `NEXUS-3.0.0-alpha.2.apk`, aproximadamente **1,74 GB**, sem exigir login no GitHub nem extração de ZIP. Depois, abra o arquivo na área de downloads do celular.
 
-O botão verde **Code → Download ZIP** do repositório baixa o código-fonte, que não é o aplicativo instalável. Os artefatos do Actions expiram; este arquivo tem retenção de 30 dias. Reserve cerca de 8 GB livres para download, extração, instalação e preparação da IA; uma atualização pode exigir mais espaço.
+O APK continua hospedado no GitHub, mas o link acima entrega o arquivo diretamente. Ele preserva a mesma assinatura e conteúdo do artefato de teste 16. Reserve cerca de **8 GB livres** para instalação e preparação da IA; uma atualização pode exigir mais espaço.
+
+O botão **Code → Download ZIP** baixa o código-fonte, não o aplicativo. O ZIP do Actions permanece como alternativa e exige login/extração; sua retenção de 30 dias não se aplica ao novo asset da Release, disponível até ser removido pelo responsável.
 
 ## 2. Instalação e seus dados
 

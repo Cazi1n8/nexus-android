@@ -1,0 +1,22 @@
+{
+  "url": "https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.2-download-16/NEXUS-3.0.0-alpha.2.apk",
+  "status": 206,
+  "contentType": "application/vnd.android.package-archive",
+  "contentRange": "bytes 0-31/1738201604",
+  "contentLength": "32",
+  "contentDisposition": "attachment; filename=NEXUS-3.0.0-alpha.2.apk",
+  "zipApkHeaderValid": true,
+  "authenticatedRequest": false,
+  "fullApkDownloadedLocally": false,
+  "sourceRun": 40389844327,
+  "publicationRun": 40484800490,
+  "apkSha256": "ad2461e95883887753bc951b1a3487dab5f852fe3a6fd8d75a3d3bffbab9dadf",
+  "scope": "Public direct APK response checked by HTTP range without GitHub login. Checksum and signature verified by publication job; not a Play Protect or physical installation test.",
+  "releaseId": 425277637,
+  "releaseAssetId": 681171114,
+  "bytes": 1738201604,
+  "apkDigestReportedByGitHub": "sha256:ad2461e95883887753bc951b1a3487dab5f852fe3a6fd8d75a3d3bffbab9dadf",
+  "prerelease": true,
+  "publicationWorkflowConclusion": "success",
+  "certificateSha256": "22f77037ab58341a0066ab5089d5122755cebd79610f22e3b51cfb5c6cdfebc4"
+}

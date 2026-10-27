@@ -153,6 +153,10 @@ Os manifestos finais debug/release foram extraídos dos novos APKs e conferidos:
 
 Não foi feita instalação física ou consulta do novo arquivo ao Play Protect. A causa do bloqueio relatado continua desconhecida. O certificado e o hash do APK local não identificam a compilação separada do GitHub.
 
+## Download direto de teste em 27/10/2026
+
+A pedido do responsável, o APK existente do build 16 foi disponibilizado por link direto público, sem login ou extração de ZIP. Não houve recompilação, nova assinatura, mudança de permissões ou alteração da variável global que mantém pausadas as publicações automáticas. Origem, checksum, versão e assinatura foram conferidos no workflow; acesso HTTP sem autenticação também foi testado. Identificadores do arquivo publicado e limites da verificação estão no [relatório da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md) e na [evidência de download](docs/evidencias/ai3-alpha2-direct-download.json). Isso não constitui aprovação do Play Protect ou teste físico.
+
 ## Fontes oficiais consultadas
 
 As oito páginas abaixo retornaram HTTP 200 em nova consulta em 26/10/2026, 02:05 UTC; isso comprova acesso à documentação, não aprovação do NEXUS.
