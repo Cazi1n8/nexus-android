@@ -23,7 +23,7 @@ def core_report():
             "sensorPermissionsUnchanged": True, "automaticModelDownloadStarted": False,
             "automaticExtensionDownloadStarted": False, "backgroundServicesActive": False,
             "handModelBytes": runner.HAND_BYTES, "handModelSha256": runner.HAND_SHA256,
-            "mouseScreenWaitsForCameraConsent": False, "mouseScreenReportsUnsupportedHardware": True}
+            "mouseControlsOpenWithoutPermissionPrompt": False, "mouseScreenWaitsForExplicitActivation": False, "mouseScreenReportsUnsupportedHardware": True}
 
 
 def extension_report():
@@ -76,10 +76,28 @@ class EvidenceDecoderTest(unittest.TestCase):
         for change in ({"realHandTrackerProcessedBlankFrame": False}, {"generativeWeightsAbsent": False},
                        {"handModelBytes": 3}, {"handModelSha256": "0" * 64},
                        {"sensorPermissionsUnchanged": 1}, {"automaticModelDownloadStarted": True},
-                       {"backgroundServicesActive": None}, {"mouseScreenWaitsForCameraConsent": False,
+                       {"backgroundServicesActive": None}, {"mouseControlsOpenWithoutPermissionPrompt": False, "mouseScreenWaitsForExplicitActivation": False,
                                                              "mouseScreenReportsUnsupportedHardware": False}):
             with self.subTest(change=change), self.assertRaises(ValueError):
                 runner.validate_core(core_report() | change)
+
+    def test_accepts_the_observed_nexus41_android_report(self):
+        observed = json.loads((Path(__file__).parent / "fixtures/nexus41-core-installation.json").read_text())
+        runner.validate_core(observed)
+        self.assertTrue(observed["mouseControlsOpenWithoutPermissionPrompt"])
+        self.assertTrue(observed["mouseScreenWaitsForExplicitActivation"])
+        self.assertFalse(observed["mouseScreenReportsUnsupportedHardware"])
+
+    def test_missing_activation_or_legacy_permission_prompt_field_is_not_new_evidence(self):
+        observed = json.loads((Path(__file__).parent / "fixtures/nexus41-core-installation.json").read_text())
+        for field in ("mouseControlsOpenWithoutPermissionPrompt", "mouseScreenWaitsForExplicitActivation"):
+            incomplete = observed.copy()
+            incomplete.pop(field)
+            incomplete["mouseScreenWaitsForCameraConsent"] = True
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                runner.validate_core(incomplete)
+        with self.assertRaises(ValueError):
+            runner.validate_core(observed | {"mouseScreenWaitsForExplicitActivation": False})
 
     def test_optional_data_requires_actual_download_native_engine_and_safe_removal(self):
         for key in extension_report():

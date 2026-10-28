@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "executionStatus": "passed",
+  "versionName": "4.1.0-alpha.1-core",
+  "versionCode": 27,
+  "coreInstallation": true,
+  "scope": "Fresh Android CORE assets, actual MediaPipe blank frame, extensions/storage UI and permission/resource state. Not real camera, hand gestures, voice or Play Protect approval.",
+  "generativeWeightsAbsent": true,
+  "optionalVisionAssetsAbsent": true,
+  "handModelBytes": 7819105,
+  "handModelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+  "realHandTrackerProcessedBlankFrame": true,
+  "extensionsUiOpened": true,
+  "storageMeasurementRendered": true,
+  "manageModelsButtonNavigated": true,
+  "mouseControlsOpenWithoutPermissionPrompt": true,
+  "mouseScreenWaitsForExplicitActivation": true,
+  "mouseScreenReportsUnsupportedHardware": false,
+  "automaticModelDownloadStarted": false,
+  "automaticExtensionDownloadStarted": false,
+  "sensorPermissionsUnchanged": true,
+  "backgroundServicesActive": false,
+  "testedSensorPermissions": [
+    "android.permission.CAMERA",
+    "android.permission.RECORD_AUDIO"
+  ]
+}

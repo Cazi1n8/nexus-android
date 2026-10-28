@@ -118,10 +118,12 @@ def validate_core(report: dict) -> None:
             raise ValueError(f"O CORE iniciou um recurso sem autorização ou não informou seu estado: {key}.")
     if report.get("handModelBytes") != HAND_BYTES or report.get("handModelSha256") != HAND_SHA256:
         raise ValueError("O rastreamento não corresponde ao modelo de mãos fixado no CORE.")
-    camera = report.get("mouseScreenWaitsForCameraConsent")
+    controls = report.get("mouseControlsOpenWithoutPermissionPrompt")
+    activation = report.get("mouseScreenWaitsForExplicitActivation")
     unavailable = report.get("mouseScreenReportsUnsupportedHardware")
-    if type(camera) is not bool or type(unavailable) is not bool or camera == unavailable:
-        raise ValueError("A tela do mouse não confirmou consentimento ou limitação real da câmera.")
+    if (any(type(value) is not bool for value in (controls, activation, unavailable)) or
+            controls == unavailable or activation != controls):
+        raise ValueError("A tela do mouse não confirmou controles sem permissão, ativação explícita ou limitação real da câmera.")
 
 
 def validate_extensions(report: dict) -> None:
