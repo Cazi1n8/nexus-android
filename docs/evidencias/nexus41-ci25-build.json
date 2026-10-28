@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "runId": 40784772759,
+  "runNumber": 25,
+  "sourceCommit": "d76a3ad7c8396d16ecc93b125b6b96a8503ebfb4",
+  "applicationSourceCommit": "260247033611ab2eba76a33aa282f9e74a75a91e",
+  "buildStatus": "success",
+  "gradleBuildTime": "9m 19s",
+  "publicReleaseJob": "skipped by explicit security hold",
+  "artifacts": [
+    {
+      "id": 12858804039,
+      "name": "nexus-core-25",
+      "zipBytes": 56607927,
+      "zipSha256": "14db18bb5d17777036b0af14c9be4f397fdea0ea2925adaeaa0c106d185eda08"
+    },
+    {
+      "id": 12859511747,
+      "name": "nexus-reports-25",
+      "zipBytes": 199378,
+      "zipSha256": "853be924af0b76505ef4edc43661fa0a3c8c812a3fdd6082da78b493efea006f"
+    }
+  ],
+  "unitTests": {
+    "tests": 235,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pythonScriptTests": {
+    "tests": 164,
+    "passed": 164,
+    "skipped": 0,
+    "source": "completed CI job log"
+  },
+  "optionalServerTests": {
+    "tests": 44,
+    "passed": 44,
+    "skipped": 0,
+    "seconds": 16.55,
+    "source": "completed CI job log; this is test-server validation, not deployed AI infrastructure"
+  },
+  "apk": {
+    "bytes": 108520986,
+    "sha256": "56b0d30b6799753ef39c623b1063034b8a12b85f0c6b6c8e5dc7f9a9a45e369b"
+  },
+  "signing": {
+    "signatureVerified": true,
+    "certificateSha256": [
+      "0af8cb8d9d487b164da9509b0910a5ff96bd7d9337f71e9ff3c93873576af734"
+    ],
+    "testDebugCertificate": true,
+    "productionIdentityVerified": false
+  },
+  "independentDownloadedArtifactAudit": {
+    "manifestAndResources": "passed",
+    "contentBudgetAndUniversalAbis": "passed",
+    "signatureVerification": "passed",
+    "zipalign16KB": "passed",
+    "handModel": {
+      "path": "assets/hand_landmarker.task",
+      "expectedBytes": 7819105,
+      "expectedSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+      "present": true,
+      "verified": true,
+      "bytes": 7819105,
+      "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1"
+    }
+  },
+  "compiledSecurityPolicy": {
+    "schemaVersion": 1,
+    "auditTimestampUtc": "2026-10-28T23:20:40.700826+00:00",
+    "status": "passed",
+    "finalManifest": true,
+    "package": "br.com.nexus.assistant",
+    "versionName": "4.1.0-alpha.1-core",
+    "versionCode": "27",
+    "permissions": [
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.CAMERA",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_CAMERA",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.INTERNET",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.RECORD_AUDIO",
+      "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    ],
+    "components": [
+      {
+        "type": "activity",
+        "name": "br.com.nexus.assistant.MainActivity",
+        "exported": true,
+        "permission": null,
+        "foregroundServiceType": null
+      },
+      {
+        "type": "service",
+        "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": "0x80"
+      },
+      {
+        "type": "service",
+        "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": "0x40"
+      },
+      {
+        "type": "service",
+        "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+        "exported": true,
+        "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE",
+        "foregroundServiceType": null
+      },
+      {
+        "type": "service",
+        "name": "androidx.camera.core.impl.MetadataHolderService",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": null
+      },
+      {
+        "type": "service",
+        "name": "androidx.room.MultiInstanceInvalidationService",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": null
+      },
+      {
+        "type": "service",
+        "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": null
+      },
+      {
+        "type": "service",
+        "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+        "exported": false,
+        "permission": "android.permission.BIND_JOB_SERVICE",
+        "foregroundServiceType": null
+      },
+      {
+        "type": "receiver",
+        "name": "androidx.profileinstaller.ProfileInstallReceiver",
+        "exported": true,
+        "permission": "android.permission.DUMP",
+        "foregroundServiceType": null
+      },
+      {
+        "type": "receiver",
+        "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": null
+      },
+      {
+        "type": "provider",
+        "name": "androidx.startup.InitializationProvider",
+        "exported": false,
+        "permission": null,
+        "foregroundServiceType": null
+      }
+    ],
+    "accessibility": {
+      "description": "@ref/0x7f0b0066",
+      "accessibilityFeedbackType": "0x10",
+      "notificationTimeout": "100",
+      "canRetrieveWindowContent": "false",
+      "canRequestFilterKeyEvents": "false",
+      "canPerformGestures": "true",
+      "canTakeScreenshot": "false",
+      "isAccessibilityTool": "false"
+    },
+    "violations": [],
+    "limitations": [
+      "This is a manifest/resource boundary audit, not a Play Protect verdict.",
+      "Permission prompts, consent, camera/audio lifecycle and OEM behavior require runtime tests.",
+      "Dependencies, private data handling and native code require additional analysis."
+    ],
+    "artifact": {
+      "bytes": 108520986,
+      "sha256": "56b0d30b6799753ef39c623b1063034b8a12b85f0c6b6c8e5dc7f9a9a45e369b"
+    },
+    "signing": {
+      "signatureVerified": true,
+      "certificateSha256": [
+        "0af8cb8d9d487b164da9509b0910a5ff96bd7d9337f71e9ff3c93873576af734"
+      ],
+      "testDebugCertificate": true,
+      "productionIdentityVerified": false
+    }
+  },
+  "limitations": [
+    "Not approved by Play Protect or physically tested on Galaxy A03.",
+    "Test certificate differs from CORE22 and from local build: update compatibility is not promised.",
+    "No new public APK release was created; Actions artifact is an evaluation package, not production distribution.",
+    "Semantic evaluation of optional small local LLM still failed."
+  ]
+}

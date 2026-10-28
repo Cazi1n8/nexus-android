@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "timestampUtc": "2026-10-28T23:00:01.614063+00:00",
+  "applicationSourceCommit": "260247033611ab2eba76a33aa282f9e74a75a91e",
+  "applicationSourceTree": "8049bf1fbf3318dc37b132b6ef01d0051d6837a3",
+  "versionName": "4.1.0-alpha.1-core",
+  "versionCode": 27,
+  "build": {
+    "status": "passed",
+    "duration": "6m 44s",
+    "actionableTasks": 207,
+    "firstAttempt": {
+      "status": "failed",
+      "reason": "AAPT2 refuses explicit 0 accessibility enum/flag resource values; omitted them to preserve zero defaults and explicit service runtime zero."
+    },
+    "tasks": [
+      "testDebugUnitTest",
+      "lintDebug",
+      "lintCoreTest",
+      "assembleDebug",
+      "assembleCoreTest",
+      "assembleRelease",
+      "assembleCoreTestAndroidTest"
+    ]
+  },
+  "unitTests": {
+    "tests": 235,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "unitSuites": [
+    {
+      "suite": "br.com.nexus.assistant.data.local.LocalModelDownloadTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.gestures.LatestFrameDeliveryTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.gestures.GestureControllersTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.commands.LocalActionRouterTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.commands.PhoneCommandsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.SpeechChunksTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.DeviceModelInventoryTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.libras.LibrasLetterCandidatesTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.ConversationSearchPatternTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.libras.LibrasPracticeTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.extensions.ExtensionCatalogTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.LocalImageTextProviderTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.local.LocalModelTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.extensions.PackAccessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.local.GenerationQualityTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.gestures.global.GlobalPointerGeometryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.gestures.HandGeometryTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.TrackingProfilesTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.local.BundledModelInstallTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.AssistantIdentityTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.gestures.global.GlobalMouseRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.AiProviderTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.local.LocalConversationContextTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.gestures.TrackingCadenceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.storage.StorageFileScannerTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.VoiceSelectionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.VoiceLanguageTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.vision.VisualObservationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.ArithmeticToolTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.DevicePolicyTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.data.ArithmeticParserRegressionTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.commands.ActionProposalTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "br.com.nexus.assistant.device.VoiceConversationBudgetTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "pythonScriptTests": {
+    "tests": 162,
+    "failed": 0,
+    "command": "python3 -m unittest discover -s scripts/tests -v",
+    "postCollectorFix": {
+      "sourceCommit": "d76a3ad7c8396d16ecc93b125b6b96a8503ebfb4",
+      "tests": 164,
+      "failures": 0,
+      "status": "passed",
+      "applicationSourceUnchanged": true
+    }
+  },
+  "lint": {
+    "debug": {
+      "Warning": 55,
+      "Information": 1
+    },
+    "coreTest": {
+      "Warning": 55,
+      "Information": 1
+    }
+  },
+  "artifacts": [
+    {
+      "variant": "coreTest",
+      "path": "app/build/outputs/apk/coreTest/app-coreTest.apk",
+      "bytes": 108520986,
+      "sha256": "0b6000e66bf42166b359457474a54fcb6bcdcf9a92949f7e0f360eaaffdb7df7",
+      "installable": true,
+      "signing": "existing local test key, not production"
+    },
+    {
+      "variant": "debug",
+      "path": "app/build/outputs/apk/debug/app-debug.apk",
+      "bytes": 114336885,
+      "sha256": "d151c2cc7107ddbb1403944d99d946cf27e6cf90fbbe65d83c8d8091a79bb730",
+      "installable": true,
+      "signing": "existing local test key, not production"
+    },
+    {
+      "variant": "release",
+      "path": "app/build/outputs/apk/release/app-release-unsigned.apk",
+      "bytes": 108508698,
+      "sha256": "bbfa0bd5462774fea1d2646bdb22cbae492f156c471279c56c4b421f5e019a8a",
+      "installable": false,
+      "signing": "unsigned"
+    }
+  ],
+  "resolvedSecurityDependencies": [
+    "|    \\--- com.google.guava:guava:27.0.1-android -> 33.7.2-android",
+    "+--- com.google.guava:guava:33.7.2-android (*)",
+    "+--- com.google.protobuf:protobuf-javalite:4.28.3"
+  ],
+  "sizeComparison": {
+    "previousCoreBytes": 108210081,
+    "currentCoreBytes": 108520986,
+    "differenceBytes": 310905,
+    "differencePercent": 0.2873161142906824,
+    "oldAlpha2ApkBytes": 1738201604,
+    "reductionFromAlpha2Percent": 93.75670890245019
+  },
+  "limitations": [
+    "No Galaxy A03 or other physical device connected.",
+    "No actual Play Protect classification/review executed.",
+    "Global gestures outside NEXUS, real hands, hardware camera latency, STT/TTS and manufacturer restrictions remain physical tests.",
+    "coreTest uses a local test certificate different from the publicly installed CORE22; no update compatibility is promised.",
+    "Release APK is unsigned and cannot be installed.",
+    "No deployed public integrated AI or multimodal/search service; local text-model semantic limitations remain."
+  ],
+  "productionGate": {
+    "status": "expected_rejection",
+    "exitCode": 1,
+    "violations": [
+      "debug_signing_identity"
+    ]
+  },
+  "unsignedReleaseInspection": {
+    "status": "compiled_unsigned_not_installable",
+    "apksignerExitCode": 1,
+    "apksignerOutput": "",
+    "apksignerError": "DOES NOT VERIFY\nERROR: Missing META-INF/MANIFEST.MF",
+    "manifestVersionCode": "27",
+    "manifestVersionName": "4.1.0-alpha.1-core",
+    "debuggable": false,
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_CAMERA",
+      "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+      "android.permission.POST_NOTIFICATIONS",
+      "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    ]
+  }
+}

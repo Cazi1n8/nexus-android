@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "runId": 40784772829,
+  "runNumber": 20,
+  "sourceCommit": "d76a3ad7c8396d16ecc93b125b6b96a8503ebfb4",
+  "applicationSourceCommit": "260247033611ab2eba76a33aa282f9e74a75a91e",
+  "jobStatus": "success",
+  "artifact": {
+    "id": 12859365689,
+    "bytes": 121616,
+    "sha256": "07549f58be91a898a4511c4070d7821bfe88a494b40a3a88a6d1cfd8f2a6a0a1"
+  },
+  "emulator": {
+    "api": 29,
+    "abi": "x86_64",
+    "ramMB": 2048,
+    "camera": "none",
+    "audio": "disabled"
+  },
+  "buildVariant": "debug with bundled small vision data, no generative weights; not universal coreTest binary",
+  "counts": {
+    "cases": 43,
+    "passed": 35,
+    "skipped": 8,
+    "failures": 0,
+    "errors": 0
+  },
+  "junitSeconds": 26.729,
+  "cases": [
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "unrelatedNegationDoesNotHideAFalseVisionClaim",
+      "status": "passed",
+      "seconds": 0.017
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "mentionOfNexusIsNotByItselfAnAssistantSignature",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "acceptsACopiableHumanApologyWithoutCertifyingItsQuality",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsTheActualFalseClaimOfLiveCameraAccess",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsAssistantSignaturesOnTheirOwnLineAndAfterASignoff",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsAssistantSelfDefenseDespiteApologyWordsAndLength",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "genericNegationDoesNotProveACameraLimitation",
+      "status": "passed",
+      "seconds": 0.002
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsTheActualApologySignedByNexus",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "acceptsRelevantCameraLimitations",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationTest",
+      "name": "evaluateTheFifteenRequestedCasesWithTheBundledModel",
+      "status": "skipped",
+      "seconds": 0.047
+    },
+    {
+      "class": "br.com.nexus.assistant.BundledChatFirstRunTest",
+      "name": "firstChatPreparesBundledModelAndRespondsOffline",
+      "status": "skipped",
+      "seconds": 2.403
+    },
+    {
+      "class": "br.com.nexus.assistant.ConversationCancellationTest",
+      "name": "deletingDataWaitsForAnExistingMemorySaveAndRejectsEditsDuringDeletion",
+      "status": "passed",
+      "seconds": 0.803
+    },
+    {
+      "class": "br.com.nexus.assistant.ConversationCancellationTest",
+      "name": "interruptingTheFirstAnswerKeepsItsMessageAndNextSendInTheSameConversation",
+      "status": "passed",
+      "seconds": 0.285
+    },
+    {
+      "class": "br.com.nexus.assistant.CoreArithmeticToolsTest",
+      "name": "calculatorSavesExactResponseInRoomWithoutModelOrRemoteConfiguration",
+      "status": "skipped",
+      "seconds": 0.027
+    },
+    {
+      "class": "br.com.nexus.assistant.CoreArithmeticToolsTest",
+      "name": "localActionIsOnlyProposedAndGeneralConversationStillRequiresRealModel",
+      "status": "skipped",
+      "seconds": 0.004
+    },
+    {
+      "class": "br.com.nexus.assistant.CoreInstallationTest",
+      "name": "coreKeepsTrackingOfflineAndOpensStorageWithoutStartingOptionalResources",
+      "status": "skipped",
+      "seconds": 0.891
+    },
+    {
+      "class": "br.com.nexus.assistant.CoreOptionalModelsTest",
+      "name": "coreOmitsGenerativeWeightsAndDoesNotStartADownloadWhenChatPreparationIsRequested",
+      "status": "passed",
+      "seconds": 0.758
+    },
+    {
+      "class": "br.com.nexus.assistant.ExtensionDataSmokeTest",
+      "name": "optionalDataDownloadsRunNativeReadersAndCanBeRemovedWithoutAffectingCore",
+      "status": "skipped",
+      "seconds": 0.035
+    },
+    {
+      "class": "br.com.nexus.assistant.FirstRunFlowsTest",
+      "name": "sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer",
+      "status": "passed",
+      "seconds": 3.951
+    },
+    {
+      "class": "br.com.nexus.assistant.FirstRunFlowsTest",
+      "name": "anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated",
+      "status": "passed",
+      "seconds": 3.696
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalAiInferenceTest",
+      "name": "realModelProducesUtf8TextOnAndroidAndRecordsObservations",
+      "status": "skipped",
+      "seconds": 0.003
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalModelDownloadDeviceTest",
+      "name": "cancellationAndManagerRecreationResumeTheVerifiedTransfer",
+      "status": "passed",
+      "seconds": 0.82
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalModelDownloadDeviceTest",
+      "name": "allBytesReceivedCanFinishAndReachReadyWithoutWaitingForEof",
+      "status": "passed",
+      "seconds": 0.131
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalObjectClassifierTest",
+      "name": "realBundledModelRecognizesOfficialFoodImageLocally",
+      "status": "passed",
+      "seconds": 0.999
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalObjectClassifierTest",
+      "name": "blankFrameDoesNotInventObjectsAndClosedReaderCannotRestart",
+      "status": "passed",
+      "seconds": 0.061
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "boundedDecodeHonorsExifRotationAndBlankImageReturnsNoText",
+      "status": "passed",
+      "seconds": 0.252
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "rejectsOutsidePrivateFilesAndOversizedInput",
+      "status": "passed",
+      "seconds": 0.004
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "closedReaderDoesNotStartRecognition",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "bundledPortugueseAndEnglishModelsReadPrintedText",
+      "status": "passed",
+      "seconds": 0.177
+    },
+    {
+      "class": "br.com.nexus.assistant.MediaPipePrivacyTest",
+      "name": "packagedFactorySelectsUpstreamNoOpLogger",
+      "status": "passed",
+      "seconds": 0.012
+    },
+    {
+      "class": "br.com.nexus.assistant.N41PermissionBoundaryTest",
+      "name": "openingMouseShowsTheControlsWithoutRequestingSensorsOrStartingASession",
+      "status": "passed",
+      "seconds": 2.498
+    },
+    {
+      "class": "br.com.nexus.assistant.N41PermissionBoundaryTest",
+      "name": "installedServicesExposeOnlyTheRequiredGestureAndForegroundCapabilities",
+      "status": "passed",
+      "seconds": 2.119
+    },
+    {
+      "class": "br.com.nexus.assistant.NativeCapabilitiesSmokeTest",
+      "name": "localAiJniLoadsOnlyInSupportedProcessAndRejectsMissingWeights",
+      "status": "passed",
+      "seconds": 0.027
+    },
+    {
+      "class": "br.com.nexus.assistant.NativeCapabilitiesSmokeTest",
+      "name": "packagedHandTrackerProcessesABlankVideoFrame",
+      "status": "passed",
+      "seconds": 0.387
+    },
+    {
+      "class": "br.com.nexus.assistant.ProductionModelDownloadTest",
+      "name": "bothProductionModelsDownloadAndCompactCanInfer",
+      "status": "skipped",
+      "seconds": 0.019
+    },
+    {
+      "class": "br.com.nexus.assistant.VisionUiTest",
+      "name": "galleryAndQuestionWorkWithoutActivatingSensorsOrSendingAnImage",
+      "status": "passed",
+      "seconds": 3.633
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "deletingConversationRemovesMessagesButPreservesAuthorizedMemories",
+      "status": "passed",
+      "seconds": 0.129
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "historyCanBeRenamedSearchedAndContinuedWithoutChangingMessages",
+      "status": "passed",
+      "seconds": 0.123
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "exportContainsConversationAndMemoriesButOmitsPrivateImagePaths",
+      "status": "passed",
+      "seconds": 0.188
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.HandImagePipelineTest",
+      "name": "bufferBackedMpImageClosePreservesOwnedBitmapForNextFrame",
+      "status": "passed",
+      "seconds": 0.057
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.HandImagePipelineTest",
+      "name": "reusedBufferRunsMultipleActualVideoInferencesAndClosesCleanly",
+      "status": "passed",
+      "seconds": 0.277
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.HandImagePipelineTest",
+      "name": "paddedRgbaRowsAndAllCameraRotationsPreservePixelCoordinates",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.gestures.HandImagePipelineTest",
+      "name": "bitmapPreparationBenchmarkReportsActualAllocationsAndTimesWithoutClaimingPhoneLatency",
+      "status": "passed",
+      "seconds": 0.054
+    }
+  ],
+  "limitations": [
+    "Not Galaxy A03, physical hands, global mouse interaction or actual Play Protect verification.",
+    "Eight opt-in scenarios skipped in this general variant; separate CORE and model jobs cover their own scopes."
+  ],
+  "imagePreparationBenchmark": {
+    "scope": "Android RGBA preparation only, not whole camera pipeline",
+    "width": 320,
+    "height": 240,
+    "samples": 60,
+    "before_bitmap_allocations_including_warmup": 140,
+    "after_bitmap_allocations_including_warmup": 2,
+    "before_median_ns": 336460,
+    "after_median_ns": 180570
+  }
+}

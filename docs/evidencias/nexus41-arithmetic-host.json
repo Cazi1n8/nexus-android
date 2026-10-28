@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "scope": "Host JVM compilation of actual safe ArithmeticTool and six parser regression methods; not Android UI, integrated LLM or A03 test",
+  "tests": 6,
+  "exitCode": 0,
+  "durationSeconds": 5.851,
+  "output": "JUnit version 4.13.2\n......\nTime: 0.088\n\nOK (6 tests)\n\n",
+  "sourceSha256": {
+    "app/src/main/java/br/com/nexus/assistant/data/ArithmeticTool.kt": "90a72d02ffd83ac2b6db1195c4ec8dc6a7b1743d279e5ad76f2cf90c18d9b352",
+    "app/src/test/java/br/com/nexus/assistant/data/ArithmeticParserRegressionTest.kt": "b903ff4f483086d990cd43dc2c3dcf4b974176ad4f832d6e69850b4c133828c8"
+  }
+}

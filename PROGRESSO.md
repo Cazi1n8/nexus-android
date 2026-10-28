@@ -2,7 +2,7 @@
 
 ## Revisão 4.1 — Galaxy A03, 28/10/2026
 
-Estado detalhado: [PROGRESSO_NEXUS_4_1.md](PROGRESSO_NEXUS_4_1.md). O código continua no mesmo aplicativo/repositório. Foco atual: auditar Play Protect, otimizar rastreamento e melhorar sessão global. Perfil por recursos medidos, modelos opcionais e centrais preservados. Resultado físico informado pelo usuário: clique/rolagem e extensões funcionam, app estável; bloqueio de instalação, lentidão e uso global ainda falham. Nenhum resultado histórico abaixo substitui testes desta revisão.
+Estado detalhado: [PROGRESSO_NEXUS_4_1.md](PROGRESSO_NEXUS_4_1.md). Compilação local/CI25 aprovada, CORE 108,52 MB; 235 testes JVM e 164 de scripts passaram. Android: 35 aprovados/8 ignorados na regressão e 10+1 métodos na etapa CORE/extensões. A avaliação semântica real do Qwen 1,5B continuou reprovada (casos 3, 9, 12). Play Protect e mouse físico global no A03 não foram aprovados pelo ambiente. O código continua no mesmo aplicativo/repositório. Foco atual: auditar Play Protect, otimizar rastreamento e melhorar sessão global. Perfil por recursos medidos, modelos opcionais e centrais preservados. Resultado físico informado pelo usuário: clique/rolagem e extensões funcionam, app estável; bloqueio de instalação, lentidão e uso global ainda falham. Nenhum resultado histórico abaixo substitui testes desta revisão.
 
 # Progresso histórico do NEXUS 0.1
 

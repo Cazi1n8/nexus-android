@@ -1,5 +1,32 @@
 # Revisão do bloqueio pelo Google Play Protect
 
+## Revisão atual — NEXUS CORE no Galaxy A03 (28/10/2026)
+
+**Estado: minuta preparada, não enviada ao Google.** Não há resposta, número de protocolo ou aprovação. As seções históricas abaixo identificam APKs anteriores e não devem ser copiadas como se fossem o CORE atual.
+
+Formulário oficial: https://support.google.com/googleplay/android-developer/contact/protectappeals
+
+Antes de enviar, confirme que o arquivo efetivamente bloqueado é este:
+
+- Pacote: `br.com.nexus.assistant`.
+- CORE público: `3.0.0-alpha.3-core`, código **26**, release `v3.0.0-alpha.3-core-download-22`.
+- Arquivo: `NEXUS-3.0.0-alpha.3-core.apk`, **108.210.081 bytes**.
+- SHA-256 APK: `e76ff4e228206a11317000a238556d8c24693532c1527b05f8264f5ba6b50d15`.
+- SHA-256 certificado: `0e72073647f9fd5b4bc27f6f8fbafa9100f4fadc391433ff6844fc2f96ec97fc`.
+- Origem: https://github.com/Cazi1n8/nexus-android/releases/tag/v3.0.0-alpha.3-core-download-22
+- Dispositivo informado: **Samsung Galaxy A03**. Versão do Android, região, data exata do bloqueio e versão do Play Protect: **a confirmar no dispositivo**.
+- Mensagem relatada: “O app foi bloqueado para proteger seu dispositivo”, com aviso de possível acesso a dados sensíveis.
+
+Se o bloqueio ocorreu com outro arquivo, substitua versão, hash e certificado pelos desse arquivo. Não atribua esses identificadores a uma captura sem confirmar a versão. O candidato local `4.1.0-alpha.1-core/27` tem outro hash/certificado e ainda não foi submetido a um teste físico de Play Protect.
+
+Texto técnico para revisão pelo responsável:
+
+> Solicito análise do NEXUS (`br.com.nexus.assistant`), aplicativo Android com controle por movimentos da mão. O APK identificado acima foi relatado como bloqueado no Galaxy A03 com aviso sobre dados sensíveis. A acessibilidade é opcional e usada para `dispatchGesture` e `TYPE_ACCESSIBILITY_OVERLAY`, com `canRetrieveWindowContent=false`, sem eventos de acessibilidade, captura de tela, filtragem de teclas, leitura de mensagens ou dados de outros aplicativos. Câmera e microfone têm sessões manuais independentes, notificações e parada visível. O arquivo usa certificado de teste; não alegamos falso positivo nem aprovação prévia. A revisão 4.1 atualiza dependências vulneráveis e reforça consentimento e validação do manifesto. Pedimos orientação sobre os achados concretos e os requisitos de distribuição aplicáveis.
+
+Anexos a preparar: arquivo bloqueado ou URL verificável, captura do aviso, [auditoria de segurança](../AUDITORIA_PLAY_PROTECT.md), [inspeção atual do CORE](evidencias/nexus41-core-security.json) identificada como **outro candidato**, política de privacidade e descrição de consentimento/controles. Não publique credenciais, dados de conta, históricos pessoais ou chaves de assinatura no repositório ou no formulário.
+
+A assinatura de produção estável e a distribuição de testes pela Google Play dependem da conta/chave do responsável e da revisão das declarações de acesso sensível. Não há garantia de aceitação. Mantenha o Play Protect ativo durante a validação; esta minuta não contém instruções para contorná-lo.
+
 Atualizado em **25/10/2026, 14:06 UTC**.
 
 **Registro histórico do APK bloqueado:** a minuta e os identificadores abaixo pertencem à alpha.4. A IA 3.0 alpha.2 tem uma [auditoria separada](RELATORIO_IA3_ALPHA_2.md), sem verificação de instalação pelo Play Protect. Se houver bloqueio de outra versão, identifique seu arquivo e certificado exatos; os hashes locais da alpha.2 não identificam automaticamente o APK do GitHub Actions. Não misture dados de versões na solicitação.

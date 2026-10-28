@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "runId": 40783551169,
+  "runNumber": 6,
+  "sourceCommit": "260247033611ab2eba76a33aa282f9e74a75a91e",
+  "workflowStatus": "failure",
+  "reason": "Quality gate failed, not technical generation failure",
+  "artifact": {
+    "id": 12859860193,
+    "bytes": 13311,
+    "sha256": "622b17e859cd2648dd4d6292341dd79010d0b7698529a6c6b241898d95b625c8"
+  },
+  "semanticSummary": {
+    "executionStatus": "completed",
+    "casesExecuted": 15,
+    "executionCompleted": true,
+    "automaticSemanticChecksPassed": false,
+    "humanReviewRequired": true,
+    "automaticChecksSatisfied": 9,
+    "criticalCaseIds": [
+      1,
+      2,
+      3,
+      9,
+      12,
+      13
+    ],
+    "criticalFailedCaseIds": [
+      3,
+      9,
+      12
+    ],
+    "criticalGateRequired": true,
+    "criticalGatePassed": false,
+    "heuristicsAreNotQualityCertification": true
+  },
+  "networkRestoration": {
+    "original": {
+      "wifi": "1",
+      "data": "1"
+    },
+    "restorationCommandErrors": []
+  },
+  "limitations": [
+    "Optional bundled-model test variant, not large weights included in CORE.",
+    "No Galaxy A03 hardware performance test, real camera, voice or Play Protect proof.",
+    "Nine automatic checks satisfied do not mean nine human quality approvals; generated responses are retained in nexus41-ai-evaluation6.json."
+  ]
+}

@@ -1,8 +1,21 @@
 # NEXUS AI 3 — testes e avaliações
 
+## Revisão 4.1 — ferramenta matemática no CORE, 28/10/2026
+
+O [CORE7](https://github.com/Cazi1n8/nexus-android/actions/runs/40784772782) executou no Android não depurável, sem pesos generativos, servidor e rede no estágio CORE:
+
+- `Quanto é 50 + 50 + 50 × 50?` produziu **2600**, gravando no Room mensagens `user`/`assistant`, sem iniciar download; nomes NEXUS/Calebe permaneceram separados.
+- `NEXUS, abra as configurações` produziu somente uma proposta estruturada, sem afirmar execução. Conversa geral sem modelo continuou recusada de forma explícita.
+
+O parser já calculava corretamente a expressão na fonte anterior; não foi demonstrado que ele tenha originado o relato de resposta 500. A falha confirmada corrigida foi o bloqueio das ferramentas pelo requisito de instalar um modelo. Seis métodos novos de regressão matemática também passaram no JVM: operações elementares, parênteses, precedência, potências, formas faladas delimitadas e limites de segurança. Eles são parte dos 235 testes JVM, não resultados adicionais de LLM.
+
+[Evidência Android CORE7](docs/evidencias/nexus41-core7.json), [regressão do parser](docs/evidencias/nexus41-arithmetic-host.json) e [auditoria de IA](docs/NEXUS_4_1_IA_AUDITORIA.md). Isso comprova ferramenta e persistência, não compreensão geral de português, raciocínio do modelo ou inteligência equivalente a um serviço de maior capacidade.
+
+Os modelos Qwen2.5 0,5B/1,5B continuam opcionais e limitados. Não foi implantado backend público de IA, multimodalidade geral ou pesquisa. A nova avaliação semântica [execução 6](https://github.com/Cazi1n8/nexus-android/actions/runs/40783551169) **falhou no gate de qualidade**, novamente nos casos **3 (texto de desculpas), 9 (alegação falsa de acesso visual) e 12 (pedido com erros de digitação)**. Executou 15 casos, 35 gerações reais + calculadora + proposta de ação, com 37 respostas reabertas no Room e zero falhas técnicas; tempo total reportado 677.238 ms. Nove casos atenderam às heurísticas, o que não é aprovação humana. [Respostas reais](docs/evidencias/nexus41-ai-evaluation6.json) e [resumo/identificadores](docs/evidencias/nexus41-ai-evaluation6-summary.json) preservados. O modelo ainda não atende à experiência solicitada; não foi substituído nem promovido a IA competente por esta correção. Histórico abaixo preservado, com referências a aparelhos antigos pertencentes àquelas execuções, não ao **Galaxy A03** atual.
+
 Atualizado em 27/10/2026. Teste de código, geração real, interpretação correta e uso no celular são verificações diferentes. **A inteligência do NEXUS ainda não está corrigida nem aprovada.**
 
-## Resultado atual: alpha.2 concluiu a bateria, mas falhou em qualidade
+## Histórico: alpha.2 concluiu a bateria, mas falhou em qualidade
 
 A [execução 40389844392](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844392), fonte `62ec1e3a714cdcc577e04f659185808bd6c9ab3f`, completou **15 casos e 37 respostas: 35 gerações reais, uma calculadora e uma proposta de ação**, em **904.636 ms (15 min 05 s)**. Usou o Qwen2.5 1,5B Q4_K_M incluído, contexto de 2.048 tokens, uma thread, Android 10 emulado e rede desligada antes/depois. Houve zero falhas técnicas e o Room foi reaberto com as 37 respostas verificadas.
 

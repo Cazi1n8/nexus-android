@@ -114,7 +114,7 @@ def write_markdown(report: dict, path: Path) -> None:
              "Bateria executada sem internet, com pesos do APK e respostas persistidas em Room: 35 gerações do modelo, uma execução da calculadora e uma proposta de ação validada.",
              f"Casos executados: 15. Casos que atenderam a todas as verificações automáticas: {passed}/15.",
              "As verificações de palavras, tópicos e formato são limitadas; revise as respostas abaixo. Elas não certificam coerência, veracidade ou inteligência geral.", "",
-             "A prova usa o provedor Android com orçamento explícito de teste; não comprova a seleção automática de perfil, interface principal, voz, câmera ou desempenho no S9+.", ""]
+             "A prova usa o provedor Android com orçamento explícito de teste; não comprova a seleção automática de perfil, interface principal, voz, câmera ou desempenho no Galaxy A03 ou em outro aparelho físico.", ""]
     for case in report["cases"]:
         lines += [f"## {case['id']}. {case['title']}", "",
                   "Execução: concluída. Verificações automáticas: " + ("atendidas" if case['automaticChecksPassed'] else "há itens não atendidos"), ""]

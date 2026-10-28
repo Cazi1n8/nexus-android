@@ -4,7 +4,7 @@
 
 Aplicativo Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Etapa atual: NEXUS CORE 3.0.0-alpha.3-core, versionCode 26.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
+**Fonte atual: NEXUS CORE 4.1.0-alpha.1-core, versionCode 27, candidato em validação.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
 
 ## Tamanho medido e APK
 
@@ -13,12 +13,15 @@ Os arquivos abaixo foram realmente compilados e medidos. MB e GB são decimais; 
 | APK local | Bytes | Tamanho | Comparação com alpha.2 |
 | --- | ---: | ---: | ---: |
 | Alpha.2 debug anterior | 1.738.201.604 | 1,74 GB | Referência |
-| CORE debug final | 121.107.028 | 121,11 MB | 93,03% menor |
-| CORE `coreTest`, assinado para testes, sem R8 | 108.210.081 | 108,21 MB | 93,77% menor |
+| CORE alpha.3 `coreTest` anterior | 108.210.081 | 108,21 MB | 93,77% menor |
+| 4.1 debug local | 114.336.885 | 114,34 MB | 93,42% menor |
+| 4.1 `coreTest`, assinado para testes, sem R8 | 108.520.986 | 108,52 MB | 93,7567% menor |
+
+O CORE 4.1 cresceu **310.905 bytes (+0,287%)** em relação ao CORE anterior, com as correções e atualizações de dependências. Não foi declarada uma nova redução. O APK local de avaliação foi gerado; o release de produção ainda depende de assinatura estável e validação de segurança/instalação.
 
 Os dois GGUFs obrigatórios da alpha.2 somavam **1.608.720.768 bytes**, 92,55% daquele APK. O CORE não os empacota; também deixa OCR e classificação de objetos para download. O modelo de mãos de **7.819.105 bytes** continua incluído e verificado. A comparação entre debug e debug isola melhor a mudança de empacotamento. O catálogo de mais de 11 mil ícones foi substituído pelos 22 vetores oficiais efetivamente usados, mantendo suas licenças e a biblioteca de ícones básicos. `coreTest` e release preservam as classes e interfaces JNI, sem R8 ou redução automática de recursos nesta alpha.
 
-**[Baixar NEXUS CORE — APK de teste de 108,21 MB](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk)**. Link direto, sem login ou extração de ZIP. É exatamente o APK do [build 22](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746621), publicado sem recompilar ou assinar novamente. O download público completo foi conferido por tamanho e SHA-256. [Evidência da publicação](docs/evidencias/storage-core-direct-download.json).
+**[APK público anterior — alpha.3 CORE, 108,21 MB](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk)**. Link direto, sem login ou extração de ZIP. É exatamente o APK do [build 22](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746621), publicado sem recompilar ou assinar novamente. O download público completo foi conferido por tamanho e SHA-256. [Evidência da publicação](docs/evidencias/storage-core-direct-download.json).
 
 **A assinatura de teste é diferente da alpha.2 do build 16 e impede atualização direta. Exporte seus dados antes de substituir uma instalação.** A tentativa experimental de 98,88 MB com R8 não foi publicada como versão recomendada; o arquivo entregue preserva as APIs necessárias sem R8.
 
@@ -62,7 +65,7 @@ Os totais do Android incluem otimizações e contabilização do sistema. A medi
 A redução de tamanho **não muda a capacidade dos modelos de linguagem**. A avaliação completa da alpha.2 registrou 15 casos, 35 gerações reais e duas ferramentas; a qualidade foi reprovada por erros de interpretação e alegação falsa de acesso à câmera. Os mesmos modelos continuam opcionais, com essas limitações. [Resultados de IA](TESTES_NEXUS_AI.md) e [progresso 3.0](PROGRESSO_NEXUS_AI_3.md).
 
 - A identidade **NEXUS** é separada do nome do usuário; preferências, histórico, Markdown, copiar, ouvir e interromper permanecem no projeto.
-- O contexto usa orçamento de tokens e reaproveitamento do prefixo, sem limite fixo de quatro mensagens. A calculadora real resolve `10+10÷10×10 = 20` e `25 vezes 18 = 450`; o modelo ainda pode errar outros problemas.
+- O contexto usa orçamento de tokens e reaproveitamento do prefixo, sem limite fixo de quatro mensagens. A calculadora funciona no CORE mesmo sem modelo de conversa e resolve `50+50+50×50 = 2600`, `10+10÷10×10 = 20` e `25 vezes 18 = 450`; o modelo ainda pode errar outros problemas.
 - Vision local faz OCR e classificação de objetos em quadros periódicos. Não equivale à compreensão geral de imagens por um modelo multimodal nem a processamento contínuo de vídeo. Um provedor remoto compatível com imagens exige configuração e consentimento.
 - Mouse global e voz têm sessões independentes iniciadas pelo usuário, notificações e parada. **Continuidade, precisão e consumo na câmera/microfone físicos do A03 ainda precisam ser testados.**
 - A voz depende de SpeechRecognizer/TTS instalados e pode usar rede. A conversa opcional tem limite de 15 minutos ou 30 perguntas e até duas tentativas após silêncio; não há detector permanente de “Ei, NEXUS”.
@@ -102,7 +105,17 @@ python3 scripts/fetch_ocr_models.py
 
 `nexusBundleModel=false` e `nexusBundleVision=false` são os padrões. `-PnexusAbis=x86_64` é uma opção para emulador, não uma exigência para o celular; a compilação padrão mantém as quatro arquiteturas. Na Google Play, AAB e mecanismos oficiais de entrega exigem configuração própria; o APK manual atual oferece downloads de dados verificados. [Detalhes e limites da entrega modular](docs/ENTREGA_MODULAR_ANDROID.md). [Licenças de terceiros](THIRD_PARTY_NOTICES.md).
 
-## Verificações desta etapa
+## Verificações da 4.1
+
+**Compilação local aprovada:** 235 testes JVM, 164 testes de scripts, Lint debug/coreTest sem erros (55 avisos e 1 informação por variante), APKs e instrumentação gerados. O manifesto e recursos do APK `coreTest` real passaram no auditor: nove permissões, serviços privados, acessibilidade apenas para gestos e HTTPS. Guava/Protobuf atualizados e conferidos no classpath. O gate de produção recusa o certificado local de teste, como esperado; não é um teste do Play Protect.
+
+A [compilação automática 25](https://github.com/Cazi1n8/nexus-android/actions/runs/40784772759) também passou: mesmas 235 verificações JVM, 164 dos scripts e 44 do servidor opcional. O [artefato de avaliação `nexus-core-25`](https://github.com/Cazi1n8/nexus-android/actions/runs/40784772759/artifacts/12858804039) contém APK e auditorias em ZIP (acesso pelo GitHub). Seu APK foi baixado e verificado integralmente; a assinatura é de teste, diferente da instalada. Nenhum novo release público foi criado. [Identificadores e limites](docs/evidencias/nexus41-ci25-build.json).
+
+**Android emulado:** a [regressão 20](https://github.com/Cazi1n8/nexus-android/actions/runs/40784772829) passou com **35 aprovados e 8 ignorados**. O [CORE7](https://github.com/Cazi1n8/nexus-android/actions/runs/40784772782) passou com **10 métodos offline e 1 método de extensão**: inclui calculadora no Room sem LLM, sensores não ativados na entrada, MediaPipe real em quadros vazios, reutilização de buffers, dados opcionais HTTPS e remoção. Há testes repetidos entre pipelines; essas contagens não representam 46 casos distintos. [Resultados completos e limites](PROGRESSO_NEXUS_4_1.md).
+
+**Continuam pendentes:** instalação com Play Protect ativo, mouse em outros apps com mãos reais, latência/consumo no A03, áudio físico, assinatura definitiva e infraestrutura pública de IA. Nenhum teste de emulador aprova o app no Play Protect ou corrige a qualidade semântica geral dos pequenos modelos locais.
+
+## Histórico de verificações da alpha.3 CORE
 
 A compilação local final terminou com **BUILD SUCCESSFUL em 8 min 17 s**, com 207 tarefas: **205 testes JVM aprovados**, zero falhas, erros ou ignorados; lint debug e `coreTest` com **zero erros, 50 avisos e uma informação** cada. Os APKs debug, `coreTest`, release sem assinatura e instrumentação `coreTest` foram gerados. A suíte Python teve **148 testes aprovados**; no servidor opcional, 25 de 44 casos passaram e 19 foram ignorados nesta execução. [Resultados e limites](PROGRESSO_ARMAZENAMENTO.md).
 

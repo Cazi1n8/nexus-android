@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "runId": 40783551252,
+  "runNumber": 6,
+  "sourceCommit": "260247033611ab2eba76a33aa282f9e74a75a91e",
+  "pipelineStatus": "failed",
+  "androidJunitStatus": "passed",
+  "androidTests": 10,
+  "androidSkipped": 0,
+  "artifact": {
+    "id": 12858317367,
+    "bytes": 36500,
+    "sha256": "4ade92b4cea610f882dc3d35b885339799c0b8108725172491587d1d95fc3760"
+  },
+  "failureCause": "The Python evidence validator still required mouseScreenWaitsForCameraConsent after the Android test changed to explicit activation and controls-without-permission fields. All 10 Android assertions passed. The validator aborted before the optional extension stage.",
+  "fixedIn": "d76a3ad7c8396d16ecc93b125b6b96a8503ebfb4",
+  "fix": "Validator requires both new fields and mutually exclusive unsupported-hardware status; regressions use the actual observed report and reject the legacy/missing fields. No product behavior or test assertion relaxed.",
+  "optionalExtensionStage": "not executed in this run",
+  "networkRestoration": {
+    "original": {
+      "wifi": "1",
+      "data": "1"
+    },
+    "restorationCommandErrors": []
+  },
+  "coreObservations": {
+    "schemaVersion": 1,
+    "executionStatus": "passed",
+    "versionName": "4.1.0-alpha.1-core",
+    "versionCode": 27,
+    "coreInstallation": true,
+    "scope": "Fresh Android CORE assets, actual MediaPipe blank frame, extensions/storage UI and permission/resource state. Not real camera, hand gestures, voice or Play Protect approval.",
+    "generativeWeightsAbsent": true,
+    "optionalVisionAssetsAbsent": true,
+    "handModelBytes": 7819105,
+    "handModelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+    "realHandTrackerProcessedBlankFrame": true,
+    "extensionsUiOpened": true,
+    "storageMeasurementRendered": true,
+    "manageModelsButtonNavigated": true,
+    "mouseControlsOpenWithoutPermissionPrompt": true,
+    "mouseScreenWaitsForExplicitActivation": true,
+    "mouseScreenReportsUnsupportedHardware": false,
+    "automaticModelDownloadStarted": false,
+    "automaticExtensionDownloadStarted": false,
+    "sensorPermissionsUnchanged": true,
+    "backgroundServicesActive": false,
+    "testedSensorPermissions": [
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO"
+    ]
+  },
+  "imagePreparationBenchmark": {
+    "scope": "Android RGBA preparation only, not whole camera pipeline",
+    "width": 320,
+    "height": 240,
+    "samples": 60,
+    "before_bitmap_allocations_including_warmup": 140,
+    "after_bitmap_allocations_including_warmup": 2,
+    "before_median_ns": 676960,
+    "after_median_ns": 395240
+  },
+  "limitations": [
+    "API29 x86_64 emulator, not Galaxy A03, real hands, global interaction or Play Protect proof.",
+    "The wrapper failure is preserved; a new run is required for end-to-end pipeline success."
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "runId": 40784772782,
+  "runNumber": 7,
+  "sourceCommit": "d76a3ad7c8396d16ecc93b125b6b96a8503ebfb4",
+  "applicationSourceCommit": "260247033611ab2eba76a33aa282f9e74a75a91e",
+  "applicationSourceUnchangedByCollectorFix": true,
+  "pipelineStatus": "success",
+  "coreAndroidTests": 10,
+  "extensionAndroidTests": 1,
+  "coreSkipped": 0,
+  "artifact": {
+    "id": 12857359825,
+    "bytes": 5229,
+    "sha256": "b5bc0dca54e67445f58d7791eae7ff955b86a13aa7cbd1ee181edeef4ba839ab"
+  },
+  "emulator": {
+    "api": 29,
+    "abi": "x86_64",
+    "ramMB": 2048,
+    "camera": "none"
+  },
+  "buildVariant": "non-debuggable coreTest, no optional model/vision weights at install",
+  "coreStageNetwork": "disabled",
+  "extensionStageNetwork": "explicitly enabled for pinned data downloads",
+  "coreObservations": {
+    "schemaVersion": 1,
+    "executionStatus": "passed",
+    "versionName": "4.1.0-alpha.1-core",
+    "versionCode": 27,
+    "coreInstallation": true,
+    "scope": "Fresh Android CORE assets, actual MediaPipe blank frame, extensions/storage UI and permission/resource state. Not real camera, hand gestures, voice or Play Protect approval.",
+    "generativeWeightsAbsent": true,
+    "optionalVisionAssetsAbsent": true,
+    "handModelBytes": 7819105,
+    "handModelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+    "realHandTrackerProcessedBlankFrame": true,
+    "extensionsUiOpened": true,
+    "storageMeasurementRendered": true,
+    "manageModelsButtonNavigated": true,
+    "mouseControlsOpenWithoutPermissionPrompt": true,
+    "mouseScreenWaitsForExplicitActivation": true,
+    "mouseScreenReportsUnsupportedHardware": false,
+    "automaticModelDownloadStarted": false,
+    "automaticExtensionDownloadStarted": false,
+    "sensorPermissionsUnchanged": true,
+    "backgroundServicesActive": false,
+    "testedSensorPermissions": [
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO"
+    ]
+  },
+  "extensionObservations": {
+    "schemaVersion": 1,
+    "executionStatus": "passed",
+    "versionName": "4.1.0-alpha.1-core",
+    "scope": "Fresh emulator; real HTTPS pinned data, private-file native classifier/OCR, verified-prefix HTTP resume and removal. Not live cancellation, real camera, general image understanding or Play Protect approval.",
+    "optionalDataBytes": 11530361,
+    "realHttpsDownloadsVerified": true,
+    "verifiedFilesReused": true,
+    "activeLeaseBlockedRemoval": true,
+    "privateClassifierProcessedFixture": true,
+    "privateOcrReadSyntheticText": true,
+    "realHttpsPartialResumeVerified": true,
+    "resumeFixture": "128 KiB prefix copied from the previously SHA-256-verified real download; HTTPS continuation validates the complete pinned file. A server may legally restart with HTTP 200; this fixture does not assert the status code.",
+    "optionalFilesRemoved": true,
+    "handModelPreserved": true,
+    "syntheticUserDataPreserved": true
+  },
+  "networkRestoration": {
+    "original": {
+      "wifi": "1",
+      "data": "1"
+    },
+    "restorationCommandErrors": []
+  },
+  "imagePreparationBenchmark": {
+    "scope": "Android RGBA preparation only, not whole camera pipeline",
+    "width": 320,
+    "height": 240,
+    "samples": 60,
+    "before_bitmap_allocations_including_warmup": 140,
+    "after_bitmap_allocations_including_warmup": 2,
+    "before_median_ns": 436020,
+    "after_median_ns": 280250
+  },
+  "scope": "Real Android Room calculator/action proposal without LLM, sensor consent boundaries, MediaPipe blank-frame inference/reused buffers, CORE UI and actual pinned extension HTTP transfer/native OCR/classifier/removal; not real A03 hands, global mouse over other apps, audio or Play Protect verdict."
+}

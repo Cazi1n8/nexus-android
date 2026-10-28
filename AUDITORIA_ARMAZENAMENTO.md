@@ -1,5 +1,7 @@
 # NEXUS — auditoria de armazenamento da alpha.2 e do CORE
 
+> **Revisão 4.1 (28/10/2026):** a otimização CORE foi preservada. O novo APK compilado foi medido em **108.520.986 bytes**, +310.905 bytes (+0,287%) sobre a alpha.3 CORE. Continua sem GGUFs e dados opcionais de visão obrigatórios, com o modelo de mãos e quatro ABIs. Não é nova redução nem medição de instalação no A03. [Evidência local](docs/evidencias/nexus41-build-local.json) e [CI25](docs/evidencias/nexus41-ci25-build.json). A análise histórica/top 20 abaixo permanece identificada pelos APKs originais.
+
 Baseline medido em 27/10/2026, **antes das alterações de modularização**. Projeto existente, `3.0.0-alpha.2`, versionCode 25. Em 28/10/2026, os APKs CORE compilados, `3.0.0-alpha.3-core`, versionCode 26, foram inspecionados e comparados com a cópia preservada do APK antigo. Os números abaixo são medições dos arquivos reais; não são uma previsão do tamanho instalado no Samsung Galaxy A03.
 
 ## 1. Medição efetivamente realizada

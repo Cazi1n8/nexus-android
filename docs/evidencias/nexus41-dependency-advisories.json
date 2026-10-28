@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "timestampUtc": "2026-10-28T22:55:46.705577+00:00",
+  "source": "https://api.osv.dev/v1/querybatch",
+  "scope": "Explicit Maven versions queried, not a complete resolved dependency or native-code scan; absence of an advisory is not proof of safety or a Play Protect verdict.",
+  "results": [
+    {
+      "package": "com.google.guava:guava",
+      "version": "27.0.1-android",
+      "response": {
+        "vulns": [
+          {
+            "id": "GHSA-5mg8-w23w-74h3",
+            "modified": "2026-09-10T03:49:26.651391Z"
+          },
+          {
+            "id": "GHSA-7g45-4rm6-3mm3",
+            "modified": "2026-09-10T03:49:53.859811Z"
+          },
+          {
+            "id": "GHSA-xxph-c9ww-hj94",
+            "modified": "2026-10-27T14:45:04.803511Z"
+          }
+        ]
+      }
+    },
+    {
+      "package": "com.google.guava:guava",
+      "version": "33.7.2-android",
+      "response": {}
+    },
+    {
+      "package": "com.google.protobuf:protobuf-javalite",
+      "version": "4.26.1",
+      "response": {
+        "vulns": [
+          {
+            "id": "GHSA-735f-pc8j-v9w8",
+            "modified": "2026-09-10T03:50:19.212518Z"
+          }
+        ]
+      }
+    },
+    {
+      "package": "com.google.protobuf:protobuf-javalite",
+      "version": "4.28.3",
+      "response": {}
+    },
+    {
+      "package": "com.squareup.okhttp3:okhttp",
+      "version": "4.12.0",
+      "response": {}
+    },
+    {
+      "package": "com.google.mediapipe:tasks-vision",
+      "version": "0.10.35",
+      "response": {}
+    }
+  ]
+}
