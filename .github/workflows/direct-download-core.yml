@@ -118,9 +118,11 @@ jobs:
           tag='v3.0.0-alpha.3-core-download-22'
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish > existing-source.txt
-            test "$(cat existing-source.txt)" = "$SOURCE_SHA"
+            # The release tag follows the publication revision. The earlier
+            # source check proves its application sources match the built APK.
+            test "$(cat existing-source.txt)" = "$GITHUB_SHA"
           else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease --title 'NEXUS CORE 3.0 alpha.3 — APK de teste' --notes-file release-notes.md
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title 'NEXUS CORE 3.0 alpha.3 — APK de teste' --notes-file release-notes.md
           fi
           gh release upload "$tag" release/NEXUS-3.0.0-alpha.3-core.apk release/SHA256SUMS.txt release/APK_CERTIFICATE.txt release/CORE_PACKAGE_AUDIT.json --repo "$GITHUB_REPOSITORY" --clobber
           echo 'Download direto: https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk' >> "$GITHUB_STEP_SUMMARY"
