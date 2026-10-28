@@ -1,6 +1,8 @@
+> Entrega de armazenamento: APK CORE de **108,21 MB publicado**, 93,77% menor que o APK alpha.2. CORE5 e DeviceSmoke18 aprovados nos escopos documentados; testes físicos no A03 e Play Protect ainda pendentes. [Download e relatório](PROGRESSO_ARMAZENAMENTO.md).
+
 # Progresso histórico do NEXUS 0.1
 
-**Estado atual: NEXUS CORE 3.0.0-alpha.3-core (versionCode 26).** Veja [PROGRESSO_ARMAZENAMENTO.md](PROGRESSO_ARMAZENAMENTO.md) e a [auditoria de tamanho](AUDITORIA_ARMAZENAMENTO.md). APK CORE otimizado local: **98.878.796 bytes**, medidos após compilação; modelos de conversa e dados de Vision são opcionais. O novo download público e os testes instrumentados CORE ainda precisam de conclusão.
+**Estado atual: NEXUS CORE 3.0.0-alpha.3-core (versionCode 26).** Veja [PROGRESSO_ARMAZENAMENTO.md](PROGRESSO_ARMAZENAMENTO.md) e a [auditoria de tamanho](AUDITORIA_ARMAZENAMENTO.md). O APK CORE final possui **108.210.081 bytes (108,21 MB), 93,77% menor** que a alpha.2 medida. Modelos de conversa e dados de Vision são opcionais; o rastreador de mãos permanece incluído. **205 testes JVM e 3 métodos Android CORE5 passaram**, e o build 22 no GitHub foi aprovado. A suíte adicional DeviceSmoke17 teve uma falha de navegação no teste, com nova execução pendente; não se afirma aprovação de todas as suítes. A tentativa de 98,88 MB com R8 foi experimental e não é a entrega final. O download direto ainda está em preparação.
 
 **Histórico da IA 3.0:** veja [PROGRESSO_NEXUS_AI_3.md](PROGRESSO_NEXUS_AI_3.md), [testes de IA](TESTES_NEXUS_AI.md) e [auditoria de segurança](AUDITORIA_PLAY_PROTECT.md). A redução de armazenamento não aprova a qualidade da IA nem o Play Protect.
 

@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-28T10:10:45.644129+00:00",
+  "scope": "Actual failed CI instrumentation of an experimental minified CORE variant. These failures do not count as passed tests and do not measure physical A03 behavior.",
+  "runs": [
+    {
+      "label": "CORE2",
+      "workflowRunId": 40664713167,
+      "workflowUrl": "https://github.com/Cazi1n8/nexus-android/actions/runs/40664713167",
+      "artifactId": 12805903427,
+      "sourceCommit": "d3c6cb0598eda0facdb3c83aa622660ef8a655cb",
+      "executionStatus": "failed",
+      "instrumentationTimeoutSeconds": 240,
+      "coreReportProduced": false,
+      "extensionsStageExecuted": false,
+      "freshDisposableEmulatorOnly": true,
+      "networkRestoration": {
+        "original": {
+          "wifi": "1",
+          "data": "1"
+        },
+        "restorationCommandErrors": []
+      },
+      "evidenceSha256": {
+        "junit.xml": "98b9ba7f5107970bd116e5b76cc4d5839bc17b4f402b434b6f85415cc56f3dbb",
+        "network-restoration.json": "4efbe6f952e5b657394d48fc244ed1df4c93f8d11f3a8d2b2c01af25fa8de597"
+      },
+      "observedCause": "No diagnostic logcat available in this run; timeout does not identify the failing component."
+    },
+    {
+      "label": "CORE3",
+      "workflowRunId": 40667170042,
+      "workflowUrl": "https://github.com/Cazi1n8/nexus-android/actions/runs/40667170042",
+      "artifactId": 12807186044,
+      "sourceCommit": "4bf45feb22d45e74804e43f51c6ce24ee4bd29ac",
+      "executionStatus": "failed",
+      "instrumentationTimeoutSeconds": 240,
+      "coreReportProduced": false,
+      "extensionsStageExecuted": false,
+      "freshDisposableEmulatorOnly": true,
+      "networkRestoration": {
+        "original": {
+          "wifi": "1",
+          "data": "1"
+        },
+        "restorationCommandErrors": []
+      },
+      "evidenceSha256": {
+        "junit.xml": "7aadc7d93952620afdc391bf5680df79c6f114d7f9fe6e6aab11a53b05f876d3",
+        "failure-diagnostics.json": "d4efe0778982a99e9713ec155cf02a06b176d3bc84f43f87ce8d233fec2c2798",
+        "failure-logcat.txt": "068261c962166e75601def44cf98a773e8af3562f018cf43fab61b9861614b94",
+        "network-restoration.json": "4efbe6f952e5b657394d48fc244ed1df4c93f8d11f3a8d2b2c01af25fa8de597"
+      },
+      "observedCause": "AndroidJUnitRunner.onCreate failed with NoClassDefFoundError/ClassNotFoundException for androidx.tracing.Trace before Activity launch or test body.",
+      "logcatExcerpt": [
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/tracing/Trace;",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat androidx.test.runner.AndroidJUnitRunner.onCreate(AndroidJUnitRunner.java:307)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat android.app.ActivityThread.handleBindApplication(ActivityThread.java:6452)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat android.app.ActivityThread.access$1300(ActivityThread.java:219)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat android.app.ActivityThread$H.handleMessage(ActivityThread.java:1859)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat android.os.Handler.dispatchMessage(Handler.java:107)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat android.os.Looper.loop(Looper.java:214)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat android.app.ActivityThread.main(ActivityThread.java:7356)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat java.lang.reflect.Method.invoke(Native Method)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:492)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \tat com.android.internal.os.ZygoteInit.main(ZygoteInit.java:930)",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: androidx.tracing.Trace",
+        "10-28 09:53:11.241  3539  3539 E AndroidRuntime: \t... 10 more",
+        "10-28 09:53:11.241  3539  3539 D MonitoringInstr: Handling an uncaught exception thrown on the thread main.",
+        "10-28 09:53:11.241  3539  3539 D MonitoringInstr: java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/tracing/Trace;"
+      ]
+    }
+  ],
+  "staticMinificationFindings": {
+    "jniBoundaryMembersRemoved": [
+      "com.google.mediapipe.framework.PacketListCallback.process(java.util.List)",
+      "com.google.mediapipe.framework.ProtoUtil$SerializedMessage.typeName",
+      "com.google.mediapipe.framework.ProtoUtil$SerializedMessage.value"
+    ],
+    "frameworkClassesReferencedByTestRemovedOrInlined": [
+      "com.google.mediapipe.tasks.core.BaseOptions",
+      "com.google.mediapipe.framework.image.BitmapImageBuilder"
+    ],
+    "evidence": "Local R8 mapping/usage files and apkanalyzer DEX inspection; native library retains original JNI class/signature strings.",
+    "jniRemovalConfirmedCauseOfObservedInstrumentationTimeout": false,
+    "confirmedCore3FailurePrecedesMediaPipeInvocation": true
+  },
+  "correctiveArchitecture": {
+    "r8EnabledInFinalCoreTest": false,
+    "resourceShrinkingEnabledInFinalCoreTest": false,
+    "r8EnabledInFinalRelease": false,
+    "purpose": "Preserve Android SDK, JNI and separately compiled instrumentation linkage. Reduce package size through optional model data and selected icon vectors instead.",
+    "newRuntimeValidationRequired": true
+  },
+  "limitations": [
+    "These results cannot be used as evidence that the final unminified CORE works on device.",
+    "No Play Protect approval, physical camera/hand recognition or A03 storage accounting was verified by these runs.",
+    "The original minified ~98.879 MB artifact was experimental and was not published as the final recommended APK."
+  ]
+}

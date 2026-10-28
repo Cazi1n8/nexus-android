@@ -104,7 +104,7 @@ O cache informado de 13,51 MB não contém a causa dos 1,90 GB do aplicativo. Li
 
 ## 5. Arquitetura implementada e recursos preservados
 
-- CORE: CameraX, MediaPipe, modelo de mãos, cursor, clique, rolagem, configurações e serviços autorizados foram mantidos. O modelo de mãos de **7.819.105 bytes**, SHA-256 `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1`, está nos dois APKs CORE examinados. O mouse não depende de um download de pesos de chat. A usabilidade do rastreamento com câmera real no A03 ainda exige teste físico.
+- CORE: CameraX, MediaPipe, modelo de mãos, cursor, clique, rolagem, configurações e serviços autorizados foram mantidos. O modelo de mãos de **7.819.105 bytes**, SHA-256 `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1`, está nos três APKs CORE examinados. O mouse não depende de um download de pesos de chat. A usabilidade do rastreamento com câmera real no A03 ainda exige teste físico.
 - IA offline: os dois modelos de linguagem passam a ser dados opcionais, com tamanho prévio, confirmação de download, checksum/revisão pinados, retomada e remoção por perfil. Abrir a central não inicia download automaticamente. A remoção respeita o uso do arquivo pelo motor. Não se baixam arquivos `.so`, `.dex` ou APKs arbitrários dos servidores de modelos.
 - IA online: cliente/servidor seguro, sem GGUF obrigatório e sem credencial privada dentro do APK. Backend público continua uma dependência distinta do tamanho do pacote.
 - A Central de Extensões organiza os recursos e separa dois pacotes de dados do Vision: objetos, **5.434.517 bytes**, e OCR português/inglês, **6.095.844 bytes**. Os dados são baixados por HTTPS e validados por SHA-256 antes de serem usados. O código leve de Vision, 3D, Libras e Voice continua integrado ao base APK; as telas informam isso. Não foi implementado download remoto de código nem remoção binária desses recursos.
@@ -115,52 +115,63 @@ O cache informado de 13,51 MB não contém a causa dos 1,90 GB do aplicativo. Li
 
 ## 6. Antes/depois efetivamente compilado
 
-Comparação de APKs universais, incluindo as quatro ABIs compatíveis. **MB = 1.000.000 bytes.** A primeira comparação mantém a variante debug, para separar o efeito de retirar os dados opcionais do efeito do R8. A segunda mostra o APK de teste otimizado e assinado.
+Medição final em 28/10/2026, fonte `4f0bdca2d1ad105480ae2a03f60c9bdb3648392c`. Todos os APKs abaixo são universais, com quatro ABIs. **MB = 1.000.000 bytes.** A versão final mantém as APIs Java/JNI e utiliza apenas os 22 vetores adicionais usados pelo aplicativo, com a biblioteca de ícones básicos. **R8 e redução automática de recursos estão desativados em release e `coreTest` nesta alpha.**
 
 | Artefato local real | Bytes do APK | MB | Redução em relação ao debug alpha.2 |
 | --- | ---: | ---: | ---: |
 | alpha.2 debug, preservado | 1.738.201.604 | 1.738,202 | — |
-| CORE debug | 121.054.931 | 121,055 | 1.617.146.673 bytes; **93,0356%** |
-| CORE `coreTest`, R8 + redução de recursos | 98.878.796 | 98,879 | 1.639.322.808 bytes; **94,3114%** |
+| CORE debug | 121.107.028 | 121,107 | 1.617.094.576 bytes; **93,0326%** |
+| CORE `coreTest`, assinado para testes, sem R8 | 108.210.081 | 108,210 | 1.629.991.523 bytes; **93,7746%** |
+| CORE release sem assinatura | 108.197.793 | 108,198 | 1.630.003.811 bytes; **93,7753%** |
 
-Os dois APKs CORE examinados contêm **zero `.gguf`, `.onnx`, `.traineddata` ou modelos em `assets/vision/`**. As licenças e o modelo obrigatório de mãos continuam presentes. O CORE debug ocupa 171.126.373 bytes somando as entradas descompactadas; o CORE `coreTest`, 100.830.135 bytes. O APK não precisa ser descompactado integralmente para instalação.
+O release sem assinatura foi compilado para verificar a configuração, mas **não é instalável nem é o arquivo de distribuição**. O `coreTest` não é depurável e usa uma assinatura de testes já existente. Seu tamanho não depende de remover uma arquitetura de CPU ou de baixar código executável posteriormente.
+
+Os três APKs CORE examinados contêm **zero `.gguf`, `.onnx`, `.traineddata` ou modelos em `assets/vision/`**. As licenças e o modelo obrigatório de mãos continuam presentes. As entradas descompactadas somam 138.765.435 bytes no debug, 128.280.901 no `coreTest` e 128.280.705 no release sem assinatura. Essa soma não é uma previsão da contabilização final de espaço do Android.
 
 | Componente do CORE `coreTest` | Quantidade | Bytes descompactados | Bytes no ZIP |
 | --- | ---: | ---: | ---: |
 | Bibliotecas nativas | 40 | 88.034.744 | 88.034.744 |
 | Modelo de mãos | 1 | 7.819.105 | 7.819.105 |
-| DEX reduzido por R8 | 1 | 4.145.636 | 2.016.787 |
-| Recursos, manifesto e metadados | 432 | 701.540 | 531.072 |
+| DEX, sem R8 | 3 | 31.189.292 | 10.955.768 |
+| Recursos, manifesto e metadados | 527 | 1.106.183 | 905.830 |
 | Licenças | 17 | 123.322 | 45.822 |
-| Perfis Android de inicialização | 2 | 5.788 | 5.788 |
+| Perfis Android de inicialização | 2 | 8.255 | 8.255 |
+
+O bytecode do debug passou de 72.876.264 para 40.816.456 bytes descompactados, preservando as APIs. O projeto não depende mais de `material-icons-extended`: somente os 22 vetores adicionais usados foram mantidos como código-fonte, com origem, hashes e licença em `ui/icons/PROVENANCE.json`. A diferença entre APK debug e `coreTest` também inclui ferramentas de depuração e a forma de empacotamento; não é atribuída ao R8. O inventário registra separadamente dados ZIP e regiões de cabeçalho, assinatura e alinhamento.
 
 As bibliotecas nativas continuam a maior parcela do CORE: `arm64-v8a`, 24.408.352 bytes; `armeabi-v7a`, 12.955.376; `x86`, 22.833.288; `x86_64`, 27.837.728. Foram preservadas as quatro ABIs; a redução de tamanho **não depende de excluir aparelhos de 32 bits ou emuladores**. A distribuição futura por App Bundle pode entregar somente a ABI necessária. As bibliotecas já chegam sem seções `.debug*`, `.zdebug*` e `.symtab`; não se apagaram símbolos inexistentes ou arquivos legais para obter os números.
 
 Hashes dos APKs locais:
 
-- CORE debug: `c9a8cf01216f0fcc9d007d97f217458adcfa82c8302829e58e74d2c389c63090`.
-- CORE `coreTest`: `e407d5d35732321fca76e9723433feb297cdcb2da14f900e33d5ba44492064fe`.
+- CORE debug: `eafb466205de9106f33c53d7f6ca8860ee987d72f31554ff6d39a87b8808caa5`.
+- CORE `coreTest`: `6a75f85920757dee8040c6abfc09593ac8e9ecb0e721c5b532d544c5eab7803d`.
+- CORE release sem assinatura: `0d702cbdea6153b1c650f9349922d6245e58dd131c987aa77bb8c7fd002e5c4e`.
 
-O `coreTest` usa assinatura de teste **já existente** no ambiente, certificado SHA-256 `ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79`, e não uma identidade de produção. `apksigner verify` confirmou assinatura v2 válida; `zipalign -c -P 16 4` confirmou alinhamento de 16 KiB. O manifesto compilado confirma applicationId `br.com.nexus.assistant`, versionCode 26, minSdk 26, targetSdk 35 e `extractNativeLibs=false`. O `coreTest` não é depurável. Certificados e hashes de uma compilação futura no GitHub podem diferir; estes identificadores não devem ser atribuídos a outro APK.
+O `coreTest` usa assinatura de teste **já existente** no ambiente, certificado SHA-256 `ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79`, e não uma identidade de produção. `apksigner verify` confirmou assinatura v2 válida; `zipalign -c -P 16 4` confirmou o alinhamento de 16 KiB **das entradas ZIP**. Essa verificação, isoladamente, não confirma compatibilidade de execução com páginas de memória de 16 KiB. O manifesto compilado confirma applicationId `br.com.nexus.assistant`, versionCode 26, minSdk 26, targetSdk 35 e `extractNativeLibs=false`. Certificados e hashes de uma compilação no GitHub podem diferir; estes identificadores locais não devem ser atribuídos a outro APK.
+
+Na inspeção dos cabeçalhos ELF, as **22 bibliotecas de 64 bits** — 11 `arm64-v8a` e 11 `x86_64` — apresentaram alinhamento `PT_LOAD` mínimo de **16.384 bytes**, com endereços virtuais e offsets congruentes nessa granularidade. Os valores de cada segmento estão na evidência JSON. Isso verifica a estrutura dos binários; **não foi executado um teste de runtime em Android com páginas de 16 KiB**, nem comprova funcionamento em todo aparelho.
+
+**Por que a tentativa menor com R8 não foi entregue:** a versão experimental de 98,88 MB falhou na instrumentação antes da Activity por ausência de `androidx.tracing.Trace`. A inspeção também encontrou callbacks Java/JNI do MediaPipe removidos e APIs usadas pela instrumentação eliminadas. A falha do executor não comprova um travamento do mouse, mas impede validar aquela distribuição. A versão final preserva essas APIs e obtém a redução por dados opcionais e seleção das dependências/ícones. [Registro das falhas anteriores](docs/evidencias/storage-core-instrumentation-failures.json).
 
 **Assinatura e atualização:** o APK público alpha.2 do build 16 foi assinado com outro certificado (`22f77037ab58341a0066ab5089d5122755cebd79610f22e3b51cfb5c6cdfebc4`). O CORE local acima não é uma atualização direta compatível desse APK. Este relatório não recomenda apagar a instalação ou os dados para resolver a diferença; primeiro devem ser preservados/exportados os dados e preparada uma estratégia de distribuição com assinatura persistente.
 
-**Limite da comparação:** a redução de **94,31%** foi medida no **APK**, e não nos 2,41 GB contabilizados pelo A03. O Android pode criar ART/OAT/VDEX e arredondar alocações. Os 498 MB privados antigos podem permanecer após uma atualização com assinatura compatível até que o usuário remova o modelo opcional. Não há medição de espaço físico liberado no A03 nem confirmação de que o total instalado agora seja 98,879 MB.
+**Limite da comparação:** a redução de **93,77%** foi medida no **APK**, e não nos 2,41 GB contabilizados pelo A03. O Android pode criar ART/OAT/VDEX e arredondar alocações. Os 498 MB privados antigos podem permanecer após uma atualização com assinatura compatível até que o usuário remova o modelo opcional. Não há medição de espaço físico liberado no A03 nem confirmação de que o total instalado agora seja 108,21 MB.
 
 ## 7. Testes e verificações executados
 
-- Gradle: `testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleDebugAndroidTest` terminou com **BUILD SUCCESSFUL**. Compilados ambos os APKs principais e o APK de instrumentação debug.
+- Gradle: `-PnexusTestBuildType=coreTest testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleRelease assembleCoreTestAndroidTest` terminou com **BUILD SUCCESSFUL**, em 8 min 17 s (`/workspace/tooling/nexus-core-selected-icons-build.log`), 207 tarefas. Compilados debug, `coreTest`, release sem assinatura e APK de instrumentação `coreTest`.
 - JUnit local: **205 testes, 0 falhas, 0 erros, 0 ignorados**, em 28 relatórios XML de `testDebugUnitTest`.
 - Android Lint: debug e `coreTest`, cada um com **0 erros fatais/erros, 50 avisos e 1 informação**. Não se afirma ausência de avisos.
-- Auditoria ZIP/SHA-256: modelo de mãos íntegro, quatro ABIs presentes, dados opcionais ausentes, inventário de arquivos e tamanhos reais registrado.
-- `apksigner`, `zipalign` e `aapt2`: assinatura, alinhamento e manifesto compilado verificados no APK `coreTest` local.
-- Os testes de instalação em emulador, download real de extensões e quaisquer verificações posteriores não estão presumidos neste registro; seus resultados devem ser anexados quando executados.
+- Auditoria ZIP/SHA-256: modelo de mãos íntegro, quatro ABIs presentes, dados opcionais ausentes, inventário de arquivos e tamanhos reais registrado para os três APKs.
+- `apksigner`, `zipalign` e `aapt2`: assinatura, alinhamento e manifesto compilado verificados no APK `coreTest` local. A falha esperada de assinatura do release sem chave está registrada como **não instalável**.
+- A [compilação principal 22](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746621) e a [validação CORE5](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746317), fonte `4f0bdca`, concluíram com sucesso. Os relatórios instrumentados são evidências separadas do inventário local de arquivos; esse resultado não significa aprovação de todas as suítes do projeto.
+- DeviceSmoke18: **29 aprovados, 0 falhas, 6 ignorados**, em debug x86_64 com dados de visão para testes. A revisão corrigiu somente a navegação do teste; código principal, Gradle do app e ProGuard são idênticos aos da fonte do APK do build 22. [Resultado completo](docs/evidencias/storage-device-ci18.json).
 - Permanecem testes físicos: câmera e gestos/clique/rolagem no A03, consumo, continuidade dos serviços no firmware Samsung, valores instalados em Configurações e instalação com Play Protect ativado. **Nenhuma aprovação do Play Protect foi comprovada.**
 
 ## Evidência e fontes de código
 
 - [Inventário completo, 20 maiores, SHA-256, duplicatas, ABIs e seções ELF](docs/evidencias/storage-alpha2-baseline.json).
-- [Medição dos dois APKs CORE compilados, comparação, manifestos, assinatura e verificações](docs/evidencias/storage-core-after.json).
+- [Medição dos três APKs CORE compilados, comparação, manifestos, assinatura e verificações](docs/evidencias/storage-core-after.json).
 - [Preparação/download/remoção dos modelos](app/src/main/java/br/com/nexus/assistant/data/local/LocalModelManager.kt).
 - [Seleção de perfil e cópia ao abrir Chat](app/src/main/java/br/com/nexus/assistant/NexusViewModel.kt).
 - [Cópias privadas de OCR](app/src/main/java/br/com/nexus/assistant/device/vision/LocalTextReader.kt).

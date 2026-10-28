@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-10-28T16:10:44.330329+00:00",
+  "directUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk",
+  "unauthenticatedDownload": true,
+  "releaseId": 426893774,
+  "releaseTag": "v3.0.0-alpha.3-core-download-22",
+  "releaseTargetCommit": "d11195884bae2c91423fd8da3bb7ae4b8521df50",
+  "applicationSourceCommit": "4f0bdca2d1ad105480ae2a03f60c9bdb3648392c",
+  "publicationSourceCommit": "d11195884bae2c91423fd8da3bb7ae4b8521df50",
+  "publicationRunId": 40722842421,
+  "sourceBuildRunId": 40669746621,
+  "sourceArtifactId": 12807709211,
+  "sourceArtifactZipSha256": "17da3bb506173a8164a817bb897b88c145e44018377c5b6b488aaebab9aa2d6b",
+  "coreRunId": 40669746317,
+  "regressionRunId": 40721031770,
+  "regressionTestSourceCommit": "4e1c6159bcd84764107b1b9a612c2a25023f987d",
+  "apkBytes": 108210081,
+  "apkSha256": "e76ff4e228206a11317000a238556d8c24693532c1527b05f8264f5ba6b50d15",
+  "certificateSha256": "0e72073647f9fd5b4bc27f6f8fbafa9100f4fadc391433ff6844fc2f96ec97fc",
+  "publishedAssets": [
+    {
+      "id": 685544903,
+      "name": "APK_CERTIFICATE.txt",
+      "size": 955,
+      "digest": "sha256:a8f0d7e8206e9a21ca5f2fa667007bb0b61f324f4583699514bb71de4c7d2814",
+      "browserDownloadUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/APK_CERTIFICATE.txt"
+    },
+    {
+      "id": 685544908,
+      "name": "CORE_PACKAGE_AUDIT.json",
+      "size": 17599,
+      "digest": "sha256:1b1831d29110bb1a3ef4a235c780754bf16fd0c21e0368c080b8e21858985fc5",
+      "browserDownloadUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/CORE_PACKAGE_AUDIT.json"
+    },
+    {
+      "id": 685544907,
+      "name": "NEXUS-3.0.0-alpha.3-core.apk",
+      "size": 108210081,
+      "digest": "sha256:e76ff4e228206a11317000a238556d8c24693532c1527b05f8264f5ba6b50d15",
+      "browserDownloadUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk"
+    },
+    {
+      "id": 685544906,
+      "name": "SHA256SUMS.txt",
+      "size": 95,
+      "digest": "sha256:3d34dfaa6461e9026b722ce4760def4e81cd0da693e4edbb8dc3da273644300d",
+      "browserDownloadUrl": "https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/SHA256SUMS.txt"
+    }
+  ],
+  "httpRangeProbe": {
+    "status": 206,
+    "contentType": "application/vnd.android.package-archive",
+    "contentRange": "bytes 0-31/108210081",
+    "contentDisposition": "attachment; filename=NEXUS-3.0.0-alpha.3-core.apk",
+    "prefixHex": "504b0304000000000800210821027701ccd23400000038000000390000004d45"
+  },
+  "rebuiltOrResignedForPublication": false,
+  "physicalA03Tested": false,
+  "playProtectApprovalVerified": false,
+  "notes": [
+    "The release tag identifies the audited publication revision, whose application sources match the earlier compiled source.",
+    "The APK remains the original signed build22 artifact. Its test certificate differs from alpha2build16; direct update is not possible. Export personal data before replacing an installation.",
+    "The public transfer completed and matched the pinned complete APK SHA-256; this is not a Play Protect verdict."
+  ],
+  "publicationHistory": [
+    {
+      "runId": 40722001882,
+      "conclusion": "failure",
+      "operation": "createRelease",
+      "observedError": "HTTP 403 Resource not accessible by integration",
+      "notes": "Contents-write token was present; no release was created. The workflow was changed to tag its audited publication revision, without changing or resigning the APK."
+    },
+    {
+      "runId": 40722842421,
+      "conclusion": "success",
+      "releaseTargetCommit": "d11195884bae2c91423fd8da3bb7ae4b8521df50"
+    }
+  ]
+}

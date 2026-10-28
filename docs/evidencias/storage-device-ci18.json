@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "collectedAtUtc": "2026-10-28T16:03:10.672434+00:00",
+  "executionStatus": "passed",
+  "scope": "Android emulator regression suite. Includes UI navigation/draft retention, local storage and actual native blank-frame hand tracking, OCR and classifier fixtures. Does not certify physical A03 gestures/background sessions, model intelligence or Play Protect approval.",
+  "workflow": {
+    "runId": 40721031770,
+    "runNumber": 18,
+    "jobId": 122931653144,
+    "url": "https://github.com/Cazi1n8/nexus-android/actions/runs/40721031770",
+    "conclusion": "success",
+    "testSourceSha": "4e1c6159bcd84764107b1b9a612c2a25023f987d",
+    "applicationSourceSha": "4f0bdca2d1ad105480ae2a03f60c9bdb3648392c",
+    "applicationSourcePathsCompared": [
+      "app/src/main",
+      "app/build.gradle.kts",
+      "app/proguard-rules.pro"
+    ],
+    "applicationSourcesUnchanged": true,
+    "changedPathsBetweenSources": [
+      ".github/workflows/android-device-smoke.yml",
+      ".github/workflows/android.yml",
+      "app/src/androidTest/java/br/com/nexus/assistant/FirstRunFlowsTest.kt"
+    ]
+  },
+  "configuration": {
+    "variant": "debug",
+    "apiLevel": 29,
+    "androidVersion": "10",
+    "abi": "x86_64",
+    "bundleGenerativeModel": false,
+    "bundleVisionData": true,
+    "cameraBack": "none",
+    "cameraFront": "none",
+    "ramMiB": 2048,
+    "note": "This broader debug regression suite bundles the small Vision data fixtures. The separate CORE5 suite exercises the non-debuggable CORE installation with those optional data absent and real authorized downloads. This is not a physical ARM device or the same APK binary as the universal CORE build."
+  },
+  "artifact": {
+    "id": 12830896768,
+    "name": "nexus-emulator-reports-18",
+    "zipBytes": 95970,
+    "sha256": "7494445461b2c548ecf188132a0ff74e5d8450f79a95ab73b72a1e94afaf7196",
+    "sha256Verified": true,
+    "xmlPath": "outputs/androidTest-results/connected/debug/TEST-emulator-5554 - 10-_app-.xml",
+    "xmlSha256": "d6cd91a454f70a124aeb0b2e5357f1569062206b8cf431ed8589c6c7c2eff5b3"
+  },
+  "counts": {
+    "tests": 35,
+    "passed": 29,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 6
+  },
+  "suiteXmlAttributes": {
+    "name": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+    "tests": "35",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "6",
+    "time": "17.542",
+    "timestamp": "2026-10-28T16:00:25",
+    "hostname": "localhost"
+  },
+  "testcases": [
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "unrelatedNegationDoesNotHideAFalseVisionClaim",
+      "status": "passed",
+      "seconds": 0.013
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "mentionOfNexusIsNotByItselfAnAssistantSignature",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "acceptsACopiableHumanApologyWithoutCertifyingItsQuality",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsTheActualFalseClaimOfLiveCameraAccess",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsAssistantSignaturesOnTheirOwnLineAndAfterASignoff",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsAssistantSelfDefenseDespiteApologyWordsAndLength",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "genericNegationDoesNotProveACameraLimitation",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "rejectsTheActualApologySignedByNexus",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationChecksTest",
+      "name": "acceptsRelevantCameraLimitations",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.Ai3EvaluationTest",
+      "name": "evaluateTheFifteenRequestedCasesWithTheBundledModel",
+      "status": "skipped",
+      "seconds": 0.042
+    },
+    {
+      "class": "br.com.nexus.assistant.BundledChatFirstRunTest",
+      "name": "firstChatPreparesBundledModelAndRespondsOffline",
+      "status": "skipped",
+      "seconds": 2.28
+    },
+    {
+      "class": "br.com.nexus.assistant.ConversationCancellationTest",
+      "name": "deletingDataWaitsForAnExistingMemorySaveAndRejectsEditsDuringDeletion",
+      "status": "passed",
+      "seconds": 0.389
+    },
+    {
+      "class": "br.com.nexus.assistant.ConversationCancellationTest",
+      "name": "interruptingTheFirstAnswerKeepsItsMessageAndNextSendInTheSameConversation",
+      "status": "passed",
+      "seconds": 0.08
+    },
+    {
+      "class": "br.com.nexus.assistant.CoreInstallationTest",
+      "name": "coreKeepsTrackingOfflineAndOpensStorageWithoutStartingOptionalResources",
+      "status": "skipped",
+      "seconds": 0.872
+    },
+    {
+      "class": "br.com.nexus.assistant.CoreOptionalModelsTest",
+      "name": "coreOmitsGenerativeWeightsAndDoesNotStartADownloadWhenChatPreparationIsRequested",
+      "status": "passed",
+      "seconds": 0.502
+    },
+    {
+      "class": "br.com.nexus.assistant.ExtensionDataSmokeTest",
+      "name": "optionalDataDownloadsRunNativeReadersAndCanBeRemovedWithoutAffectingCore",
+      "status": "skipped",
+      "seconds": 0.003
+    },
+    {
+      "class": "br.com.nexus.assistant.FirstRunFlowsTest",
+      "name": "sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer",
+      "status": "passed",
+      "seconds": 3.761
+    },
+    {
+      "class": "br.com.nexus.assistant.FirstRunFlowsTest",
+      "name": "anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated",
+      "status": "passed",
+      "seconds": 3.363
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalAiInferenceTest",
+      "name": "realModelProducesUtf8TextOnAndroidAndRecordsObservations",
+      "status": "skipped",
+      "seconds": 0.028
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalModelDownloadDeviceTest",
+      "name": "cancellationAndManagerRecreationResumeTheVerifiedTransfer",
+      "status": "passed",
+      "seconds": 0.634
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalModelDownloadDeviceTest",
+      "name": "allBytesReceivedCanFinishAndReachReadyWithoutWaitingForEof",
+      "status": "passed",
+      "seconds": 0.052
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalObjectClassifierTest",
+      "name": "realBundledModelRecognizesOfficialFoodImageLocally",
+      "status": "passed",
+      "seconds": 0.227
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalObjectClassifierTest",
+      "name": "blankFrameDoesNotInventObjectsAndClosedReaderCannotRestart",
+      "status": "passed",
+      "seconds": 0.027
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "boundedDecodeHonorsExifRotationAndBlankImageReturnsNoText",
+      "status": "passed",
+      "seconds": 0.153
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "rejectsOutsidePrivateFilesAndOversizedInput",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "closedReaderDoesNotStartRecognition",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.LocalTextReaderTest",
+      "name": "bundledPortugueseAndEnglishModelsReadPrintedText",
+      "status": "passed",
+      "seconds": 0.155
+    },
+    {
+      "class": "br.com.nexus.assistant.MediaPipePrivacyTest",
+      "name": "packagedFactorySelectsUpstreamNoOpLogger",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.NativeCapabilitiesSmokeTest",
+      "name": "localAiJniLoadsOnlyInSupportedProcessAndRejectsMissingWeights",
+      "status": "passed",
+      "seconds": 0.0
+    },
+    {
+      "class": "br.com.nexus.assistant.NativeCapabilitiesSmokeTest",
+      "name": "packagedHandTrackerProcessesABlankVideoFrame",
+      "status": "passed",
+      "seconds": 0.077
+    },
+    {
+      "class": "br.com.nexus.assistant.ProductionModelDownloadTest",
+      "name": "bothProductionModelsDownloadAndCompactCanInfer",
+      "status": "skipped",
+      "seconds": 0.001
+    },
+    {
+      "class": "br.com.nexus.assistant.VisionUiTest",
+      "name": "galleryAndQuestionWorkWithoutActivatingSensorsOrSendingAnImage",
+      "status": "passed",
+      "seconds": 3.067
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "deletingConversationRemovesMessagesButPreservesAuthorizedMemories",
+      "status": "passed",
+      "seconds": 0.058
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "historyCanBeRenamedSearchedAndContinuedWithoutChangingMessages",
+      "status": "passed",
+      "seconds": 0.177
+    },
+    {
+      "class": "br.com.nexus.assistant.data.LocalDataTest",
+      "name": "exportContainsConversationAndMemoriesButOmitsPrivateImagePaths",
+      "status": "passed",
+      "seconds": 0.079
+    }
+  ],
+  "previousFailure": {
+    "runId": 40669746412,
+    "runNumber": 17,
+    "applicationSourceSha": "4f0bdca2d1ad105480ae2a03f60c9bdb3648392c",
+    "artifactId": 12806824699,
+    "counts": {
+      "tests": 35,
+      "passed": 28,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 6
+    },
+    "test": "FirstRunFlowsTest.sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer",
+    "error": "ComposeTimeoutException while waiting for the Chat editor after a physical touch immediately following scroll; FirstRunFlowsTest.kt:30. No app crash or ANR was present in the captured test logcat.",
+    "testOnlyRepair": "Use the card actual accessibility OnClick action after entrance animation completion, following the already passing VisionUiTest/BundledChatFirstRunTest pattern. Keep bounded editor waits, draft retention, zero messages and optional model navigation assertions. No application source change.",
+    "retestOutcome": "Both FirstRunFlowsTest cases passed in run18; repaired case 3.761 seconds."
+  },
+  "limitations": [
+    "Six opt-in/model-dependent tests were skipped; they are not counted as passed.",
+    "No actual camera or microphone hardware was activated in this suite.",
+    "No claim that semantic AI quality, all Libras letters, physical global mouse/voice or Play Protect are approved."
+  ]
+}

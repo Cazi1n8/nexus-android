@@ -11,12 +11,14 @@ Os arquivos abaixo foram realmente compilados e medidos. MB e GB são decimais; 
 | APK local | Bytes | Tamanho | Comparação com alpha.2 |
 | --- | ---: | ---: | ---: |
 | Alpha.2 debug anterior | 1.738.201.604 | 1,74 GB | Referência |
-| CORE debug | 121.054.931 | 121,05 MB | 93,04% menor |
-| CORE `coreTest`, assinado para testes e otimizado com R8 | 98.878.796 | 98,88 MB | 94,31% menor |
+| CORE debug final | 121.107.028 | 121,11 MB | 93,03% menor |
+| CORE `coreTest`, assinado para testes, sem R8 | 108.210.081 | 108,21 MB | 93,77% menor |
 
-Os dois GGUFs obrigatórios da alpha.2 somavam **1.608.720.768 bytes**, 92,55% daquele APK. O CORE não os empacota; também deixa OCR e classificação de objetos para download. O modelo de mãos de **7.819.105 bytes** continua incluído e verificado. A comparação entre debug e debug isola melhor a mudança de empacotamento; a variante `coreTest` também remove código e recursos não utilizados.
+Os dois GGUFs obrigatórios da alpha.2 somavam **1.608.720.768 bytes**, 92,55% daquele APK. O CORE não os empacota; também deixa OCR e classificação de objetos para download. O modelo de mãos de **7.819.105 bytes** continua incluído e verificado. A comparação entre debug e debug isola melhor a mudança de empacotamento. O catálogo de mais de 11 mil ícones foi substituído pelos 22 vetores oficiais efetivamente usados, mantendo suas licenças e a biblioteca de ícones básicos. `coreTest` e release preservam as classes e interfaces JNI, sem R8 ou redução automática de recursos nesta alpha.
 
-**Download público do novo CORE: em preparação.** O build local instalável está em `app/build/outputs/apk/coreTest/app-coreTest.apk`. A publicação e os testes instrumentados específicos do CORE ainda precisam ser concluídos; não há link novo verificado nesta etapa do registro.
+**[Baixar NEXUS CORE — APK de teste de 108,21 MB](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk)**. Link direto, sem login ou extração de ZIP. É exatamente o APK do [build 22](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746621), publicado sem recompilar ou assinar novamente. O download público completo foi conferido por tamanho e SHA-256. [Evidência da publicação](docs/evidencias/storage-core-direct-download.json).
+
+**A assinatura de teste é diferente da alpha.2 do build 16 e impede atualização direta. Exporte seus dados antes de substituir uma instalação.** A tentativa experimental de 98,88 MB com R8 não foi publicada como versão recomendada; o arquivo entregue preserva as APIs necessárias sem R8.
 
 O [APK alpha.2 histórico](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.2-download-16/NEXUS-3.0.0-alpha.2.apk) continua disponível sem login, mas possui aproximadamente 1,74 GB e **não contém a otimização CORE**. Não use seu tamanho ou seu hash para validar o novo arquivo.
 
@@ -49,7 +51,7 @@ Android **8.0/API 26 ou superior**. A instalação universal mantém ARM32, ARM6
 4. Abra **Armazenamento → Atualizar medição**. A tela separa aplicativo, dados e cache informados pelo Android e mostra modelos, downloads parciais, extensões, imagens de conversa, banco, preferências e outros arquivos privados.
 5. Em **Gerenciar modelos de IA**, remova explicitamente um perfil que não queira manter. Em **Gerenciar extensões e pacotes**, remova os dados de visão. **Limpar cache temporário** preserva modelos, conversas, configurações e cache de código.
 
-Uma atualização para CORE **preserva os dados antigos**: os cerca de 498 MB relatados não desaparecem automaticamente. A cópia privada do modelo compacto, mais os dados OCR copiados na alpha.2, somam 497.495.876 bytes; é uma hipótese compatível com o relato, ainda sem inspeção física do A03. A Central permite medir e remover os pacotes conscientemente. O cache de 13,51 MB não era a causa dos 1,90 GB do aplicativo.
+Uma atualização com assinatura compatível para CORE **preserva os dados antigos**: os cerca de 498 MB relatados não desaparecem automaticamente. A cópia privada do modelo compacto, mais os dados OCR copiados na alpha.2, somam 497.495.876 bytes; é uma hipótese compatível com o relato, ainda sem inspeção física do A03. A Central permite medir e remover os pacotes conscientemente. O cache de 13,51 MB não era a causa dos 1,90 GB do aplicativo.
 
 Os totais do Android incluem otimizações e contabilização do sistema. A medição lógica dos arquivos não é somada novamente a esses totais; o cache é separado dos dados sem contá-lo duas vezes. A consulta é somente do próprio NEXUS, sem permissão para observar armazenamento de outros aplicativos.
 
@@ -77,13 +79,14 @@ python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
 python3 scripts/prepare_mediapipe_runtime.py
 python3 scripts/fetch_ocr_runtime.py
-./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleDebugAndroidTest
+./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process -PnexusTestBuildType=coreTest testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleCoreTestAndroidTest
 ```
 
 No Windows, use `gradlew.bat`. O runtime nativo de IA e OCR continua integrado para usar dados opcionais; seus pesos não são obrigatórios. Saídas:
 
 - `app/build/outputs/apk/debug/app-debug.apk`: depuração, sem redução R8.
-- `app/build/outputs/apk/coreTest/app-coreTest.apk`: teste instalável, R8 e redução de recursos; usa a chave de testes existente, não uma identidade de produção.
+- `app/build/outputs/apk/coreTest/app-coreTest.apk`: teste instalável, não depurável, sem R8; usa a chave de testes existente, não uma identidade de produção.
+- `app/build/outputs/apk/androidTest/coreTest/app-coreTest-androidTest.apk`: instrumentação da variante `coreTest`. Para `assembleDebugAndroidTest`, use o tipo de testes padrão `debug`, em outra execução sem `-PnexusTestBuildType=coreTest`.
 - `assembleRelease` sem credenciais: análise do release sem assinatura; o resultado **não é instalável**. Para distribuir com chave estável, siga [assinatura e distribuição](docs/ASSINATURA_E_DISTRIBUICAO.md).
 
 Para repetir a variante antiga com todos os dados embutidos, prepare os arquivos e opte explicitamente:
@@ -99,9 +102,13 @@ python3 scripts/fetch_ocr_models.py
 
 ## Verificações desta etapa
 
-O build local terminou com `BUILD SUCCESSFUL` em 7 min 45 s: **205 testes JVM aprovados**, sem falhas, erros ou ignorados; lint debug e `coreTest` com zero erros, 50 avisos e uma informação em cada relatório. Ambos os APKs e o APK de testes Android foram gerados. Os scripts Python existentes tiveram 130 testes aprovados; no servidor opcional, 25 de 44 casos passaram e 19 foram ignorados nesta execução. Testes de inventário, migração de modelos, limpeza e pacotes opcionais têm evidências em [PROGRESSO_ARMAZENAMENTO.md](PROGRESSO_ARMAZENAMENTO.md).
+A compilação local final terminou com **BUILD SUCCESSFUL em 8 min 17 s**, com 207 tarefas: **205 testes JVM aprovados**, zero falhas, erros ou ignorados; lint debug e `coreTest` com **zero erros, 50 avisos e uma informação** cada. Os APKs debug, `coreTest`, release sem assinatura e instrumentação `coreTest` foram gerados. A suíte Python teve **148 testes aprovados**; no servidor opcional, 25 de 44 casos passaram e 19 foram ignorados nesta execução. [Resultados e limites](PROGRESSO_ARMAZENAMENTO.md).
 
-Os testes instrumentados específicos de instalação CORE e download de extensões ainda estão em preparação/execução. Os resultados Android históricos da alpha.2 não substituem esses testes. Não houve medição da nova instalação em A03 nem aprovação do Play Protect.
+O [build 22 no GitHub](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746621) passou. O [CORE5](https://github.com/Cazi1n8/nexus-android/actions/runs/40669746317) confirmou **3 métodos de teste Android aprovados**: instalação CORE sem internet e sem download automático; rastreador real em quadro vazio e telas de extensões/armazenamento; downloads HTTPS de 11.530.361 bytes, OCR/classificação nativos, reutilização, retomada a partir de prefixo verificado e remoção preservando o modelo de mãos e dados sintéticos. [Evidência real](docs/evidencias/storage-core-ci5.json).
+
+A suíte adicional [DeviceSmoke18](https://github.com/Cazi1n8/nexus-android/actions/runs/40721031770) confirmou **29 aprovados, zero falhas e 6 ignorados**. O teste de primeiro Chat passou após usar a ação acessível real do cartão, já adotada nos testes de Vision. A falha anterior de toque sintético durante a rolagem foi preservada no relatório. A revisão alterou somente testes e configuração do emulador; o código do aplicativo continua igual ao do APK do build 22. [Evidência e limites](docs/evidencias/storage-device-ci18.json). Os resultados não tornam aprovadas as avaliações semânticas anteriores da IA.
+
+Duas tentativas anteriores de instrumentação CORE falharam: timeout sem causa demonstrada e ausência de `androidx.tracing.Trace` antes de iniciar a Activity na variante experimental com R8. A inspeção também encontrou interfaces JNI removidas. A versão final preserva essas APIs sem R8 e usa somente os ícones necessários. Os resultados do emulador não comprovam mãos/câmera/voz físicas no A03, o total instalado no aparelho ou aprovação do Play Protect.
 
 ## Segurança e atualização
 
@@ -109,4 +116,4 @@ Conversas/memórias autorizadas ficam em Room; preferências em DataStore. O tok
 
 **Mantenha o Play Protect ativado.** O motivo exato do bloqueio relatado não foi comprovado. Se o APK for bloqueado, registre versão, hash, certificado e mensagem para [revisão oficial](docs/PLAY_PROTECT_REVISAO.md). Não há garantia de aprovação por reduzir o tamanho.
 
-O certificado do CORE local difere do APK alpha.2 público do build 16. A chave privada temporária daquele runner não está disponível; a assinatura antiga não pode ser reproduzida a partir do APK. **Certificados diferentes impedem atualização direta. Exporte seus dados antes de qualquer substituição e não remova a instalação atual sem conferir a assinatura.** Não foi criada uma chave de produção para substituir silenciosamente a anterior. O responsável ainda precisa configurar sua chave estável em Secrets para futuras distribuições. Publicações de APK de teste devem registrar o certificado real de cada arquivo.
+O APK do build 22 possui SHA-256 `e76ff4e228206a11317000a238556d8c24693532c1527b05f8264f5ba6b50d15` e certificado SHA-256 `0e72073647f9fd5b4bc27f6f8fbafa9100f4fadc391433ff6844fc2f96ec97fc`. A cópia local possui outro hash/certificado; não misture seus identificadores. O certificado do build 22 e o do CORE local diferem do APK alpha.2 público do build 16. A chave privada temporária daquele runner não está disponível; a assinatura antiga não pode ser reproduzida a partir do APK. **Certificados diferentes impedem atualização direta. Exporte seus dados antes de qualquer substituição e não remova a instalação atual sem conferir a assinatura.** Não foi criada uma chave de produção para substituir silenciosamente a anterior. O responsável ainda precisa configurar sua chave estável em Secrets para futuras distribuições. Publicações de APK de teste devem registrar o certificado real de cada arquivo.

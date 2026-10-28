@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "collectedAtUtc": "2026-10-28T15:53:34.827542+00:00",
+  "executionStatus": "passed",
+  "sourceCommit": "4f0bdca2d1ad105480ae2a03f60c9bdb3648392c",
+  "repository": "Cazi1n8/nexus-android",
+  "workflowRun": {
+    "id": 40669746317,
+    "runNumber": 5,
+    "conclusion": "success",
+    "url": "https://github.com/Cazi1n8/nexus-android/actions/runs/40669746317"
+  },
+  "artifact": {
+    "id": 12808845582,
+    "name": "nexus-core-storage-observations-5",
+    "zipBytes": 4461,
+    "zipSha256": "2191b8418a2196b5e074d2d7458a4aee86ff59fd7b80f9c2ce2f6e2e66afa856"
+  },
+  "testEnvironment": {
+    "androidApi": 29,
+    "architecture": "x86_64",
+    "ramMiB": 2048,
+    "buildType": "coreTest",
+    "debuggable": false,
+    "minification": false,
+    "disposableFreshEmulator": true,
+    "configurationSource": ".github/workflows/core-storage-smoke.yml"
+  },
+  "junit": {
+    "instrumentedMethodsPassed": 3,
+    "coreInstrumentedMethods": 2,
+    "coreJunitResult": "OK (2 tests)",
+    "coreJUnitSeconds": 5.695,
+    "extensionInstrumentedMethods": 1,
+    "extensionJunitResult": "OK (1 test)",
+    "extensionJUnitSeconds": 2.046,
+    "harnessWrapperTestCases": 1,
+    "harnessSeconds": 21.515,
+    "note": "The wrapper test is an aggregate transport/validation check, not a fourth instrumented test method."
+  },
+  "coreObservations": {
+    "schemaVersion": 1,
+    "executionStatus": "passed",
+    "versionName": "3.0.0-alpha.3-core",
+    "versionCode": 26,
+    "coreInstallation": true,
+    "scope": "Fresh Android CORE assets, actual MediaPipe blank frame, extensions/storage UI and permission/resource state. Not real camera, hand gestures, voice or Play Protect approval.",
+    "generativeWeightsAbsent": true,
+    "optionalVisionAssetsAbsent": true,
+    "handModelBytes": 7819105,
+    "handModelSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+    "realHandTrackerProcessedBlankFrame": true,
+    "extensionsUiOpened": true,
+    "storageMeasurementRendered": true,
+    "manageModelsButtonNavigated": true,
+    "mouseScreenWaitsForCameraConsent": true,
+    "mouseScreenReportsUnsupportedHardware": false,
+    "automaticModelDownloadStarted": false,
+    "automaticExtensionDownloadStarted": false,
+    "sensorPermissionsUnchanged": true,
+    "backgroundServicesActive": false,
+    "testedSensorPermissions": [
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO"
+    ]
+  },
+  "extensionObservations": {
+    "schemaVersion": 1,
+    "executionStatus": "passed",
+    "versionName": "3.0.0-alpha.3-core",
+    "scope": "Fresh emulator; real HTTPS pinned data, private-file native classifier/OCR, verified-prefix HTTP resume and removal. Not live cancellation, real camera, general image understanding or Play Protect approval.",
+    "optionalDataBytes": 11530361,
+    "realHttpsDownloadsVerified": true,
+    "verifiedFilesReused": true,
+    "activeLeaseBlockedRemoval": true,
+    "privateClassifierProcessedFixture": true,
+    "privateOcrReadSyntheticText": true,
+    "realHttpsPartialResumeVerified": true,
+    "resumeFixture": "128 KiB prefix copied from the previously SHA-256-verified real download; HTTPS continuation validates the complete pinned file. A server may legally restart with HTTP 200; this fixture does not assert the status code.",
+    "optionalFilesRemoved": true,
+    "handModelPreserved": true,
+    "syntheticUserDataPreserved": true
+  },
+  "networkRestoration": {
+    "original": {
+      "wifi": "1",
+      "data": "1"
+    },
+    "restorationCommandErrors": []
+  },
+  "rawReports": {
+    "coreInstrumentation": "INSTRUMENTATION_STATUS: class=br.com.nexus.assistant.CoreInstallationTest\nINSTRUMENTATION_STATUS: current=1\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=2\nINSTRUMENTATION_STATUS: stream=\nbr.com.nexus.assistant.CoreInstallationTest:\nINSTRUMENTATION_STATUS: test=coreKeepsTrackingOfflineAndOpensStorageWithoutStartingOptionalResources\nINSTRUMENTATION_STATUS_CODE: 1\nINSTRUMENTATION_STATUS: nexus_core_stage=before_activity_launch\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=test_body_started\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=assets_verified\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=creating_hand_tracker\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=hand_tracker_created\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=blank_frame_processed\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=home_opened\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=extensions_opened\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_stage=storage_and_models_opened\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: nexus_core_report=ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiZXhlY3V0aW9uU3RhdHVzIjogInBhc3NlZCIsCiAgInZlcnNpb25OYW1lIjogIjMuMC4wLWFscGhhLjMtY29yZSIsCiAgInZlcnNpb25Db2RlIjogMjYsCiAgImNvcmVJbnN0YWxsYXRpb24iOiB0cnVlLAogICJzY29wZSI6ICJGcmVzaCBBbmRyb2lkIENPUkUgYXNzZXRzLCBhY3R1YWwgTWVkaWFQaXBlIGJsYW5rIGZyYW1lLCBleHRlbnNpb25zXC9zdG9yYWdlIFVJIGFuZCBwZXJtaXNzaW9uXC9yZXNvdXJjZSBzdGF0ZS4gTm90IHJlYWwgY2FtZXJhLCBoYW5kIGdlc3R1cmVzLCB2b2ljZSBvciBQbGF5IFByb3RlY3QgYXBwcm92YWwuIiwKICAiZ2VuZXJhdGl2ZVdlaWdodHNBYnNlbnQiOiB0cnVlLAogICJvcHRpb25hbFZpc2lvbkFzc2V0c0Fic2VudCI6IHRydWUsCiAgImhhbmRNb2RlbEJ5dGVzIjogNzgxOTEwNSwKICAiaGFuZE1vZGVsU2hhMjU2IjogImZiYzJhMzAwODBjM2M1NTcwOTNiNWRkZmMzMzQ2OTgxMzJlYjM0MTA0NGNjZWUzMjJjY2Y4YmNmMzYwN2NkZTEiLAogICJyZWFsSGFuZFRyYWNrZXJQcm9jZXNzZWRCbGFua0ZyYW1lIjogdHJ1ZSwKICAiZXh0ZW5zaW9uc1VpT3BlbmVkIjogdHJ1ZSwKICAic3RvcmFnZU1lYXN1cmVtZW50UmVuZGVyZWQiOiB0cnVlLAogICJtYW5hZ2VNb2RlbHNCdXR0b25OYXZpZ2F0ZWQiOiB0cnVlLAogICJtb3VzZVNjcmVlbldhaXRzRm9yQ2FtZXJhQ29uc2VudCI6IHRydWUsCiAgIm1vdXNlU2NyZWVuUmVwb3J0c1Vuc3VwcG9ydGVkSGFyZHdhcmUiOiBmYWxzZSwKICAiYXV0b21hdGljTW9kZWxEb3dubG9hZFN0YXJ0ZWQiOiBmYWxzZSwKICAiYXV0b21hdGljRXh0ZW5zaW9uRG93bmxvYWRTdGFydGVkIjogZmFsc2UsCiAgInNlbnNvclBlcm1pc3Npb25zVW5jaGFuZ2VkIjogdHJ1ZSwKICAiYmFja2dyb3VuZFNlcnZpY2VzQWN0aXZlIjogZmFsc2UsCiAgInRlc3RlZFNlbnNvclBlcm1pc3Npb25zIjogWwogICAgImFuZHJvaWQucGVybWlzc2lvbi5DQU1FUkEiLAogICAgImFuZHJvaWQucGVybWlzc2lvbi5SRUNPUkRfQVVESU8iCiAgXQp9\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: class=br.com.nexus.assistant.CoreInstallationTest\nINSTRUMENTATION_STATUS: current=1\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=2\nINSTRUMENTATION_STATUS: stream=.\nINSTRUMENTATION_STATUS: test=coreKeepsTrackingOfflineAndOpensStorageWithoutStartingOptionalResources\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: class=br.com.nexus.assistant.CoreOptionalModelsTest\nINSTRUMENTATION_STATUS: current=2\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=2\nINSTRUMENTATION_STATUS: stream=\nbr.com.nexus.assistant.CoreOptionalModelsTest:\nINSTRUMENTATION_STATUS: test=coreOmitsGenerativeWeightsAndDoesNotStartADownloadWhenChatPreparationIsRequested\nINSTRUMENTATION_STATUS_CODE: 1\nINSTRUMENTATION_STATUS: class=br.com.nexus.assistant.CoreOptionalModelsTest\nINSTRUMENTATION_STATUS: current=2\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=2\nINSTRUMENTATION_STATUS: stream=.\nINSTRUMENTATION_STATUS: test=coreOmitsGenerativeWeightsAndDoesNotStartADownloadWhenChatPreparationIsRequested\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_RESULT: stream=\n\nTime: 5.695\n\nOK (2 tests)\n\n\nINSTRUMENTATION_CODE: -1\n",
+    "extensionInstrumentation": "INSTRUMENTATION_STATUS: class=br.com.nexus.assistant.ExtensionDataSmokeTest\nINSTRUMENTATION_STATUS: current=1\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=1\nINSTRUMENTATION_STATUS: stream=\nbr.com.nexus.assistant.ExtensionDataSmokeTest:\nINSTRUMENTATION_STATUS: test=optionalDataDownloadsRunNativeReadersAndCanBeRemovedWithoutAffectingCore\nINSTRUMENTATION_STATUS_CODE: 1\nINSTRUMENTATION_STATUS: nexus_extension_report=ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiZXhlY3V0aW9uU3RhdHVzIjogInBhc3NlZCIsCiAgInZlcnNpb25OYW1lIjogIjMuMC4wLWFscGhhLjMtY29yZSIsCiAgInNjb3BlIjogIkZyZXNoIGVtdWxhdG9yOyByZWFsIEhUVFBTIHBpbm5lZCBkYXRhLCBwcml2YXRlLWZpbGUgbmF0aXZlIGNsYXNzaWZpZXJcL09DUiwgdmVyaWZpZWQtcHJlZml4IEhUVFAgcmVzdW1lIGFuZCByZW1vdmFsLiBOb3QgbGl2ZSBjYW5jZWxsYXRpb24sIHJlYWwgY2FtZXJhLCBnZW5lcmFsIGltYWdlIHVuZGVyc3RhbmRpbmcgb3IgUGxheSBQcm90ZWN0IGFwcHJvdmFsLiIsCiAgIm9wdGlvbmFsRGF0YUJ5dGVzIjogMTE1MzAzNjEsCiAgInJlYWxIdHRwc0Rvd25sb2Fkc1ZlcmlmaWVkIjogdHJ1ZSwKICAidmVyaWZpZWRGaWxlc1JldXNlZCI6IHRydWUsCiAgImFjdGl2ZUxlYXNlQmxvY2tlZFJlbW92YWwiOiB0cnVlLAogICJwcml2YXRlQ2xhc3NpZmllclByb2Nlc3NlZEZpeHR1cmUiOiB0cnVlLAogICJwcml2YXRlT2NyUmVhZFN5bnRoZXRpY1RleHQiOiB0cnVlLAogICJyZWFsSHR0cHNQYXJ0aWFsUmVzdW1lVmVyaWZpZWQiOiB0cnVlLAogICJyZXN1bWVGaXh0dXJlIjogIjEyOCBLaUIgcHJlZml4IGNvcGllZCBmcm9tIHRoZSBwcmV2aW91c2x5IFNIQS0yNTYtdmVyaWZpZWQgcmVhbCBkb3dubG9hZDsgSFRUUFMgY29udGludWF0aW9uIHZhbGlkYXRlcyB0aGUgY29tcGxldGUgcGlubmVkIGZpbGUuIEEgc2VydmVyIG1heSBsZWdhbGx5IHJlc3RhcnQgd2l0aCBIVFRQIDIwMDsgdGhpcyBmaXh0dXJlIGRvZXMgbm90IGFzc2VydCB0aGUgc3RhdHVzIGNvZGUuIiwKICAib3B0aW9uYWxGaWxlc1JlbW92ZWQiOiB0cnVlLAogICJoYW5kTW9kZWxQcmVzZXJ2ZWQiOiB0cnVlLAogICJzeW50aGV0aWNVc2VyRGF0YVByZXNlcnZlZCI6IHRydWUKfQ==\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_STATUS: class=br.com.nexus.assistant.ExtensionDataSmokeTest\nINSTRUMENTATION_STATUS: current=1\nINSTRUMENTATION_STATUS: id=AndroidJUnitRunner\nINSTRUMENTATION_STATUS: numtests=1\nINSTRUMENTATION_STATUS: stream=.\nINSTRUMENTATION_STATUS: test=optionalDataDownloadsRunNativeReadersAndCanBeRemovedWithoutAffectingCore\nINSTRUMENTATION_STATUS_CODE: 0\nINSTRUMENTATION_RESULT: stream=\n\nTime: 2.046\n\nOK (1 test)\n\n\nINSTRUMENTATION_CODE: -1\n",
+    "wrapperJUnitXml": "<?xml version='1.0' encoding='utf-8'?>\n<testsuite name=\"AndroidCoreStorageEvidence\" tests=\"1\" failures=\"0\" errors=\"0\" skipped=\"0\"><testcase classname=\"AndroidCoreStorageEvidence\" name=\"coreAndOptionalData\" time=\"21.515\" /></testsuite>"
+  },
+  "rawFileDigests": {
+    "core-observations.json": {
+      "bytes": 1040,
+      "sha256": "06221b5c711ee425259679504ef7cbae6d5899b02becba6e08d990df19a581bd"
+    },
+    "extension-observations.json": {
+      "bytes": 922,
+      "sha256": "4765019f102178b5c41e134aff5cfe929056d5a434eb177d8b14d52437730b44"
+    },
+    "junit.xml": {
+      "bytes": 234,
+      "sha256": "dd2586013c3c3f72c7bb295ae1e3be64be622cb05a70af73efe35efa93e457f2"
+    },
+    "observations.zip": {
+      "bytes": 4461,
+      "sha256": "2191b8418a2196b5e074d2d7458a4aee86ff59fd7b80f9c2ce2f6e2e66afa856"
+    },
+    "network-restoration.json": {
+      "bytes": 91,
+      "sha256": "4efbe6f952e5b657394d48fc244ed1df4c93f8d11f3a8d2b2c01af25fa8de597"
+    },
+    "extension-instrumentation.txt": {
+      "bytes": 2156,
+      "sha256": "2336caab4a45a34c69c700861f4a70b6749bf4f8d8439103122bb788082dfe07"
+    },
+    "core-instrumentation.txt": {
+      "bytes": 3902,
+      "sha256": "999cb50feafad95617b244a10b7d239286a81340b09e8c13f81cdc19b55ab845"
+    }
+  },
+  "scopeNotes": [
+    "The harness disabled Wi-Fi and mobile data and waited for no active default route before the two CORE methods; it enabled connectivity only for the explicitly selected optional-data stage.",
+    "Actual MediaPipe HandLandmarker processed a synthetic blank bitmap with the included pinned model. This does not demonstrate recognizing real hands, cursor precision, clicking or scrolling in another application.",
+    "The optional-data test downloaded pinned model data through real HTTPS, checked size/SHA-256, reused private files, executed native classification/OCR, blocked deletion during an active lease and removed optional data while preserving the hand asset and synthetic user marker.",
+    "The resume fixture uses a 128 KiB prefix copied from an earlier fully verified real download. The test does not assert HTTP 206 or exercise a live user cancellation; a valid HTTP 200 restart is permitted.",
+    "No physical Samsung A03, real camera/microphone session, voice, continuous background operation, general multimodal image understanding or Google Play Protect approval was tested by this workflow.",
+    "These three instrumented methods are separate from the larger device-smoke suite. Their success does not imply that other CI suites passed."
+  ]
+}
