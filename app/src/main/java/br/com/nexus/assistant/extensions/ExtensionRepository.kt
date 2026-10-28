@@ -68,7 +68,13 @@ class ExtensionRepository private constructor(context: Context) {
             check(operations.putIfAbsent(id, job) == null) { "O pacote já tem uma operação em andamento." }
             for (file in ExtensionCatalog.pack(id).files) {
                 ExtensionDataFiles.destination(app.filesDir, file)
-                managers.getValue(file).download()
+                val manager = managers.getValue(file)
+                manager.download()
+                val result = manager.state.value
+                if (result.status != LocalModelStatus.READY) {
+                    throw ExtensionUnavailableException(result.message
+                        ?: "O download não foi concluído e verificado. Tente novamente pela Central de Extensões.")
+                }
             }
         } finally {
             operations.remove(id, job)

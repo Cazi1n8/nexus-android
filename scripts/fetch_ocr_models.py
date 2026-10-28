@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Prepare fixed Tesseract language assets before building the Android APK.
 
-The app never downloads these files at runtime. Both language models are bundled
-in the APK, then verified and copied to its private directory on explicit OCR use.
+Build-side preparation for the optional bundled variant. CORE obtains these same
+pinned data through its explicitly authorized optional downloads and reuses valid
+private copies. Only the full bundled variant copies these assets from the APK.
 """
 from __future__ import annotations
 

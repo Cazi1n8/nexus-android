@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Prepare the pinned official MediaPipe EfficientNet-Lite0 INT8 model.
 
-Model download occurs during development/CI. The app processes imported photos
-and periodic camera frames locally, without sending them to a server.
+Build-side preparation for the optional bundled variant and test fixtures. CORE
+can download these pinned data separately after explicit user confirmation; its
+local image classifier does not send photos or periodic camera frames to a server.
 """
 from __future__ import annotations
 

@@ -57,6 +57,8 @@ jobs:
         run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleDebugAndroidTest
       - name: Resumo SHA256 do APK
         run: sha256sum app/build/outputs/apk/coreTest/app-coreTest.apk > app/build/outputs/apk/coreTest/SHA256SUMS.txt
+      - name: Auditar conteúdo e orçamento do CORE universal
+        run: python3 scripts/inspect_core_apk.py app/build/outputs/apk/coreTest/app-coreTest.apk --universal --output app/build/outputs/apk/coreTest/CORE_PACKAGE_AUDIT.json
       - name: Publicar APK de teste como artefato
         uses: actions/upload-artifact@v4
         with:
@@ -64,6 +66,7 @@ jobs:
           path: |
             app/build/outputs/apk/coreTest/app-coreTest.apk
             app/build/outputs/apk/coreTest/SHA256SUMS.txt
+            app/build/outputs/apk/coreTest/CORE_PACKAGE_AUDIT.json
           if-no-files-found: error
           retention-days: 30
       - name: Relatórios de testes e lint
