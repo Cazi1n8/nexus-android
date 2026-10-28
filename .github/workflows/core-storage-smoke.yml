@@ -8,6 +8,7 @@ on:
       - 'app/src/androidTest/java/br/com/nexus/assistant/Core*Test.kt'
       - 'app/src/androidTest/java/br/com/nexus/assistant/ExtensionDataSmokeTest.kt'
       - 'app/build.gradle.kts'
+      - 'app/proguard-rules.pro'
       - 'scripts/run_android_core_storage.py'
       - 'scripts/tests/test_run_android_core_storage.py'
       - '.github/workflows/core-storage-smoke.yml'
@@ -18,7 +19,8 @@ permissions:
 
 concurrency:
   group: android-core-storage-${{ github.ref }}
-  cancel-in-progress: true
+  # Keep diagnostics from an already running emulator when a repair is pushed.
+  cancel-in-progress: false
 
 jobs:
   core-storage:

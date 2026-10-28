@@ -2,7 +2,6 @@ package br.com.nexus.assistant
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -25,13 +24,26 @@ class FirstRunFlowsTest {
 
     @Test fun sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer() {
         compose.onNodeWithText("Chat IA").performScrollTo().performClick()
+        // Navigation may still be composing the incoming destination after the
+        // Home tile click. Wait for the actual editor/send semantics, rather
+        // than sleeping or assuming that the click completed the transition.
+        compose.waitUntil(10_000) {
+            compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 1 &&
+                compose.onAllNodesWithContentDescription("Enviar mensagem").fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
         compose.onNode(hasSetTextAction()).performTextInput("Quanto é 2 + 2?")
         compose.onNodeWithContentDescription("Enviar mensagem").performClick()
         compose.onNode(hasSetTextAction()).assert(hasText("Quanto é 2 + 2?"))
         compose.onNodeWithText("0 mensagens salvas • contexto por tokens").assertIsDisplayed()
         compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Voltar").performClick()
-        compose.onNodeWithText("Preparar NEXUS AI").performScrollTo().assertIsDisplayed()
+        // CORE guides the user to an explicit, optional model download. The
+        // failed send must not manufacture an assistant answer or start one.
+        compose.onNodeWithText("Gerenciar modelo offline opcional").assertIsDisplayed().performClick()
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithText("MODELOS DE IA OPCIONAIS").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("MODELOS DE IA OPCIONAIS").assertIsDisplayed()
     }
 
     @Test fun anUnsavedSessionTokenIsNotRestoredWhenTheActivityIsRecreated() {
