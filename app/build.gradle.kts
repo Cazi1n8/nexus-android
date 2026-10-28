@@ -93,18 +93,20 @@ android {
     buildTypes {
         release {
             if (releaseSigningRequested) signingConfig = signingConfigs.getByName("nexusRelease")
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Preserve SDK/JNI and shared instrumentation APIs in this alpha.
+            // Size is reduced by optional model data and the selected icon set.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-        // Small, installable evaluation build using the existing local test key.
+        // Installable production-like evaluation using the existing local test key.
         // This does not create a production signing identity.
         create("coreTest") {
             initWith(getByName("release"))
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             matchingFallbacks += listOf("release")
         }
     }
@@ -227,7 +229,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material-icons-core:1.7.8")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.room:room-runtime:2.7.1")

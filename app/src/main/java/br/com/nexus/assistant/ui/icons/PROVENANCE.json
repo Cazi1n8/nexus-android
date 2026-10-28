@@ -1,0 +1,166 @@
+{
+  "artifact": "androidx.compose.material:material-icons-extended-android:1.7.8:sources",
+  "url": "https://dl.google.com/dl/android/maven2/androidx/compose/material/material-icons-extended-android/1.7.8/material-icons-extended-android-1.7.8-sources.jar",
+  "sourceArchiveBytes": 12086044,
+  "sourceArchiveSha256": "77b7e782a519a3e074fc91e09d59334ac1b815edd87d2e89c0c9ca7c95678e93",
+  "sourceMetadata": "SHA-256 and bytes checked against cached official Gradle module metadata for 1.7.8.",
+  "license": "Apache-2.0",
+  "retainedCoreDependency": "androidx.compose.material:material-icons-core:1.7.8",
+  "copiedIconCount": 22,
+  "files": [
+    {
+      "name": "AddPhotoAlternate",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/AddPhotoAlternate.kt",
+      "sourceSha256": "8201a40592d94af8a09cc1ca754674d1ee8a4b50c4d8e31e54af312bf4ec6812",
+      "localSha256": "5d72775053a5d26042239451054c4491d21c9f7c33a270ee5b63a3ec678aecc6",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "AutoAwesome",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/AutoAwesome.kt",
+      "sourceSha256": "ff6c962954eebe4b4f50c02751aa0ff5472f157c09b2dfd79ee96ee148a4bce8",
+      "localSha256": "6f7fd2c4ec5edcf60f383f7d4a41d1d88e82d78f837b3c5e9f7a5610f3de4f56",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "CameraAlt",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/CameraAlt.kt",
+      "sourceSha256": "f4fcef867e278c6a4c2fc012b720c0bf49e3407ba0df6131ec4b316ba05d210f",
+      "localSha256": "405d062c9a1efbc2eb7d7207796748e8d90611111bf45a22a874ab96f511342e",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "CenterFocusStrong",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/CenterFocusStrong.kt",
+      "sourceSha256": "520ff5916072c6e08c97a6b10cdf95d2d6d6dd7c6977edb4ef17e795c0a6b1c9",
+      "localSha256": "51934be3d8cff53ad9df4abb5931ba8196340517ee5191421ac09a4c75f2cb6c",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "ContentCopy",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/ContentCopy.kt",
+      "sourceSha256": "de2609e1fead4dd88dc2b9ebbce72e653ac54cee1dedb9ab90cb4518cdcac7ee",
+      "localSha256": "61242b010c443db6234f74fdc7ae8828a38e48de74588870fc31e579047c7767",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "DeleteOutline",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/DeleteOutline.kt",
+      "sourceSha256": "d60a25a0257a60b58d97ff14b530af7cc70497ec462e52e2f0f1ba2a090a8fd3",
+      "localSha256": "632b710fc49fd24029e8086acfd6853afc134b58204c402c39f81db41c767779",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Download",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Download.kt",
+      "sourceSha256": "101ba73be15cc1acf76b247269630aa01ccb9461a9c298dfdc87fab12833ed50",
+      "localSha256": "af9b4cc0f3b965e1aa29baf9591b4d62fff25121704a5117837d0585406db42f",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Extension",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Extension.kt",
+      "sourceSha256": "f54eaf2b2f08cb0dbc5dd8bebd9de69ca23c52abaa662aa7e53d7d14dce66ede",
+      "localSha256": "fef7de9cdb0e89608579bcc8653816df0befec170265edc33f56b6555506bf4d",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Forum",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Forum.kt",
+      "sourceSha256": "fa9a817857e142974070eb0a991e475dba2045ba6560a05785e08afe40245f85",
+      "localSha256": "5fffaddd45512782f253d19223180f1b7c3d04b1ef761caa85b6d88c73cdc687",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "History",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/History.kt",
+      "sourceSha256": "bd13bdbc2b22e5b4c187e76c4a06f214c9ec3a80a7d36738656abff274c36d6a",
+      "localSha256": "ecb50fc1f80b812cdbc7c474df9be8111f7f9715268a5b16f63e753bc9324823",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Mic",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Mic.kt",
+      "sourceSha256": "75ccf9523454cf244045eafba49d938eb1a3a4e56d6b03e5c9a70e45b27bfde1",
+      "localSha256": "546e749920259042f822812e8d74c7eb3adb4e820467c6da31cc37f462fc72eb",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "MicOff",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/MicOff.kt",
+      "sourceSha256": "f2bf36a97a35c7305ca913a2bf9d2ac72d60dbd0294fed64bf104abcc65aa7af",
+      "localSha256": "250c6ef87185ab4b62eac7ba55ee0f262203c40973bf37ed9d623939ae4bf6a0",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "MonitorHeart",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/MonitorHeart.kt",
+      "sourceSha256": "b97cb1540cf2ff8f286566002be376832b8a2bf0763a859762423b0983cff292",
+      "localSha256": "9ffae64059ca89fc5ff531e5ebc99ecb3595c6a6da172ed6cbb3be5e4d0bd57d",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Mouse",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Mouse.kt",
+      "sourceSha256": "e744cf5b1201c4ad2c08d1daf1d1ce51cc29398eae60c209fe40d2ea9dd40846",
+      "localSha256": "4d1be20467167a8333940842335757ba58c682e895d4afdbe8540356be2126b0",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "PanTool",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/PanTool.kt",
+      "sourceSha256": "ec627faa5c7ba6ec9781dfc50bd484b643fd522ba4fb06227b5dcceff9d86e84",
+      "localSha256": "117c08133c1691031ce0ece53bc1e610c1f59053ff24ac3d650b1e7a423f0cbb",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "PhotoLibrary",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/PhotoLibrary.kt",
+      "sourceSha256": "3ed25ce90f05d9d319f72408bf067e20c4bcacbce0ab5ae42bdc3fdd2d778a32",
+      "localSha256": "0a34593c93c85c9457f64bf0a9120360344d09a32d925ada62ce311f84e3de04",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "SignLanguage",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/SignLanguage.kt",
+      "sourceSha256": "6d005aa2c5c110a1c6212e1949f25c79bca243a696200102654fb3951e493713",
+      "localSha256": "411672112d4c3a2b59eb604bcd49f21fb08b890ac58b772258f14a34eb48e533",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Storage",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Storage.kt",
+      "sourceSha256": "6398a082dce3a2003585c03c5ff662269675adad7cf140d2c459fb1e79171fc1",
+      "localSha256": "3e68c4bbf6467874fbc41bf051c959219b62fba053e814488df0cd3d6008249a",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Terminal",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Terminal.kt",
+      "sourceSha256": "057b040874b8846100d84b80885b573237756147487332a7c71b7eeb6507ba19",
+      "localSha256": "a6964a33c701f0c92c162427683df94af4371dff33bdd814dc456fb8202074ff",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "Tune",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/Tune.kt",
+      "sourceSha256": "ee06f562a925a87378b499a3be210fa000d28ec40ae3e9ae214ba9759a77ad56",
+      "localSha256": "6a5947af2a014cd096348344105a7440905b5e6822b3076e803b3c407edce575",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "ViewInAr",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/ViewInAr.kt",
+      "sourceSha256": "603d70f86a06bf5488443022d58f63d623607b3f4ebad72ed9fcb0880ee0f8ef",
+      "localSha256": "ef4c598b4010a0e27a30f7def9547371b935aa64594b66fa18364734978934c1",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    },
+    {
+      "name": "VolumeUp",
+      "sourcePath": "commonMain/androidx/compose/material/icons/filled/VolumeUp.kt",
+      "sourceSha256": "3e4a67716426b352b7c665e570600edff9933c4d7db25c1f81e17f704e6db8e4",
+      "localSha256": "68699418a31eb04ea9aeed976ad782c4b992314018caf6d33d7e44418424368a",
+      "modification": "Package declaration only; vector commands, dimensions, copyright and annotations are unchanged."
+    }
+  ]
+}

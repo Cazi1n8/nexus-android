@@ -54,7 +54,7 @@ jobs:
           python3 scripts/prepare_mediapipe_runtime.py
           python3 scripts/fetch_ocr_runtime.py
           python3 scripts/fetch_object_model.py --with-test-fixture
-      - name: Compilar CORE minificado e testes x86_64
+      - name: Compilar CORE de teste e instrumentação x86_64
         run: gradle -PnexusTestBuildType=coreTest -PnexusAbis=x86_64 --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleCoreTest assembleCoreTestAndroidTest
       - name: Habilitar KVM no executor temporário
         run: |
