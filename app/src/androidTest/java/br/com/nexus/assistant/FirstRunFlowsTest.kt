@@ -2,6 +2,7 @@ package br.com.nexus.assistant
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -20,10 +21,16 @@ class FirstRunFlowsTest {
         compose.runOnUiThread { reset = model.deleteAllData() }
         runBlocking { reset.join() }
         compose.waitUntil(10_000) { compose.onAllNodesWithText("EXPLORE O NEXUS").fetchSemanticsNodes().isNotEmpty() }
+        // Finish the entrance animation before selecting a card in the scroll.
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.waitForIdle()
     }
 
     @Test fun sendingWithoutALocalModelKeepsTheDraftAndDoesNotInventAnAnswer() {
-        compose.onNodeWithText("Chat IA").performScrollTo().performClick()
+        // A touch can merely stop a settling scroll. Invoke the actual card's
+        // accessibility action, as in the Vision and bundled-chat UI proofs.
+        compose.onNode(hasText("Chat IA") and hasClickAction()).performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick) { action -> check(action()) }
         // Navigation may still be composing the incoming destination after the
         // Home tile click. Wait for the actual editor/send semantics, rather
         // than sleeping or assuming that the click completed the transition.
@@ -39,7 +46,8 @@ class FirstRunFlowsTest {
         compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
         // CORE guides the user to an explicit, optional model download. The
         // failed send must not manufacture an assistant answer or start one.
-        compose.onNodeWithText("Gerenciar modelo offline opcional").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Gerenciar modelo offline opcional").assertIsDisplayed()
+            .performSemanticsAction(SemanticsActions.OnClick) { action -> check(action()) }
         compose.waitUntil(10_000) {
             compose.onAllNodesWithText("MODELOS DE IA OPCIONAIS").fetchSemanticsNodes().isNotEmpty()
         }

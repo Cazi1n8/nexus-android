@@ -3,6 +3,7 @@ name: NEXUS Android
 on:
   push:
     branches: [main]
+    paths-ignore: ['.github/workflows/direct-download-*.yml']
   pull_request:
   workflow_dispatch:
 
