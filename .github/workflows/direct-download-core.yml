@@ -1,0 +1,126 @@
+name: NEXUS CORE — download direto do APK verificado
+
+# One explicitly requested test release, not an opt-in for future debug builds.
+# Reuses CORE build 22 without rebuilding or replacing its signing certificate.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/direct-download-core.yml']
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: nexus-direct-download-core-22
+  cancel-in-progress: false
+
+jobs:
+  publish-existing-test-apk:
+    if: github.repository == 'Cazi1n8/nexus-android' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Confirmar que a revisão do teste preserva o aplicativo compilado
+        run: git diff --exit-code 4f0bdca2d1ad105480ae2a03f60c9bdb3648392c HEAD -- app/src/main app/build.gradle.kts app/proguard-rules.pro gradle build.gradle.kts settings.gradle.kts gradle.properties scripts/fetch_llama_cpp.py scripts/prepare_mediapipe_runtime.py scripts/fetch_ocr_runtime.py
+      - name: Conferir a origem do artefato existente
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const source = '4f0bdca2d1ad105480ae2a03f60c9bdb3648392c';
+            const {data: run} = await github.rest.actions.getWorkflowRun({owner, repo, run_id: 40669746621});
+            if (run.status !== 'completed' || run.conclusion !== 'success' || run.head_sha !== source)
+              throw new Error('A compilação de origem não corresponde à versão verificada.');
+            const {data: coreRun} = await github.rest.actions.getWorkflowRun({owner, repo, run_id: 40669746317});
+            if (coreRun.status !== 'completed' || coreRun.conclusion !== 'success' || coreRun.head_sha !== source)
+              throw new Error('Os testes CORE e de extensões não concluíram com sucesso para esta fonte.');
+            const {data: uiRun} = await github.rest.actions.getWorkflowRun({owner, repo, run_id: 40721031770});
+            if (uiRun.status !== 'completed' || uiRun.conclusion !== 'success' || uiRun.head_sha !== '4e1c6159bcd84764107b1b9a612c2a25023f987d')
+              throw new Error('A regressão Android com navegação acessível ainda não concluiu com sucesso.');
+            const {data: artifact} = await github.rest.actions.getArtifact({owner, repo, artifact_id: 12807709211});
+            if (artifact.expired || artifact.name !== 'nexus-core-22' || artifact.workflow_run?.id !== run.id ||
+                artifact.digest !== 'sha256:17da3bb506173a8164a817bb897b88c145e44018377c5b6b488aaebab9aa2d6b')
+              throw new Error('O artefato não corresponde ao ZIP de teste verificado.');
+      - uses: actions/download-artifact@v4
+        with:
+          name: nexus-core-22
+          run-id: 40669746621
+          repository: Cazi1n8/nexus-android
+          github-token: ${{ github.token }}
+          path: test-apk
+      - name: Verificar checksum e preparar o arquivo para download
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, re, shutil
+          folder = Path('test-apk')
+          apks = list(folder.rglob('app-coreTest.apk'))
+          sums = list(folder.rglob('SHA256SUMS.txt'))
+          if len(apks) != 1 or len(sums) != 1:
+              raise SystemExit('O artefato precisa conter exatamente um APK e seu checksum.')
+          rows = sums[0].read_text().strip().splitlines()
+          if len(rows) != 1 or not re.fullmatch(r'[0-9a-f]{64}\s+\*?(?:app/build/outputs/apk/coreTest/)?app-coreTest\.apk', rows[0]):
+              raise SystemExit('Formato do checksum de origem inválido.')
+          expected = rows[0].split()[0]
+          with apks[0].open('rb') as stream:
+              actual = hashlib.file_digest(stream, 'sha256').hexdigest()
+          if actual != expected or actual != 'e76ff4e228206a11317000a238556d8c24693532c1527b05f8264f5ba6b50d15' or not 20_000_000 < apks[0].stat().st_size < 150_000_000:
+              raise SystemExit('O APK foi alterado ou não corresponde à distribuição CORE.')
+          target = Path('release')
+          target.mkdir()
+          name = 'NEXUS-3.0.0-alpha.3-core.apk'
+          shutil.move(str(apks[0]), target / name)
+          (target / 'SHA256SUMS.txt').write_text(f'{actual}  {name}\n')
+          print(f'APK preservado: {actual}')
+          PY
+      - name: Conferir conteúdo do CORE universal
+        run: python3 scripts/inspect_core_apk.py release/NEXUS-3.0.0-alpha.3-core.apk --universal --output release/CORE_PACKAGE_AUDIT.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '13114758'
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
+      - name: Conferir versão e assinatura sem recompilar
+        run: |
+          sdkmanager 'build-tools;35.0.0'
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs release/NEXUS-3.0.0-alpha.3-core.apk > release/APK_CERTIFICATE.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt2" dump badging release/NEXUS-3.0.0-alpha.3-core.apk > apk-badging.txt
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 release/NEXUS-3.0.0-alpha.3-core.apk
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('apk-badging.txt').read_text()
+          cert = Path('release/APK_CERTIFICATE.txt').read_text()
+          if 'Signer #1 certificate SHA-256 digest: 0e72073647f9fd5b4bc27f6f8fbafa9100f4fadc391433ff6844fc2f96ec97fc' not in cert:
+              raise SystemExit('A assinatura do APK foi alterada; publicação interrompida.')
+          required = ("name='br.com.nexus.assistant'", "versionCode='26'", "versionName='3.0.0-alpha.3-core'", "minSdkVersion:'26'")
+          if not all(value in text for value in required):
+              raise SystemExit('Versão ou aplicativo inesperado; publicação interrompida.')
+          PY
+      - name: Publicar esta versão de teste com link direto
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: 4f0bdca2d1ad105480ae2a03f60c9bdb3648392c
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          Path('release-notes.md').write_text('NEXUS CORE 3.0.0-alpha.3-core — APK de teste, Android 8 ou superior.\n\nInstalação universal menor com rastreador de mãos e mouse offline incluídos. Modelos de conversa e dados de visão são opcionais e removíveis. Há Centrais de Extensões e Armazenamento.\n\nEste é o APK real do build 22, fonte 4f0bdca2d1ad105480ae2a03f60c9bdb3648392c, sem recompilar ou assinar novamente na publicação. Confira SHA256SUMS.txt, APK_CERTIFICATE.txt e CORE_PACKAGE_AUDIT.json.\n\nA assinatura é de teste e difere da alpha.2 do build 16; isso impede uma atualização direta. Exporte conversas e memórias antes de qualquer substituição e não apague a instalação atual sem conferir a recuperação dos dados. A chave de produção estável ainda precisa ser configurada pelo responsável.\n\nTestes de instalação e dados opcionais foram executados no emulador indicado pelos relatórios. Isso não comprova gestos/câmera/voz físicos no A03, compatibilidade com todo aparelho ou aprovação do Play Protect. Mantenha as proteções do Android ativadas.\n\nIA local continua limitada aos modelos opcionais disponíveis, que falharam em parte da avaliação semântica. Não há backend NEXUS público implantado. Libras é experimental e parcial.\n\nAuditoria e instruções no README.md, AUDITORIA_ARMAZENAMENTO.md e PROGRESSO_ARMAZENAMENTO.md.\n', encoding='utf-8')
+          PY
+          tag='v3.0.0-alpha.3-core-download-22'
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish > existing-source.txt
+            test "$(cat existing-source.txt)" = "$SOURCE_SHA"
+          else
+            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease --title 'NEXUS CORE 3.0 alpha.3 — APK de teste' --notes-file release-notes.md
+          fi
+          gh release upload "$tag" release/NEXUS-3.0.0-alpha.3-core.apk release/SHA256SUMS.txt release/APK_CERTIFICATE.txt release/CORE_PACKAGE_AUDIT.json --repo "$GITHUB_REPOSITORY" --clobber
+          echo 'Download direto: https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.3-core-download-22/NEXUS-3.0.0-alpha.3-core.apk' >> "$GITHUB_STEP_SUMMARY"
