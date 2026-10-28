@@ -129,8 +129,8 @@ class DisposableDeviceRunnerTest(unittest.TestCase):
                 self.assertEqual(self.network, {"wifi": "0", "data": "0"})
                 self.assertIn("nexusCoreSmoke", args)
                 if self.failed:
-                    return instrumentation(core_report() | {"executionStatus": "failed"}).encode()
-                return instrumentation(core_report()).encode()
+                    return instrumentation(core_report() | {"executionStatus": "failed"}, tests=runner.CORE_EXPECTED_TESTS).encode()
+                return instrumentation(core_report(), tests=runner.CORE_EXPECTED_TESTS).encode()
             self.assertIn(runner.EXTENSION_CLASS, args)
             self.assertEqual(self.network, {"wifi": "1", "data": "1"})
             self.assertIn("nexusExtensionSmoke", args)

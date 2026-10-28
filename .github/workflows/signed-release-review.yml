@@ -49,10 +49,7 @@ jobs:
           python3 scripts/fetch_llama_cpp.py
           python3 scripts/fetch_hand_model.py
           python3 scripts/prepare_mediapipe_runtime.py
-          python3 scripts/fetch_object_model.py --with-test-fixture
-          python3 scripts/fetch_ocr_models.py
           python3 scripts/fetch_ocr_runtime.py
-          python3 scripts/fetch_bundled_model.py --with-balanced
       - name: Testes, lint e APK release com assinatura obrigatória
         env:
           NEXUS_RELEASE_STORE_PASSWORD: ${{ secrets.NEXUS_RELEASE_STORE_PASSWORD }}
@@ -60,6 +57,10 @@ jobs:
           NEXUS_RELEASE_KEY_PASSWORD: ${{ secrets.NEXUS_RELEASE_KEY_PASSWORD }}
           NEXUS_RELEASE_STORE_FILE: ${{ runner.temp }}/nexus-release.jks
         run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process -PnexusReleaseSigning=true testDebugUnitTest lintRelease assembleRelease
+      - name: Conferir orçamento e dados opcionais do CORE
+        run: python3 scripts/inspect_core_apk.py app/build/outputs/apk/release/app-release.apk --universal --output CORE_PACKAGE_AUDIT.json
+      - name: Auditar manifesto final e recusar assinatura de depuração
+        run: python3 scripts/audit_android_security.py --apk app/build/outputs/apk/release/app-release.apk --production --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --apksigner "$ANDROID_HOME/build-tools/35.0.0/apksigner" --output SECURITY_PACKAGE_AUDIT.json
       - name: Conferir assinatura e confirmar que o APK é release
         run: |
           python3 - <<'PY'
@@ -85,7 +86,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nexus-signed-review-${{ github.run_number }}
-          path: signed-review/
+          path: |
+            signed-review/
+            CORE_PACKAGE_AUDIT.json
+            SECURITY_PACKAGE_AUDIT.json
           if-no-files-found: error
           retention-days: 14
       - name: Remover chave temporária

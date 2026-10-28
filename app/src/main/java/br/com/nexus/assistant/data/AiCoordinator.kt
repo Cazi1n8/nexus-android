@@ -13,14 +13,22 @@ class AiCoordinator(
         messages: List<AiMessage>,
         memories: List<String>,
     ): String {
-        val latest = messages.lastOrNull()
-        if (latest?.role == "user" && latest.imagePath == null) {
-            LocalActionRouter.propose(latest.content)?.let { return it }
-            ArithmeticTool.answerFor(latest.content)?.let { return it }
-        }
+        builtInResponse(messages.lastOrNull())?.let { return it }
         return when (settings.aiMode) {
             AiMode.NEXUS_LOCAL -> local.complete(settings, "", messages, memories)
             AiMode.CUSTOM -> custom.complete(settings, token, messages, memories)
+        }
+    }
+
+    companion object {
+        /**
+         * Real on-device tools need neither downloaded LLM weights nor a remote
+         * session. Image requests must still reach the selected visual provider.
+         * Action tools only propose a confirmed action; this never executes it.
+         */
+        fun builtInResponse(message: AiMessage?): String? {
+            if (message?.role != "user" || message.imagePath != null) return null
+            return LocalActionRouter.propose(message.content) ?: ArithmeticTool.answerFor(message.content)
         }
     }
 }

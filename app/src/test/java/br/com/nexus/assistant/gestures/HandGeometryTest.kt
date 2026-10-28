@@ -85,11 +85,45 @@ class HandGeometryTest {
             }
             return x
         }
-        // An identical 160 ms movement settles equally at 6.25 or 50 frames/s.
+        // Both camera rates respond promptly; adaptive derivative estimation can
+        // differ slightly as the movement is observed at different intervals.
         val lowFps = response(160)
         val highFps = response(20)
-        assertEquals(highFps, lowFps, .0001f)
+        assertEquals(highFps, lowFps, .16f)
         assertTrue(lowFps > .84f)
+    }
+
+    @Test fun `fast intentional movement settles earlier than the old fixed85ms filter`() {
+        val filter = CursorFilter()
+        filter.update(HandPoint(.1f, .5f), 1f, 0)
+        var position = .1f
+        for (time in 50L..100L step 50L) position = filter.update(HandPoint(.9f, .5f), 1f, time).x
+        assertTrue("One Euro should cover over90percent of an intentional movement in100ms", position > .82f)
+        val old = .9f - .8f * kotlin.math.exp(-100f / 85f)
+        assertTrue(position > old)
+    }
+
+    @Test fun `stationary jitter is smoothed and a repeated timestamp does not move pointer`() {
+        val filter = CursorFilter()
+        filter.update(HandPoint(.5f, .5f), 1f, 0)
+        var square = 0.0
+        var rawSquare = 0.0
+        repeat(100) { index ->
+            val input = .5f + if (index % 2 == 0) .004f else -.004f
+            val value = filter.update(HandPoint(input, .5f), 1f, (index + 1) * 50L)
+            square += (value.x - .5f) * (value.x - .5f)
+            rawSquare += (input - .5f) * (input - .5f)
+        }
+        assertTrue(square < rawSquare * .15)
+        val previous = filter.update(HandPoint(.5f, .5f), 1f, 5_100L)
+        assertEquals(previous, filter.update(HandPoint(.99f, .1f), 1f, 5_100L))
+        assertEquals(previous, filter.update(HandPoint(.01f, .1f), 1f, 5_099L))
+    }
+
+    @Test fun `long gap resets old smoothing instead of slowly catching up stale pointer`() {
+        val filter = CursorFilter()
+        filter.update(HandPoint(.1f, .1f), 1f, 0L)
+        assertEquals(.9f, filter.update(HandPoint(.9f, .9f), 1f, 700L).x, .0001f)
     }
 
     @Test fun `recalibration clears timestamp history without discarding the new center`() {

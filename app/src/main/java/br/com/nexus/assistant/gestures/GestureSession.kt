@@ -32,11 +32,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.nexus.assistant.device.DeviceCapabilities
+import br.com.nexus.assistant.device.TrackingProfile
+import br.com.nexus.assistant.device.TrackingProfilePreferences
 import kotlinx.coroutines.delay
 
 /** Activity-scoped by rememberGestureSession at the navigation root, never by a destination. */
 @Stable
 class GestureSession internal constructor(context: Context) {
+    private val applicationContext = context.applicationContext
     private val capabilities = DeviceCapabilities.read(context)
     private val preferences = context.applicationContext.getSharedPreferences("nexus_gestures", Context.MODE_PRIVATE)
     private val controller = MouseController()
@@ -49,6 +52,7 @@ class GestureSession internal constructor(context: Context) {
     var sensitivity by mutableFloatStateOf(preferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f)); private set
     var pinchThreshold by mutableFloatStateOf(preferences.getFloat("pinch", .35f).coerceIn(.2f, .55f)); private set
     var showPreview by mutableStateOf(preferences.getBoolean("show_preview", false)); private set
+    var trackingProfile by mutableStateOf(TrackingProfilePreferences.read(context)); private set
     var clicks by mutableIntStateOf(0); private set
     var doubleClicks by mutableIntStateOf(0); private set
 
@@ -65,6 +69,7 @@ class GestureSession internal constructor(context: Context) {
         stopMouse()
         sensitivity = 1.3f; pinchThreshold = .35f; frontCamera = capabilities.hasFrontCamera
         showPreview = false
+        trackingProfile = TrackingProfile.AUTO
         clicks = 0; doubleClicks = 0; error = null
     }
     fun switchCamera() {
@@ -83,6 +88,12 @@ class GestureSession internal constructor(context: Context) {
     fun updateShowPreview(value: Boolean) {
         showPreview = value
         preferences.edit().putBoolean("show_preview", value).apply()
+    }
+    /** Camera budgets change between sessions, never rebind a live gesture mid-drag. */
+    fun updateTrackingProfile(value: TrackingProfile) {
+        if (mouseActive) return
+        trackingProfile = value
+        TrackingProfilePreferences.write(applicationContext, value)
     }
     fun calibrate() { frame.hands.firstOrNull()?.let { controller.calibrate(it.index, sensitivity) } }
     internal fun onFrame(next: HandFrame) {
@@ -160,11 +171,13 @@ fun GestureSessionHost(
             Text("Câmera · mouse ativo", style = MaterialTheme.typography.labelSmall, color = Color(0xFF31E7FA))
             if (session.showPreview) {
                 Box(Modifier.fillMaxWidth().height(126.dp)) {
-                    HandCamera(session.frontCamera, Modifier.fillMaxSize(), session::onFrame, session::fail, pointerMode = true)
+                    HandCamera(session.frontCamera, Modifier.fillMaxSize(), session::onFrame, session::fail,
+                        pointerMode = true, trackingProfile = session.trackingProfile)
                     HandSkeleton(session.frame, Modifier.fillMaxSize())
                 }
             } else {
-                HandCamera(session.frontCamera, Modifier.size(1.dp), session::onFrame, session::fail, showPreview = false, pointerMode = true)
+                HandCamera(session.frontCamera, Modifier.size(1.dp), session::onFrame, session::fail,
+                    showPreview = false, pointerMode = true, trackingProfile = session.trackingProfile)
             }
             Text(when {
                 session.frame.timestampMs == 0L -> "Iniciando rastreador…"
@@ -173,6 +186,10 @@ fun GestureSessionHost(
                 session.mouse.cursor == null -> "Mostre o indicador"
                 else -> "${session.frame.processingMs} ms · ${session.mouse.configuration.label}"
             }, style = MaterialTheme.typography.labelSmall)
+            if (session.frame.timestampMs != 0L) Text(
+                "Imagem ${session.frame.conversionMs} ms · IA ${session.frame.inferenceMs} ms · entrega ${(session.frame.deliveredAtMs - session.frame.timestampMs).coerceAtLeast(0)} ms",
+                style = MaterialTheme.typography.labelSmall,
+            )
             Button(onClick = session::stopMouse, modifier = Modifier.fillMaxWidth()
                 .semantics { contentDescription = "Parar mouse e câmera imediatamente" }) { Text("PARAR") }
         }

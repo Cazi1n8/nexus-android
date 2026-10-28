@@ -1,7 +1,5 @@
 package br.com.nexus.assistant.gestures
 
-import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -26,7 +24,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import br.com.nexus.assistant.device.DeviceCapabilities
 import br.com.nexus.assistant.device.DevicePolicy
-import com.google.mediapipe.framework.image.BitmapImageBuilder
+import br.com.nexus.assistant.device.TrackingProfile
+import br.com.nexus.assistant.device.TrackingProfilePreferences
+import br.com.nexus.assistant.device.TrackingProfiles
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
@@ -39,7 +39,15 @@ data class HandFrame(
     val imageWidth: Int = 1,
     val imageHeight: Int = 1,
     val processingMs: Long = 0L,
-    val timestampMs: Long = 0L
+    /** Monotonic app-clock start of this observation's analysis. */
+    val timestampMs: Long = 0L,
+    val conversionMs: Long = 0L,
+    val inferenceMs: Long = 0L,
+    /** Raw camera clock, useful for ordering; not directly comparable to uptime. */
+    val cameraTimestampNs: Long = 0L,
+    /** Excess queue estimate relative to the best observed camera/app offset. */
+    val queueDelayMs: Long = 0L,
+    val deliveredAtMs: Long = 0L,
 )
 
 /** Resolution, hand count and pacing adapt to the device. Frames never leave this device. */
@@ -52,6 +60,7 @@ internal fun HandCamera(
     requestedHands: Int = 1,
     showPreview: Boolean = true,
     pointerMode: Boolean = false,
+    trackingProfile: TrackingProfile? = null,
 ) {
     val context = LocalContext.current
     val owner = LocalLifecycleOwner.current
@@ -62,7 +71,11 @@ internal fun HandCamera(
     // Some devices have only one camera. Mirror according to the selected lens,
     // never according to a front-camera preference which could not be honored.
     val useFrontCamera = if (frontCamera) capabilities.hasFrontCamera else !capabilities.hasRearCamera
-    val handCount = requestedHands.coerceIn(1, policy.maxHands.coerceAtLeast(1))
+    val preference = trackingProfile ?: remember(context) { TrackingProfilePreferences.read(context) }
+    val configuration = remember(capabilities, preference, requestedHands, pointerMode) {
+        TrackingProfiles.resolve(capabilities, preference, requestedHands, pointerMode)
+    }
+    val handCount = configuration.maxHands
     val previewView = remember(context) {
         PreviewView(context).apply {
             scaleType = PreviewView.ScaleType.FIT_CENTER
@@ -72,7 +85,7 @@ internal fun HandCamera(
     if (showPreview) AndroidView(factory = { previewView }, modifier = modifier)
     else Box(modifier)
 
-    DisposableEffect(context, owner, useFrontCamera, handCount, policy, showPreview, pointerMode) {
+    DisposableEffect(context, owner, useFrontCamera, handCount, policy, showPreview, configuration) {
         val stopped = AtomicBoolean(false)
         if (!policy.handTrackingSupported) {
             ContextCompat.getMainExecutor(context).execute {
@@ -85,14 +98,21 @@ internal fun HandCamera(
         val executor = Executors.newSingleThreadExecutor()
         val main = ContextCompat.getMainExecutor(context)
         val frameHandler = Handler(Looper.getMainLooper())
-        val pendingFrame = AtomicReference<HandFrame?>(null)
-        val deliverFrame = Runnable {
-            pendingFrame.getAndSet(null)?.let { if (!stopped.get()) currentFrame.value(it) }
+        val delivery = LatestFrameDelivery<HandFrame>(schedule = { frameHandler.post(it) }) { frame ->
+            if (!stopped.get()) {
+                val delivered = SystemClock.elapsedRealtime()
+                // Never act on old results after a busy UI. An empty observation
+                // cancels an outstanding drag rather than holding a stale touch.
+                currentFrame.value(frame.copy(
+                    hands = if (delivered - frame.timestampMs <= 800L) frame.hands else emptyList(),
+                    deliveredAtMs = delivered,
+                ))
+            }
         }
         var provider: ProcessCameraProvider? = null
         val selector = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-            .setResolutionStrategy(ResolutionStrategy(Size(policy.cameraWidth, policy.cameraHeight), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER))
+            .setResolutionStrategy(ResolutionStrategy(Size(configuration.cameraWidth, configuration.cameraHeight), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER))
             .build()
         val preview = Preview.Builder().setResolutionSelector(selector).build()
         val analysis = ImageAnalysis.Builder()
@@ -124,21 +144,23 @@ internal fun HandCamera(
             }
         }
 
-        val cadence = if (pointerMode) TrackingCadence((policy.analysisIntervalMs / 2).coerceIn(50L, 110L), 50L)
-            else TrackingCadence(policy.analysisIntervalMs)
+        val cadence = TrackingCadence(configuration.analysisIntervalMs, 50L)
+        val timeline = CameraFrameTimeline()
+        val images = ReusableHandImage()
         var inferenceFailed = false
         analysis.setAnalyzer(executor) { proxy ->
-            var bitmap: Bitmap? = null
-            var rotated: Bitmap? = null
             try {
                 val tracker = detector.get()
-                val now = SystemClock.elapsedRealtime()
-                if (stopped.get() || tracker == null || !cadence.shouldAnalyze(now)) return@setAnalyzer
-                bitmap = proxy.toBitmap()
-                val matrix = Matrix().apply { postRotate(proxy.imageInfo.rotationDegrees.toFloat()) }
-                rotated = Bitmap.createBitmap(bitmap!!, 0, 0, bitmap!!.width, bitmap!!.height, matrix, false)
-                val image = BitmapImageBuilder(rotated!!).build()
+                if (stopped.get() || inferenceFailed || tracker == null) return@setAnalyzer
+                val stamp = timeline.begin(proxy.imageInfo.timestamp, SystemClock.elapsedRealtimeNanos()) ?: return@setAnalyzer
+                val now = stamp.analysisStartedAtMs
+                if (!cadence.shouldAnalyze(now)) return@setAnalyzer
+                val bitmap = images.read(proxy)
+                val conversionMs = SystemClock.elapsedRealtime() - now
+                val image = images.buildImage(bitmap)
+                val inferenceAt = SystemClock.elapsedRealtime()
                 val result = try { tracker.detectForVideo(image, now) } finally { image.close() }
+                val inferenceMs = SystemClock.elapsedRealtime() - inferenceAt
                 val hands = result.landmarks().mapIndexed { index, landmarks ->
                     val category = result.handedness().getOrNull(index)?.firstOrNull()
                     TrackedHand(landmarks.map { landmark ->
@@ -147,12 +169,8 @@ internal fun HandCamera(
                 }
                 val processingMs = SystemClock.elapsedRealtime() - now
                 cadence.observeCost(processingMs)
-                val frame = HandFrame(hands, rotated!!.width, rotated!!.height, processingMs, now)
-                // Drop stale UI deliveries rather than queueing every camera frame while
-                // Compose/the main thread is busy opening another feature.
-                pendingFrame.set(frame)
-                frameHandler.removeCallbacks(deliverFrame)
-                frameHandler.post(deliverFrame)
+                delivery.offer(HandFrame(hands, bitmap.width, bitmap.height, processingMs, now,
+                    conversionMs, inferenceMs, proxy.imageInfo.timestamp, stamp.excessQueueDelayMs))
             } catch (_: Exception) {
                 if (!inferenceFailed) {
                     inferenceFailed = true
@@ -163,8 +181,6 @@ internal fun HandCamera(
             } catch (_: OutOfMemoryError) {
                 if (!inferenceFailed) { inferenceFailed = true; report("O rastreamento foi interrompido por falta de memória livre.") }
             } finally {
-                if (rotated != null && rotated !== bitmap) rotated?.recycle()
-                bitmap?.recycle()
                 proxy.close()
             }
         }
@@ -187,11 +203,10 @@ internal fun HandCamera(
 
         onDispose {
             stopped.set(true)
-            frameHandler.removeCallbacks(deliverFrame)
-            pendingFrame.set(null)
+            delivery.close()
             analysis.clearAnalyzer()
             provider?.unbind(preview, analysis)
-            executor.execute { detector.getAndSet(null)?.close() }
+            executor.execute { try { detector.getAndSet(null)?.close() } finally { images.close() } }
             executor.shutdown()
         }
     }

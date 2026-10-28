@@ -8,8 +8,9 @@ import java.util.Locale
 /** Small, bounded arithmetic parser. No scripting engine, network, or language-model guessing. */
 object ArithmeticTool {
     private val precision = MathContext.DECIMAL128
-    private val prefix = Regex("^(?:(?:nexus[, :]+)?(?:quanto (?:e|da)|qual (?:e )?o resultado(?: de)?|calcule|calcular|resolva|resolve)(?:\\s*[:=])?\\s+)")
+    private val prefix = Regex("^(?:(?:ei[, !]+)?nexus[, !:]+)?(?:por favor[, ]+)?(?:quanto (?:e|da)|qual (?:e )?o resultado(?: de)?|calcule|calcular|resolva|resolve)(?:\\s*[:=])?\\s+")
     private val explanationSuffix = Regex("(?:[?!.;]\\s*|\\s+e\\s+)(?:explique(?:\\s+o\\s+calculo)?|mostre\\s+(?:o\\s+)?passo\\s+a\\s+passo)[.!?]*$")
+    private val politeSuffix = Regex("(?:[,;]?\\s+por favor)[.!?]*$")
     private val alphabet = Regex("[0-9\\s.,+\\-*/^()=]+")
 
     /** Returns null for ordinary conversation, including questions that merely contain numbers. */
@@ -19,10 +20,15 @@ object ArithmeticTool {
             .replace('×', '*').replace('÷', '/').replace('−', '-')
         val explanation = explanationSuffix.find(expression)
         if (explanation != null) expression = expression.substring(0, explanation.range.first)
+        expression = expression.replace(politeSuffix, "")
         expression = expression.replace(prefix, "").trim().trimEnd('?', '!', '=').trim()
         expression = expression.replace(Regex("\\bvezes\\b"), "*")
+            .replace(Regex("\\bmultiplicado por\\b"), "*")
             .replace(Regex("\\bdividido por\\b"), "/").replace(Regex("\\bmais\\b"), "+")
             .replace(Regex("\\bmenos\\b"), "-")
+            .replace(Regex("\\belevado a(?:o)?\\b"), "^")
+            .replace(Regex("\\bao quadrado\\b"), "^2")
+            .replace(Regex("\\bao cubo\\b"), "^3")
         // Support x as a multiplication symbol only between numbers/parentheses.
         expression = expression.replace(Regex("(?<=[0-9)])\\s*x\\s*(?=[0-9(])"), "*")
         if (expression.isEmpty() || !alphabet.matches(expression) || expression.none { it.isDigit() }) return null

@@ -1,0 +1,36 @@
+{
+  "kind": "synthetic_production_kotlin_filter",
+  "not_android_hardware": true,
+  "legacy": "85ms exponential from alpha.3-core",
+  "modern": "One Euro min1.3Hz beta2 derivative1Hz",
+  "step_90percent_ms": [
+    {
+      "frame_spacing_ms": 10,
+      "before": 200,
+      "after": 50
+    },
+    {
+      "frame_spacing_ms": 50,
+      "before": 200,
+      "after": 100
+    },
+    {
+      "frame_spacing_ms": 100,
+      "before": 200,
+      "after": 200
+    }
+  ],
+  "stationary_rms_normalized": {
+    "before": 0.0011436790382238792,
+    "after": 0.0006970167261974737
+  },
+  "main_thread_posts_for_10000_results_while_busy": {
+    "before": 10000,
+    "after": 1
+  },
+  "sources_sha256": {
+    "app/src/main/java/br/com/nexus/assistant/gestures/HandGeometry.kt": "ab9a43fb395b4a0bbcba29de1a9b1baf1ec3ea6289ecb806067e9647cdd5ef4a",
+    "app/src/main/java/br/com/nexus/assistant/gestures/LatestFrameDelivery.kt": "070afb18884685428a0989485ad043d9582d1324a84c92542900cff1cbead909",
+    "scripts/MouseFilterBenchmark.kt": "ed13142b9efa8e2d5f57ddee7e8e4a108cb47e84804bf55330664e66b1a73fff"
+  }
+}

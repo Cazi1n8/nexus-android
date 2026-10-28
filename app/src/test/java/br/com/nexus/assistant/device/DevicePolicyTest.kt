@@ -54,7 +54,7 @@ class DevicePolicyTest {
         assertEquals(320, policy.cameraWidth)
         assertEquals(240, policy.cameraHeight)
         assertEquals(220L, policy.analysisIntervalMs)
-        assertEquals(1, policy.maxHands)
+        assertEquals(2, policy.maxHands)
         assertFalse(DevicePolicy.canRunProfile(hardware, LocalModelProfile.BALANCED))
     }
 

@@ -39,9 +39,9 @@ class FirstRunFlowsTest {
                 compose.onAllNodesWithContentDescription("Enviar mensagem").fetchSemanticsNodes().size == 1
         }
         compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
-        compose.onNode(hasSetTextAction()).performTextInput("Quanto é 2 + 2?")
+        compose.onNode(hasSetTextAction()).performTextInput("Escreva uma história original sobre um robô.")
         compose.onNodeWithContentDescription("Enviar mensagem").performClick()
-        compose.onNode(hasSetTextAction()).assert(hasText("Quanto é 2 + 2?"))
+        compose.onNode(hasSetTextAction()).assert(hasText("Escreva uma história original sobre um robô."))
         compose.onNodeWithText("0 mensagens salvas • contexto por tokens").assertIsDisplayed()
         compose.onNodeWithText("O que vamos explorar?").assertIsDisplayed()
         // CORE guides the user to an explicit, optional model download. The

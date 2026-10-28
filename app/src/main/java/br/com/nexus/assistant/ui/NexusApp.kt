@@ -275,12 +275,10 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
                             else -> "Este aparelho não declara OpenGL ES 2.0, necessário para renderizar o cubo. O chat e as demais funções compatíveis continuam disponíveis."
                         }, onContinue = { navigate("home") }) {
                     val feature: @Composable () -> Unit = {
-                        if (mode == GestureMode.CUBE) {
-                            // Manual 3D exploration requires GLES, but neither camera nor accessibility.
-                            GestureFeatureScreen(mode, onNavigateBack = { nav.popBackStack() }, onOpenCommands = { navigate("commands") }, session = gestureSession)
-                        } else PermissionGate(Manifest.permission.CAMERA, "Rastreamento de mãos", "A câmera detecta as mãos localmente com MediaPipe. O controle global opcional exige uma ativação separada e explícita na tela de mouse.") {
-                            GestureFeatureScreen(mode, onNavigateBack = { nav.popBackStack() }, onOpenCommands = { navigate("commands") }, session = gestureSession)
-                        }
+                        // Entering a module shows its controls without activating sensors.
+                        // Each explicit start button owns its camera permission request.
+                        GestureFeatureScreen(mode, onNavigateBack = { nav.popBackStack() },
+                            onOpenCommands = { navigate("commands") }, session = gestureSession)
                     }
                     if (mode == GestureMode.HANDS) GlobalCameraGate(feature) else feature()
                     }

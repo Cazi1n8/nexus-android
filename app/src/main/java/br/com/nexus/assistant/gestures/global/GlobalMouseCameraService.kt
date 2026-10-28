@@ -11,8 +11,6 @@ import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
-import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -21,6 +19,7 @@ import android.os.SystemClock
 import android.util.Size
 import android.view.WindowManager
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.CameraState
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
@@ -30,23 +29,30 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.LiveData
 import br.com.nexus.assistant.MainActivity
 import br.com.nexus.assistant.R
 import br.com.nexus.assistant.device.DeviceCapabilities
 import br.com.nexus.assistant.device.DevicePolicy
+import br.com.nexus.assistant.device.TrackingConfiguration
+import br.com.nexus.assistant.device.TrackingProfilePreferences
+import br.com.nexus.assistant.device.TrackingProfiles
 import br.com.nexus.assistant.device.voice.NexusSessionControls
 import br.com.nexus.assistant.gestures.HandFrame
 import br.com.nexus.assistant.gestures.HandPoint
+import br.com.nexus.assistant.gestures.CameraFrameTimeline
+import br.com.nexus.assistant.gestures.LatestFrameDelivery
 import br.com.nexus.assistant.gestures.MouseController
+import br.com.nexus.assistant.gestures.ReusableHandImage
 import br.com.nexus.assistant.gestures.TrackedHand
 import br.com.nexus.assistant.gestures.TrackingCadence
-import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicLong
 
 /** Explicit, visible, non-restarting camera session. No boot receiver or microphone access. */
 class GlobalMouseCameraService : Service(), LifecycleOwner {
@@ -59,7 +65,12 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     private val controller = MouseController()
     private var provider: ProcessCameraProvider? = null
     private var analysis: ImageAnalysis? = null
+    private var observedCameraState: LiveData<CameraState>? = null
+    private var imageBuffer: ReusableHandImage? = null
+    private var frameDelivery: LatestFrameDelivery<HandFrame>? = null
     private var started = false
+    @Volatile private var paused = false
+    private val cameraGeneration = AtomicLong(0)
     private var lastFrameAt = 0L
     private var openedAt = 0L
     private var terminalError: String? = null
@@ -67,21 +78,23 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     private var pinchThreshold = .35f
     private var preferencesLoaded = false
     private var calibrationRequested = false
+    @Volatile private var mirrorHorizontally = true
     private val gesturePreferences by lazy { getSharedPreferences("nexus_gestures", MODE_PRIVATE) }
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
         if (key == "sensitivity") sensitivity = preferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f)
         if (key == "pinch") pinchThreshold = preferences.getFloat("pinch", .35f).coerceIn(.2f, .55f)
+        if (key == "global_mirror") {
+            mirrorHorizontally = preferences.getBoolean("global_mirror", useFrontCamera)
+            controller.reset().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
+            NexusAccessibilityService.instance?.updateCursor(null)
+        }
     }
-    private val pendingFrame = AtomicReference<HandFrame?>(null)
-    // At most one UI delivery is queued. A busy screen must not accumulate old camera frames.
-    private val deliverFrame = Runnable {
-        pendingFrame.getAndSet(null)?.let { if (!stopped.get()) onFrame(it) }
-    }
-    private lateinit var sessionPolicy: DevicePolicy
+    private lateinit var tracking: TrackingConfiguration
     private var useFrontCamera = true
     private val watchdog = object : Runnable {
         override fun run() {
             if (stopped.get() || !started) return
+            if (paused) { main.postDelayed(this, 250); return }
             val now = SystemClock.elapsedRealtime()
             if (lastFrameAt != 0L && now - lastFrameAt > 800L) {
                 controller.lost().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
@@ -111,6 +124,19 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
         }
         if (intent == null || intent.action == ACTION_STOP) { stopSelf(); return START_NOT_STICKY }
         if (started) {
+            if (intent.action == ACTION_PAUSE) pauseSession()
+            if (intent.action == ACTION_RESUME && paused && ::tracking.isInitialized) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                    NexusAccessibilityService.instance == null) {
+                    fail("Câmera ou acessibilidade indisponível. Encerre e autorize novamente pelo NEXUS.")
+                    return START_NOT_STICKY
+                }
+                paused = false
+                GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(paused = false, cameraReady = false,
+                    cameraStatus = "Preparando câmera", message = null))
+                startCamera()
+                publishNotification()
+            }
             if (intent.action == ACTION_CALIBRATE) {
                 calibrationRequested = true
                 GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(message = "Mostre o indicador para centralizar o cursor."))
@@ -153,19 +179,21 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
                     val savedSensitivity = gesturePreferences.getFloat("sensitivity", 1.3f).coerceIn(.6f, 2.3f)
                     val savedPinch = gesturePreferences.getFloat("pinch", .35f).coerceIn(.2f, .55f)
                     val policy = DevicePolicy.evaluate(capabilities)
+                    val configuration = TrackingProfiles.resolve(capabilities, TrackingProfilePreferences.read(this), requestedHands = 1, pointerMode = true)
                     main.post {
                         if (!stopped.get()) {
                             if (!policy.handTrackingSupported) {
                                 fail(if (!capabilities.hasCamera) "Este aparelho não possui uma câmera disponível para o mouse global."
                                     else "O rastreador de mãos não é compatível com a arquitetura deste aparelho. O mouse global foi desativado.")
                             } else {
-                                sessionPolicy = policy
+                                tracking = configuration
                                 sensitivity = savedSensitivity
                                 pinchThreshold = savedPinch
                                 preferencesLoaded = true
                                 gesturePreferences.registerOnSharedPreferenceChangeListener(preferenceListener)
                                 useFrontCamera = capabilities.hasFrontCamera
-                                startCamera()
+                                mirrorHorizontally = gesturePreferences.getBoolean("global_mirror", useFrontCamera)
+                                if (!paused) startCamera()
                             }
                         }
                     }
@@ -195,19 +223,38 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
         val stopAll = PendingIntent.getService(this, 22,
             Intent(this, GlobalMouseCameraService::class.java).setAction(NexusSessionControls.ACTION_STOP_ALL),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val pause = PendingIntent.getService(this, 23,
+            Intent(this, GlobalMouseCameraService::class.java).setAction(ACTION_PAUSE),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val builder = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_nexus)
-            .setContentTitle("NEXUS · câmera e mouse global ativos")
-            .setContentText("Controle autorizado por gestos. Toque em PARAR para encerrar.")
+            .setContentTitle(if (paused) "NEXUS · mouse global pausado, câmera desligada" else "NEXUS · câmera e mouse global ativos")
+            .setContentText(if (paused) "Abra o NEXUS para retomar a câmera ou toque em PARAR." else "Controle autorizado por gestos. Você pode pausar ou parar.")
             .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true)
-            .addAction(Notification.Action.Builder(null, "PARAR", stop).build())
+        if (!paused) builder.addAction(Notification.Action.Builder(null, "PAUSAR", pause).build())
+        builder.addAction(Notification.Action.Builder(null, "PARAR", stop).build())
             .addAction(Notification.Action.Builder(null, "ENCERRAR TUDO", stopAll).build())
         if (Build.VERSION.SDK_INT >= 31) builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
         return builder.build()
     }
 
     private fun startCamera() {
-        val policy = sessionPolicy
+        if (paused || stopped.get()) return
+        val ticket = cameraGeneration.incrementAndGet()
+        openedAt = SystemClock.elapsedRealtime()
+        lastFrameAt = 0L
+        val configuration = tracking
+        val images = ReusableHandImage().also { imageBuffer = it }
+        val delivery = LatestFrameDelivery<HandFrame>({ main.post(it) }) { frame ->
+            if (!stopped.get() && !paused && ticket == cameraGeneration.get()) {
+                val deliveredAt = SystemClock.elapsedRealtime()
+                if (deliveredAt - frame.timestampMs <= 800L) onFrame(frame.copy(deliveredAtMs = deliveredAt))
+                else {
+                    controller.lost().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
+                    NexusAccessibilityService.instance?.updateCursor(null)
+                }
+            }
+        }.also { frameDelivery = it }
         executor.execute {
             try {
                 val options = HandLandmarker.HandLandmarkerOptions.builder()
@@ -215,75 +262,82 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
                     .setRunningMode(RunningMode.VIDEO).setNumHands(1)
                     .setMinHandDetectionConfidence(.55f).setMinHandPresenceConfidence(.55f).setMinTrackingConfidence(.55f)
                     .build()
-                if (!stopped.get()) detector.set(HandLandmarker.createFromOptions(this, options))
+                if (!stopped.get() && !paused && ticket == cameraGeneration.get()) {
+                    detector.getAndSet(HandLandmarker.createFromOptions(this, options))?.close()
+                }
             } catch (_: Exception) {
-                main.post { if (!stopped.get()) fail("Não foi possível carregar o modelo MediaPipe. A sessão global foi encerrada.") }
+                main.post { if (!stopped.get() && !paused && ticket == cameraGeneration.get()) fail("Não foi possível carregar o modelo MediaPipe. A sessão global foi encerrada.") }
             } catch (_: LinkageError) {
-                main.post { if (!stopped.get()) fail("A biblioteca de rastreamento não é compatível com este aparelho. A sessão foi encerrada.") }
+                main.post { if (!stopped.get() && !paused && ticket == cameraGeneration.get()) fail("A biblioteca de rastreamento não é compatível com este aparelho. A sessão foi encerrada.") }
             } catch (_: OutOfMemoryError) {
-                main.post { if (!stopped.get()) fail("Não há memória livre suficiente para iniciar o rastreamento. A sessão foi encerrada.") }
+                main.post { if (!stopped.get() && !paused && ticket == cameraGeneration.get()) fail("Não há memória livre suficiente para iniciar o rastreamento. A sessão foi encerrada.") }
             }
         }
         val selector = ResolutionSelector.Builder()
             .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-            .setResolutionStrategy(ResolutionStrategy(Size(policy.cameraWidth, policy.cameraHeight), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER))
+            .setResolutionStrategy(ResolutionStrategy(Size(configuration.cameraWidth, configuration.cameraHeight), ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER))
             .build()
         val analyzer = ImageAnalysis.Builder().setResolutionSelector(selector)
             .setTargetRotation(displayRotation())
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()
         analysis = analyzer
-        val cadence = TrackingCadence((policy.analysisIntervalMs / 2).coerceIn(50L, 110L), 50L)
+        val cadence = TrackingCadence(configuration.analysisIntervalMs, 50L)
+        val timeline = CameraFrameTimeline()
         val inferenceFailed = AtomicBoolean(false)
         analyzer.setAnalyzer(executor) { proxy ->
-            var bitmap: Bitmap? = null
-            var rotated: Bitmap? = null
             try {
                 val tracker = detector.get()
-                val now = SystemClock.elapsedRealtime()
-                if (stopped.get() || tracker == null || !cadence.shouldAnalyze(now)) return@setAnalyzer
-                bitmap = proxy.toBitmap()
-                val matrix = Matrix().apply { postRotate(proxy.imageInfo.rotationDegrees.toFloat()) }
-                rotated = Bitmap.createBitmap(bitmap!!, 0, 0, bitmap!!.width, bitmap!!.height, matrix, false)
-                val image = BitmapImageBuilder(rotated!!).build()
+                if (stopped.get() || paused || ticket != cameraGeneration.get() || inferenceFailed.get() || tracker == null) return@setAnalyzer
+                val stamp = timeline.begin(proxy.imageInfo.timestamp, SystemClock.elapsedRealtimeNanos()) ?: return@setAnalyzer
+                val now = stamp.analysisStartedAtMs
+                if (!cadence.shouldAnalyze(now)) return@setAnalyzer
+                val bitmap = images.read(proxy)
+                val conversionMs = SystemClock.elapsedRealtime() - now
+                val image = images.buildImage(bitmap)
+                val inferenceAt = SystemClock.elapsedRealtime()
                 val result = try { tracker.detectForVideo(image, now) } finally { image.close() }
+                val inferenceMs = SystemClock.elapsedRealtime() - inferenceAt
                 val hands = result.landmarks().mapIndexed { index, landmarks ->
                     val category = result.handedness().getOrNull(index)?.firstOrNull()
-                    TrackedHand(landmarks.map { HandPoint(if (useFrontCamera) 1f - it.x() else it.x(), it.y(), it.z()) },
+                    TrackedHand(landmarks.map { HandPoint(if (mirrorHorizontally) 1f - it.x() else it.x(), it.y(), it.z()) },
                         category?.categoryName() ?: "Unknown", category?.score() ?: 0f)
                 }
                 val processingMs = SystemClock.elapsedRealtime() - now
                 cadence.observeCost(processingMs)
-                val frame = HandFrame(hands, rotated!!.width, rotated!!.height, processingMs, now)
-                pendingFrame.set(frame)
-                main.removeCallbacks(deliverFrame)
-                main.post(deliverFrame)
+                val frame = HandFrame(hands, bitmap.width, bitmap.height, processingMs, now,
+                    conversionMs, inferenceMs, proxy.imageInfo.timestamp, stamp.excessQueueDelayMs)
+                if (!stopped.get() && !paused && ticket == cameraGeneration.get()) {
+                    delivery.offer(frame)
+                }
             } catch (_: Exception) {
                 if (inferenceFailed.compareAndSet(false, true)) main.post {
-                    if (!stopped.get()) fail("O rastreamento falhou. A câmera e o controle global foram encerrados.")
+                    if (!stopped.get() && !paused && ticket == cameraGeneration.get()) fail("O rastreamento falhou. A câmera e o controle global foram encerrados.")
                 }
             } catch (_: LinkageError) {
                 if (inferenceFailed.compareAndSet(false, true)) main.post {
-                    if (!stopped.get()) fail("A biblioteca de rastreamento não está disponível neste aparelho. A sessão foi encerrada.")
+                    if (!stopped.get() && !paused && ticket == cameraGeneration.get()) fail("A biblioteca de rastreamento não está disponível neste aparelho. A sessão foi encerrada.")
                 }
             } catch (_: OutOfMemoryError) {
                 if (inferenceFailed.compareAndSet(false, true)) main.post {
-                    if (!stopped.get()) fail("O rastreamento foi interrompido por falta de memória. A sessão foi encerrada.")
+                    if (!stopped.get() && !paused && ticket == cameraGeneration.get()) fail("O rastreamento foi interrompido por falta de memória. A sessão foi encerrada.")
                 }
             } finally {
-                if (rotated != null && rotated !== bitmap) rotated?.recycle()
-                bitmap?.recycle()
                 proxy.close()
             }
         }
         val future = ProcessCameraProvider.getInstance(this)
         future.addListener({
-            if (!stopped.get()) {
+            if (!stopped.get() && !paused && ticket == cameraGeneration.get()) {
                 try {
                     val cameraSelector = if (useFrontCamera) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
                     provider = future.get().also {
                         check(it.hasCamera(cameraSelector))
-                        it.bindToLifecycle(this, cameraSelector, analyzer)
+                        val camera = it.bindToLifecycle(this, cameraSelector, analyzer)
+                        observedCameraState = camera.cameraInfo.cameraState
+                        camera.cameraInfo.cameraState.observe(this) { state ->
+                            if (!stopped.get() && !paused && ticket == cameraGeneration.get()) observeCameraState(state)
+                        }
                     }
                 } catch (_: Exception) {
                     fail("A câmera selecionada está indisponível ou em uso. A sessão global foi encerrada.")
@@ -293,6 +347,7 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     }
 
     private fun onFrame(frame: HandFrame) {
+        if (paused || stopped.get()) return
         lastFrameAt = frame.timestampMs
         if (calibrationRequested) frame.hands.firstOrNull()?.let { hand ->
             controller.reset().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
@@ -304,12 +359,73 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
             accessibility.updateCursor(update.cursor)
             update.events.forEach(accessibility::dispatch)
         }
-        GlobalMouseRuntime.update(GlobalMouseState(active = true, cameraReady = true, hands = frame.hands.size, processingMs = frame.processingMs,
-            message = if (calibrationRequested) "Mostre o indicador para calibrar." else null))
+        GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(active = true, paused = false, cameraReady = true,
+            hands = frame.hands.size, processingMs = frame.processingMs, cameraStatus = "Transmitindo quadros locais",
+            frameAgeMs = (SystemClock.elapsedRealtime() - frame.timestampMs).coerceAtLeast(0),
+            message = if (calibrationRequested) "Mostre o indicador para calibrar." else GlobalMouseRuntime.state.value.message))
+    }
+
+    private fun observeCameraState(state: CameraState) {
+        val error = state.error
+        if (error != null) {
+            val reason = when (error.code) {
+                CameraState.ERROR_CAMERA_IN_USE -> "Outra aplicação está usando a câmera."
+                CameraState.ERROR_MAX_CAMERAS_IN_USE -> "O aparelho não permite mais câmeras simultâneas."
+                CameraState.ERROR_CAMERA_DISABLED -> "A câmera foi desativada pelo Android, pelo controle de privacidade ou por uma política do aparelho."
+                CameraState.ERROR_CAMERA_FATAL_ERROR -> "O sistema da câmera apresentou uma falha."
+                CameraState.ERROR_STREAM_CONFIG -> "A câmera recusou esta resolução ou configuração."
+                else -> "O Android informou indisponibilidade da câmera (código ${error.code})."
+            }
+            // Do not dispatch stale gestures while Android waits for the camera to recover.
+            controller.reset().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
+            NexusAccessibilityService.instance?.updateCursor(null)
+            GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(cameraReady = false, hands = 0,
+                cameraStatus = reason, message = "Sem controle enquanto a câmera estiver indisponível."))
+            if (error.type == CameraState.ErrorType.CRITICAL) fail("$reason A sessão foi encerrada.")
+            return
+        }
+        if (!GlobalMouseRuntime.state.value.cameraReady) {
+            val label = when (state.type) {
+                CameraState.Type.OPEN -> "Câmera aberta; aguardando primeiro quadro"
+                CameraState.Type.PENDING_OPEN -> "Aguardando disponibilidade da câmera"
+                CameraState.Type.OPENING -> "Abrindo câmera"
+                CameraState.Type.CLOSING -> "Liberando câmera"
+                CameraState.Type.CLOSED -> "Câmera fechada"
+            }
+            GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(cameraStatus = label))
+        }
+    }
+
+    private fun pauseSession() {
+        if (paused) return
+        paused = true
+        cameraGeneration.incrementAndGet()
+        frameDelivery?.close(); frameDelivery = null
+        observedCameraState?.removeObservers(this); observedCameraState = null
+        analysis?.clearAnalyzer()
+        analysis?.let { provider?.unbind(it) }
+        analysis = null
+        controller.reset().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
+        NexusAccessibilityService.instance?.updateCursor(null)
+        val images = imageBuffer.also { imageBuffer = null }
+        executor.execute { detector.getAndSet(null)?.close(); images?.close() }
+        GlobalMouseRuntime.update(GlobalMouseRuntime.state.value.copy(paused = true, cameraReady = false, hands = 0,
+            cameraStatus = "Pausada; câmera liberada", message = "Retome nesta tela visível. O microfone continua independente."))
+        publishNotification()
+    }
+
+    private fun publishNotification() {
+        try {
+            check(getSystemService(NotificationManager::class.java).areNotificationsEnabled())
+            getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, createNotification())
+        } catch (_: Exception) {
+            fail("As notificações de controle foram desativadas. O mouse global foi encerrado.")
+        }
     }
 
     private fun fail(message: String) {
         terminalError = message
+        stopped.set(true)
         stopSelf()
     }
 
@@ -331,8 +447,8 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
     override fun onDestroy() {
         stopped.set(true)
         main.removeCallbacks(watchdog)
-        main.removeCallbacks(deliverFrame)
-        pendingFrame.set(null)
+        frameDelivery?.close(); frameDelivery = null
+        observedCameraState?.removeObservers(this); observedCameraState = null
         analysis?.clearAnalyzer()
         if (preferencesLoaded) gesturePreferences.unregisterOnSharedPreferenceChangeListener(preferenceListener)
         analysis?.let { provider?.unbind(it) }
@@ -340,11 +456,12 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
         registry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         controller.reset().events.forEach { NexusAccessibilityService.instance?.dispatch(it) }
         NexusAccessibilityService.instance?.endSession()
-        executor.execute { detector.getAndSet(null)?.close() }
+        val images = imageBuffer.also { imageBuffer = null }
+        executor.execute { detector.getAndSet(null)?.close(); images?.close() }
         executor.shutdown()
         stopForeground(STOP_FOREGROUND_REMOVE)
         // Publish availability only after the camera lease is released.
-        GlobalMouseRuntime.update(GlobalMouseState(error = terminalError))
+        GlobalMouseRuntime.update(GlobalMouseState(error = terminalError ?: GlobalMouseRuntime.state.value.error))
         super.onDestroy()
     }
 
@@ -354,6 +471,8 @@ class GlobalMouseCameraService : Service(), LifecycleOwner {
         const val ACTION_START = "br.com.nexus.assistant.START_GLOBAL_MOUSE"
         const val EXTRA_START_GENERATION = "start_generation"
         const val ACTION_CALIBRATE = "br.com.nexus.assistant.CALIBRATE_GLOBAL_MOUSE"
+        const val ACTION_PAUSE = "br.com.nexus.assistant.PAUSE_GLOBAL_MOUSE"
+        const val ACTION_RESUME = "br.com.nexus.assistant.RESUME_GLOBAL_MOUSE"
         private const val ACTION_STOP = "br.com.nexus.assistant.STOP_GLOBAL_MOUSE"
     }
 }

@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.accessibilityservice.GestureDescription
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -32,10 +33,12 @@ class NexusAccessibilityService : AccessibilityService() {
     private var cursorParams: WindowManager.LayoutParams? = null
     private var stopButton: Button? = null
     private var gestures: PointerGestures? = null
+    private var displaySize: Point? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         windows = getSystemService(WindowManager::class.java)
+        displaySize = readScreenSize()
         serviceInfo = serviceInfo.apply {
             eventTypes = 0
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
@@ -51,6 +54,9 @@ class NexusAccessibilityService : AccessibilityService() {
 
     internal fun beginSession() {
         if (cursor != null) return
+        check(serviceInfo.capabilities and AccessibilityServiceInfo.CAPABILITY_CAN_PERFORM_GESTURES != 0) {
+            "O Android não concedeu capacidade para executar gestos ao serviço NEXUS."
+        }
         gestures?.beginSession()
         val size = (64 * resources.displayMetrics.density).toInt()
         val pointer = CursorView(this).apply {
@@ -60,8 +66,12 @@ class NexusAccessibilityService : AccessibilityService() {
         val params = WindowManager.LayoutParams(size, size,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT).apply { gravity = Gravity.TOP or Gravity.START }
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT).apply {
+                // GestureDescription uses physical display coordinates, independent of RTL.
+                @Suppress("RtlHardcoded")
+                gravity = Gravity.TOP or Gravity.LEFT
+            }
         val button = Button(this).apply {
             text = "PARAR NEXUS"
             contentDescription = "Parar imediatamente o mouse global e a câmera do NEXUS"
@@ -96,11 +106,14 @@ class NexusAccessibilityService : AccessibilityService() {
         pointer.visibility = if (point == null) View.GONE else View.VISIBLE
         if (point != null) {
             val size = screenSize()
-            val nextX = (point.x.coerceIn(0f, 1f) * size.x - params.width / 2).toInt().coerceIn(0, (size.x - params.width).coerceAtLeast(0))
-            val nextY = (point.y.coerceIn(0f, 1f) * size.y - params.height / 2).toInt().coerceIn(0, (size.y - params.height).coerceAtLeast(0))
+            val nextX = GlobalPointerGeometry.overlayOrigin(point.x, size.x, params.width)
+            val nextY = GlobalPointerGeometry.overlayOrigin(point.y, size.y, params.height)
             if (params.x != nextX || params.y != nextY) {
                 params.x = nextX; params.y = nextY
-                runCatching { windows.updateViewLayout(pointer, params) }
+                try { windows.updateViewLayout(pointer, params) } catch (_: Exception) {
+                    GlobalMouseRuntime.fail("O Android removeu a sobreposição do cursor. Abra o NEXUS e inicie novamente.")
+                    GlobalMouseRuntime.stop(this)
+                }
             }
         }
     }
@@ -113,11 +126,20 @@ class NexusAccessibilityService : AccessibilityService() {
         cursor = null; cursorParams = null; stopButton = null
     }
 
-    internal fun screenSize(): Point = if (Build.VERSION.SDK_INT >= 30) {
+    internal fun screenSize(): Point = displaySize ?: readScreenSize().also { displaySize = it }
+
+    private fun readScreenSize(): Point = if (Build.VERSION.SDK_INT >= 30) {
         windows.currentWindowMetrics.bounds.let { Point(it.width(), it.height()) }
     } else {
         @Suppress("DEPRECATION")
         Point().also { windows.defaultDisplay.getRealSize(it) }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        displaySize = readScreenSize()
+        gestures?.cancel()
+        updateCursor(null)
     }
 
     override fun onDestroy() {
@@ -239,16 +261,18 @@ private class PointerGestures(private val service: NexusAccessibilityService) {
                 }
                 override fun onCancelled(gestureDescription: GestureDescription?) {
                     if (ticket != generation) return
+                    GlobalMouseRuntime.gestureResult(accepted = false, cancelled = true)
                     inFlight = false; stroke = null; pendingMove = null; pendingTap = null; pendingDown = null; finishing = false
                 }
             }, main)
+        GlobalMouseRuntime.gestureResult(accepted)
         if (!accepted) { inFlight = false; stroke = null; pendingMove = null; pendingTap = null; pendingDown = null; finishing = false }
     }
 
     private fun path(from: HandPoint, to: HandPoint): Path {
         val size = service.screenSize()
-        fun x(point: HandPoint) = point.x.coerceIn(.001f, .999f) * size.x
-        fun y(point: HandPoint) = point.y.coerceIn(.001f, .999f) * size.y
+        fun x(point: HandPoint) = GlobalPointerGeometry.pixel(point.x, size.x)
+        fun y(point: HandPoint) = GlobalPointerGeometry.pixel(point.y, size.y)
         return Path().apply { moveTo(x(from), y(from)); lineTo(x(to), y(to)) }
     }
 

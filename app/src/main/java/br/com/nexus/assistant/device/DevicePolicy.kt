@@ -61,7 +61,9 @@ data class DevicePolicy(
                 cameraWidth = when { strong -> 640; medium -> 480; else -> 320 },
                 cameraHeight = when { strong -> 480; medium -> 360; else -> 240 },
                 analysisIntervalMs = when { strong -> 110; medium -> 160; else -> 220 },
-                maxHands = if (medium) 2 else 1,
+                // TrackingProfiles reduces resolution/cadence for two-hand input.
+                // RAM alone does not prove that a second hand cannot be tracked.
+                maxHands = 2,
                 supportsGles2 = device.glesVersion >= 0x20000,
                 // MediaPipe Tasks 0.10.35 supplies the native core on all four packaged ABIs.
                 handTrackingSupported = device.hasCamera && device.processAbi in setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86"),

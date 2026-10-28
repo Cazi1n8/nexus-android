@@ -1,5 +1,7 @@
 # NEXUS para Android
 
+> **NEXUS 4.1 em validação (Galaxy A03):** correções de segurança, mouse global e latência estão sendo verificadas no projeto existente. Consulte [PROGRESSO_NEXUS_4_1.md](PROGRESSO_NEXUS_4_1.md). O bloqueio pelo Play Protect ainda não foi comprovadamente resolvido; não desative a proteção. CORE continua sem pesos generativos obrigatórios. A distribuição automática de novos APKs permanece suspensa nesta revisão.
+
 Aplicativo Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
 **Etapa atual: NEXUS CORE 3.0.0-alpha.3-core, versionCode 26.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).

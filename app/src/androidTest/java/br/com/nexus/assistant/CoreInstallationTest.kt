@@ -152,9 +152,10 @@ class CoreInstallationTest {
             compose.onNodeWithContentDescription("Voltar").performClick()
             compose.onNodeWithText("Mouse virtual").performScrollTo().performClick()
             val cameraSupported = model.devicePolicy.value.handTrackingSupported
-            if (cameraSupported) compose.onNodeWithText("Autorizar câmera").assertIsDisplayed()
+            if (cameraSupported) compose.onNodeWithText("Mouse Virtual").assertIsDisplayed()
             else compose.onNodeWithText("Continuar com as funções disponíveis").assertIsDisplayed()
-            report.put("mouseScreenWaitsForCameraConsent", cameraSupported)
+            report.put("mouseControlsOpenWithoutPermissionPrompt", cameraSupported)
+                .put("mouseScreenWaitsForExplicitActivation", cameraSupported)
                 .put("mouseScreenReportsUnsupportedHardware", !cameraSupported)
 
             assertFalse("Opening these screens must not download AI weights", model.localModelDownloadActive.value)

@@ -41,8 +41,8 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 26
-        versionName = "3.0.0-alpha.3-core"
+        versionCode = 27
+        versionName = "4.1.0-alpha.1-core"
         buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
         buildConfigField("boolean", "BUNDLED_VISION", bundleVision.toString())
         buildConfigField("boolean", "CORE_INSTALLATION", (!bundleModel && !bundleVision).toString())
@@ -251,8 +251,10 @@ dependencies {
     // present but the factory follows the upstream no-op usage-logging default.
     implementation("com.google.flogger:flogger:0.6")
     implementation("com.google.flogger:flogger-system-backend:0.6")
-    implementation("com.google.guava:guava:27.0.1-android")
-    implementation("com.google.protobuf:protobuf-javalite:4.26.1")
+    // Patched Android variant; versions and OSV evidence are recorded in the security audit.
+    implementation("com.google.guava:guava:33.7.2-android")
+    // Security update for protobuf unknown-field recursion (CVE-2024-7254).
+    implementation("com.google.protobuf:protobuf-javalite:4.28.3")
     implementation("com.google.android.datatransport:transport-api:3.0.0")
     implementation("com.google.android.datatransport:transport-backend-cct:3.1.0")
     implementation("com.google.android.datatransport:transport-runtime:3.1.0")

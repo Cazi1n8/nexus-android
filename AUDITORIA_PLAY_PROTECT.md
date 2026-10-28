@@ -1,5 +1,93 @@
 # Auditoria de segurança, permissões e Play Protect do NEXUS
 
+## Revisão prioritária NEXUS 4.1 — Galaxy A03, 28/10/2026
+
+**O aparelho de teste informado é o Samsung Galaxy A03.** O usuário confirmou que o APK CORE continuou bloqueado com a mensagem sobre acesso a dados sensíveis. Não há acesso físico a esse aparelho neste ambiente. Não houve varredura do novo APK pelo Play Protect, resposta do Google ou confirmação de liberação. **A distribuição de uma versão considerada pronta permanece pendente desses requisitos.** O histórico abaixo conserva os identificadores das versões anteriores; referências antigas ao S9+ não representam o aparelho desta revisão.
+
+### O que pode explicar o aviso — sem inventar um veredito
+
+A [documentação oficial do Play Protect](https://support.google.com/googleplay/answer/2812853?hl=pt-BR), consultada novamente com HTTP 200 em 28/10/2026, informa que a proteção contra fraude pode impedir a instalação de aplicativos não verificados com permissões sensíveis. O [artigo oficial sobre a proteção reforçada contra fraude](https://security.googleblog.com/2024/02/piloting-new-ways-to-protect-Android-users-from%20financial-fraud.html) descreve análise de aplicativos instalados por navegador, mensagens ou gerenciadores de arquivos e inclui **acessibilidade** entre as capacidades sensíveis consideradas. O espaço codificado no segundo URL faz parte do endereço publicado pelo Google.
+
+Isso é **compatível com a distribuição do NEXUS por APK no GitHub, com controle global por acessibilidade e com o texto do aviso**. É uma hipótese sustentada pela política oficial, **não a causa individual confirmada do APK**. O artigo descreve inicialmente um piloto; não permite inferir a configuração regional ou o algoritmo ativo no A03. A recusa também não permite concluir que o aplicativo seja um falso positivo. Assinatura válida, `debuggable=false`, ausência de SMS e `canRetrieveWindowContent=false` não garantem que a classificação desapareça.
+
+Não foram removidas, renomeadas ou escondidas as declarações necessárias ao mouse para evitar a inspeção. Não é proposto desativar o Play Protect, alterar o instalador para evitar a análise, disfarçar o aplicativo ou capturar dados de outros apps. A alternativa de distribuição é o canal oficial de testes da Google Play, com identidade estável e revisão das declarações aplicáveis; ele também depende da análise do Google e não garante aprovação.
+
+### Inspeção do APK público CORE que o usuário recebeu
+
+O arquivo público `NEXUS-3.0.0-alpha.3-core.apk` foi inspecionado **como APK**, com `apkanalyzer` para o manifesto e os XMLs compilados efetivos, e `apksigner verify --verbose --print-certs` para a assinatura. A extração resolve os nomes reduzidos dos recursos (`res/…xml`), em vez de pressupor que o caminho de fonte foi mantido no ZIP.
+
+| Campo | Resultado observado |
+| --- | --- |
+| Origem | Release `v3.0.0-alpha.3-core-download-22`, build 22 |
+| Pacote / versão | `br.com.nexus.assistant`, `3.0.0-alpha.3-core`, código 26 |
+| Tamanho | 108.210.081 bytes |
+| SHA-256 APK | `e76ff4e228206a11317000a238556d8c24693532c1527b05f8264f5ba6b50d15` |
+| SHA-256 certificado | `0e72073647f9fd5b4bc27f6f8fbafa9100f4fadc391433ff6844fc2f96ec97fc` |
+| Assinatura | Verificada por ferramenta oficial; certificado **Android Debug** |
+| SDK | Mínimo 26, alvo 35 |
+| Depuração / backup | `debuggable` efetivo false; `allowBackup=false`, `fullBackupContent=false` |
+| Permissões | 8 Android + permissão interna AndroidX `signature` = 9 |
+| Componentes exportados | MainActivity; acessibilidade protegida por `BIND_ACCESSIBILITY_SERVICE`; ProfileInstallReceiver protegido por `DUMP` |
+| Acessibilidade | `canPerformGestures=true`, `canRetrieveWindowContent=false`, `isAccessibilityTool=false`; nenhuma capacidade declarada de captura de tela ou filtragem de teclas |
+| Rede | XML compilado base `cleartextTrafficPermitted=false` |
+| Serviços próprios | Câmera e microfone privados, tipos foreground separados |
+| Resultado de instalação física / Play Protect | Relato do usuário: bloqueado; verificação independente do arquivo neste A03 pendente |
+
+Um certificado de teste não é uma identidade de produção estável. **Não foi demonstrado que ele tenha causado o bloqueio.** As chaves efêmeras antigas da CI não foram recuperadas; não foi criada uma chave definitiva nova que prometesse atualizar uma instalação com outro certificado. Não incluir keystore, senha ou chave privada no Git. O workflow assinado existente só pode produzir uma distribuição quando o responsável configurar os segredos protegidos; sem isso, release continua sem assinatura.
+
+### Auditoria de permissões e dependências desta etapa
+
+Continuam necessárias: `INTERNET` e `ACCESS_NETWORK_STATE` para integrações/downloads opcionais; `CAMERA` para mãos/visão iniciadas pelo usuário; `RECORD_AUDIO` para voz; `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CAMERA` e `FOREGROUND_SERVICE_MICROPHONE` para sessões explícitas; `POST_NOTIFICATIONS` para controles visíveis em versões aplicáveis. A permissão AndroidX de nível assinatura protege receptores internos. `BIND_ACCESSIBILITY_SERVICE` protege o vínculo do componente pelo Android; o app não a pede como permissão de leitura de dados.
+
+Não foram encontradas no manifesto do CORE inspecionado permissões de SMS, contatos, chamadas, localização, instalação de pacotes, armazenamento amplo, `QUERY_ALL_PACKAGES`, `PACKAGE_USAGE_STATS`, `SYSTEM_ALERT_WINDOW` ou boot. A sobreposição usa `TYPE_ACCESSIBILITY_OVERLAY` somente com o serviço autorizado. O chat e a Central de Extensões não exigem ativação da acessibilidade. Câmera e microfone devem ser solicitados no início da função, não na abertura do aplicativo.
+
+A consulta **real à API OSV** em 28/10/2026 encontrou correspondências para duas versões declaradas no projeto:
+
+| Dependência anterior | Correspondência por versão | Correção selecionada e verificada |
+| --- | --- | --- |
+| `protobuf-javalite:4.26.1` | [GHSA-735f-pc8j-v9w8 / CVE-2024-7254](https://osv.dev/vulnerability/GHSA-735f-pc8j-v9w8): recursão não limitada ao interpretar campos desconhecidos pode causar StackOverflow/indisponibilidade | `4.28.3`; consulta OSV dessa versão sem correspondências reportadas |
+| `guava:27.0.1-android` | [CVE-2020-8908](https://osv.dev/vulnerability/GHSA-5mg8-w23w-74h3), [CVE-2023-2976](https://osv.dev/vulnerability/GHSA-7g45-4rm6-3mm3): diretórios temporários; [CVE-2026-102554](https://osv.dev/vulnerability/GHSA-xxph-c9ww-hj94): alocação não controlada na desserialização | `33.7.2-android`; POM existente no Maven Central e consulta OSV dessa versão sem correspondências reportadas |
+
+**A presença dessas versões é confirmada; a exploração no NEXUS não foi demonstrada.** A consulta não executou cargas maliciosas nem prova ausência de vulnerabilidades nas novas versões. A investigação de fonte não encontrou desserialização Java de objetos não confiáveis ou uso direto de `Files.createTempDir` pelo app. As bibliotecas podem ter caminhos próprios e requerem regressão. Esses avisos não são atribuídos como causa do Play Protect. Consultas limitadas de OkHttp 4.12.0, MediaPipe tasks-vision 0.10.35, Room 2.7.1 e DataTransport runtime 3.1.0 não retornaram advisories; isso não é uma varredura completa das dependências transitivas ou do código nativo.
+
+O derivado MediaPipe sem logging de uso, os pesos por HTTPS/tamanho/SHA e o modelo de mãos obrigatório permanecem como documentados abaixo. Atualizar Guava/Protobuf no Gradle não altera o AAR derivado nem justifica modificar sua proveniência. O restante do processo precisa conferir as **versões resolvidas**, executar testes e medir o APK final novamente.
+
+### Alterações de segurança implementadas na fonte 4.1
+
+- O manifesto agora explicita `usesCleartextTraffic=false` além do XML de rede existente. A alteração é defesa declarativa; a distribuição anterior já tinha política base HTTPS.
+- O XML da acessibilidade omite eventos/flags (padrão zero) e explicita `canTakeScreenshot=false` e `canRequestFilterKeyEvents=false`. A primeira tentativa de explicitar o valor `0` foi rejeitada pelo AAPT2 e corrigida; o serviço também impõe zero em tempo de execução. São restrições que já eram padrão na versão anterior; não são apresentadas como remoção de uma coleta que existia.
+- A descrição exibida pelo Android especifica toques/arrastos/rolagem, ausência de leitura de telas/senhas/mensagens/notificações e que habilitar o serviço não inicia a câmera.
+- A navegação às configurações de acessibilidade passa a depender do consentimento destacado na tela do mouse global. A permissão de câmera do mouse é pedida no início escolhido pelo usuário.
+- Foi adicionado [`scripts/audit_android_security.py`](scripts/audit_android_security.py). Ele confere o manifesto de fonte/mesclado ou o **manifesto e recursos compilados de um APK**, permissões permitidas, limites dos componentes exportados, tipos separados dos serviços, capacidades da acessibilidade, HTTPS, backup e assinatura. `--production` recusa certificado Android Debug. O relatório diz explicitamente que não é um veredito do Google.
+
+### Verificações já executadas e próximos passos
+
+**14 testes Python** do novo auditor passaram, incluindo regressões que inserem SMS/overlay/visibilidade ampla, exportam serviços, habilitam leitura/captura/teclas, misturam tipos foreground, permitem HTTP e fornecem assinatura de teste. A inspeção regular do APK público código 26 passou: 9 permissões, componentes e XMLs dentro da política declarada, assinatura verificável. O mesmo APK com `--production` foi **recusado, como esperado, exclusivamente por `debug_signing_identity`**. Isso separa teste de distribuição de produção e não reproduz o bloqueio do Google.
+
+O resultado de compilação, hashes e testes da nova fonte 4.1 devem ser conferidos em [PROGRESSO_NEXUS_4_1.md](PROGRESSO_NEXUS_4_1.md). As medições acima identificam estritamente o arquivo anterior, não um APK futuro. Os testes físicos do A03 permanecem pendentes: instalação com proteção ativa, divulgação antes das permissões, câmera/voz só após início manual, cursor em outro app, recusa de conteúdo protegido, pausa/parada pela notificação e liberação dos sensores. Não remover uma instalação que contém dados antes de exportar o histórico e verificar compatibilidade de certificado.
+
+Para gerar a inspeção do APK compilado, use os caminhos oficiais de ferramentas instalados no seu SDK:
+
+```bash
+python3 scripts/audit_android_security.py \
+  --apk app/build/outputs/apk/coreTest/app-coreTest.apk \
+  --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" \
+  --apksigner "$ANDROID_HOME/build-tools/35.0.0/apksigner" \
+  --output security-core.json
+```
+
+Para um release de produção, acrescente `--production` e aponte para o APK realmente assinado. Um APK sem assinatura falha na verificação; não é instalável. A inspeção de fonte usa `--manifest`, `--accessibility-xml` e `--network-xml`, sem `--apk`; acrescente `--final` ao manifesto mesclado. Os XMLs de fonte não substituem a inspeção do artefato.
+
+### Caminho oficial de revisão do CORE bloqueado
+
+O [formulário oficial de revisão do Play Protect](https://support.google.com/googleplay/android-developer/contact/protectappeals) retornou HTTP 200. Ainda não foi enviado por esta sessão. O responsável deve informar **o APK exato bloqueado**, pacote, versão/código, URL de origem, SHA-256 do APK/certificado, screenshot, aparelho **Galaxy A03**, versão Android efetivamente observada e resultado com proteção ativa. Para o arquivo público código 26, use os identificadores da tabela acima; não reutilize os da alpha.4 na minuta histórica de [docs/PLAY_PROTECT_REVISAO.md](docs/PLAY_PROTECT_REVISAO.md).
+
+Texto técnico sugerido: “Solicito análise do NEXUS `br.com.nexus.assistant`, código 26, CORE 3.0.0-alpha.3-core, bloqueado no Galaxy A03 com aviso de possível acesso a dados sensíveis. O controle por mãos usa AccessibilityService somente para dispatchGesture autorizado e overlay, sem recuperação de janelas, leitura de eventos ou captura de tela. Câmera/microfone são opcionais e iniciados pelo usuário com notificação e parada. O APK foi distribuído fora da Play com certificado de teste; não afirmamos falso positivo e solicitamos orientação sobre os achados concretos.” Anexar a tabela e auditoria, sem dados de conta/chaves no repositório. Se o Google solicitar a nova compilação, registrar seus próprios identificadores e não trocar silenciosamente o arquivo citado.
+
+Revisar também a [política de AccessibilityService](https://support.google.com/googleplay/android-developer/answer/10964491?hl=pt-BR): o NEXUS não se declara `isAccessibilityTool=true`; precisa de divulgação/consentimento e declaração compatíveis com o caso de uso. Uma ação de IA não pode executar controle oculto e não autorizado. A implementação legítima do mouse é preservada, sujeita às restrições do Android e aplicativos protegidos. Assinatura estável, política de privacidade e formulários são pré-requisitos de distribuição, não atalhos para aprovação.
+
+## Histórico das auditorias anteriores
+
 Leitura de fonte e dependências atualizada em **26/10/2026**. Os manifestos mesclados e os APKs finais locais debug e release da versão 24 foram conferidos após a compilação completa. O APK release é sem assinatura e não é instalável. Este documento pertence ao projeto existente `br.com.nexus.assistant`; não é um certificado de segurança nem uma aprovação do Google.
 
 **Conclusão atual:** o usuário relatou bloqueio de instalação da alpha.4 pelo Play Protect. A causa específica não foi fornecida pelo Google e não foi reproduzida por este ambiente. Compilar, assinar ou executar testes do aplicativo não demonstra que o bloqueio acabou. Não há solicitação enviada, número de atendimento ou aprovação a apresentar.

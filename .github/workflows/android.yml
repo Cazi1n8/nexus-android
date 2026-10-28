@@ -60,6 +60,8 @@ jobs:
         run: sha256sum app/build/outputs/apk/coreTest/app-coreTest.apk > app/build/outputs/apk/coreTest/SHA256SUMS.txt
       - name: Auditar conteúdo e orçamento do CORE universal
         run: python3 scripts/inspect_core_apk.py app/build/outputs/apk/coreTest/app-coreTest.apk --universal --output app/build/outputs/apk/coreTest/CORE_PACKAGE_AUDIT.json
+      - name: Auditar manifesto compilado e capacidades do APK de avaliação
+        run: python3 scripts/audit_android_security.py --apk app/build/outputs/apk/coreTest/app-coreTest.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --apksigner "$ANDROID_HOME/build-tools/35.0.0/apksigner" --output app/build/outputs/apk/coreTest/SECURITY_PACKAGE_AUDIT.json
       - name: Publicar APK de teste como artefato
         uses: actions/upload-artifact@v4
         with:
@@ -68,6 +70,7 @@ jobs:
             app/build/outputs/apk/coreTest/app-coreTest.apk
             app/build/outputs/apk/coreTest/SHA256SUMS.txt
             app/build/outputs/apk/coreTest/CORE_PACKAGE_AUDIT.json
+            app/build/outputs/apk/coreTest/SECURITY_PACKAGE_AUDIT.json
           if-no-files-found: error
           retention-days: 30
       - name: Relatórios de testes e lint
@@ -84,7 +87,7 @@ jobs:
   publish-test-apk:
     # Public debug distribution is paused while the installation block is reviewed.
     # The build and downloadable Actions artifact continue normally.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.NEXUS_PUBLICAR_APK_DEBUG == 'true'
+    if: false # NEXUS 4.1: distribution requires an explicit security-review revision.
     needs: build
     runs-on: ubuntu-24.04
     permissions:

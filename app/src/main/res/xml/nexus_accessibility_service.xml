@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Event types and flags are deliberately omitted: both default to zero. -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:canRetrieveWindowContent="false"
     android:canPerformGestures="true"
+    android:canRequestFilterKeyEvents="false"
+    android:canTakeScreenshot="false"
     android:description="@string/nexus_accessibility_description"
     android:isAccessibilityTool="false"
     android:notificationTimeout="100" />

@@ -44,6 +44,8 @@ fun distance(a: HandPoint, b: HandPoint): Float = hypot(a.x - b.x, a.y - b.y)
 
 class CursorFilter {
     private var previous: HandPoint? = null
+    private var previousRaw: HandPoint? = null
+    private var derivative = HandPoint(0f, 0f)
     private var offset = HandPoint(0f, 0f)
     private var previousAt: Long? = null
 
@@ -53,14 +55,28 @@ class CursorFilter {
             ((point.y - .5f) * sensitivity + .5f + offset.y).coerceIn(0f, 1f)
         )
         val old = previous
-        // A fixed per-frame weight lagged badly at 4–6 camera frames/s.
-        // Time-based smoothing keeps an ~85ms response constant across frame rates;
-        // every position is still derived only from an actually observed fingertip.
-        val elapsed = previousAt?.let { last -> timestampMs?.minus(last) }?.coerceIn(1L, 500L)
-        val alpha = elapsed?.let { (1.0 - kotlin.math.exp(-it / 85.0)).toFloat() } ?: .32f
-        val next = if (old == null) adjusted else HandPoint(
-            old.x + alpha * (adjusted.x - old.x), old.y + alpha * (adjusted.y - old.y)
-        )
+        val elapsed = previousAt?.let { last -> timestampMs?.minus(last) }
+        // Duplicate/out-of-order observations cannot advance a held pointer.
+        if (elapsed != null && elapsed <= 0L && old != null) return old
+        val dt = (elapsed ?: 33L).coerceIn(1L, 500L) / 1000f
+        // One Euro filter: suppress stationary fingertip jitter, increase cutoff
+        // during intentional movement. Unlike a fixed85ms low-pass this does not
+        // add that delay to every fast movement. No prediction/extrapolation.
+        val raw = previousRaw
+        val next = if (old == null || raw == null || (elapsed != null && elapsed >= 500L)) {
+            derivative = HandPoint(0f, 0f)
+            adjusted
+        } else {
+            val dAlpha = alpha(1f, dt)
+            derivative = HandPoint(
+                derivative.x + dAlpha * ((adjusted.x - raw.x) / dt - derivative.x),
+                derivative.y + dAlpha * ((adjusted.y - raw.y) / dt - derivative.y),
+            )
+            val ax = alpha(1.3f + 2f * kotlin.math.abs(derivative.x), dt)
+            val ay = alpha(1.3f + 2f * kotlin.math.abs(derivative.y), dt)
+            HandPoint(old.x + ax * (adjusted.x - old.x), old.y + ay * (adjusted.y - old.y))
+        }
+        previousRaw = adjusted
         previousAt = timestampMs
         previous = next
         return next
@@ -68,11 +84,13 @@ class CursorFilter {
 
     fun center(point: HandPoint, sensitivity: Float) {
         offset = HandPoint(-((point.x - .5f) * sensitivity), -((point.y - .5f) * sensitivity))
-        previous = null
-        previousAt = null
+        reset()
     }
 
-    fun reset() { previous = null; previousAt = null }
+    fun reset() { previous = null; previousRaw = null; previousAt = null; derivative = HandPoint(0f, 0f) }
+
+    private fun alpha(cutoffHz: Float, elapsedSeconds: Float): Float =
+        (1f / (1f + 1f / (2f * kotlin.math.PI.toFloat() * cutoffHz * elapsedSeconds)))
 }
 
 data class PinchEvent(

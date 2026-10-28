@@ -55,7 +55,16 @@ class ArithmeticToolTest {
         val coordinator = AiCoordinator(unexpected, unexpected)
         AiMode.entries.forEach { mode ->
             assertTrue(coordinator.complete(NexusSettings(aiMode=mode), "", listOf(AiMessage("user", "10+10÷10×10")), emptyList()).startsWith("10+10÷10×10 = 20"))
+            assertTrue(coordinator.complete(NexusSettings(aiMode=mode), "", listOf(AiMessage("user", "Quanto é 50 + 50 + 50 × 50?")), emptyList()).endsWith(" = 2600"))
         }
+    }
+    @Test fun `CORE readiness bypass is only available for actual local tools`() {
+        assertTrue(AiCoordinator.builtInResponse(AiMessage("user", "50+50+50×50"))!!.endsWith(" = 2600"))
+        assertTrue(AiCoordinator.builtInResponse(AiMessage("user", "NEXUS, abra as configurações"))!!.contains("A ação ainda não foi executada"))
+        assertNull(AiCoordinator.builtInResponse(AiMessage("user", "50+50+50×50", "real-image.jpg")))
+        assertNull(AiCoordinator.builtInResponse(AiMessage("assistant", "50+50+50×50")))
+        assertNull(AiCoordinator.builtInResponse(AiMessage("user", "Crie uma história de um robô")))
+        assertNull(AiCoordinator.builtInResponse(null))
     }
     @Test fun `actual coordinator still dispatches general conversation to explicitly chosen provider`() = runBlocking<Unit> {
         fun provider(name: String) = object : AiProvider {

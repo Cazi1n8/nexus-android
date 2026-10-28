@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +25,7 @@ import androidx.core.content.ContextCompat
 import br.com.nexus.assistant.commands.PhoneCommands
 import br.com.nexus.assistant.device.DeviceCapabilities
 import br.com.nexus.assistant.device.DevicePolicy
+import br.com.nexus.assistant.device.TrackingProfile
 import br.com.nexus.assistant.gestures.global.GlobalMousePanel
 import br.com.nexus.assistant.gestures.global.GlobalMouseRuntime
 import kotlinx.coroutines.Dispatchers
@@ -61,11 +63,36 @@ private fun MouseScreen(session: GestureSession) {
     val policy = remember(capabilities) { DevicePolicy.evaluate(capabilities) }
     val global by GlobalMouseRuntime.state.collectAsState()
     var testCount by remember { mutableIntStateOf(0) }
+    fun startInternalMouse() {
+        if (policy.handTrackingSupported && !GlobalMouseRuntime.state.value.active) session.startMouse()
+    }
+    val internalCameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) startInternalMouse()
+        else session.fail("Autorize a câmera ao ativar o mouse. Nenhuma imagem é gravada ou enviada pelo rastreador.")
+    }
     GestureColumn {
-        Text("Mouse virtual · dentro do NEXUS", style = MaterialTheme.typography.titleLarge)
+        Text("Mouse Virtual", style = MaterialTheme.typography.titleLarge)
+        Text("Para controlar outros aplicativos, ative a sessão global abaixo. O modo interno fica disponível separadamente para usar somente no NEXUS.")
+        Text("Perfil de rastreamento", style = MaterialTheme.typography.titleSmall)
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TrackingProfile.entries.forEach { profile ->
+                FilterChip(selected = session.trackingProfile == profile,
+                    onClick = { session.updateTrackingProfile(profile) },
+                    enabled = !session.mouseActive && !global.active,
+                    label = { Text(profile.label) })
+            }
+        }
+        Text("O perfil adapta resolução e frequência de análise. Altere com os dois mouses parados; a câmera pode negociar outra resolução conforme o Android.", style = MaterialTheme.typography.bodySmall)
+        GlobalMousePanel(onBeforeStart = session::stopMouse)
+        HorizontalDivider()
+        Text("Mouse interno · somente no NEXUS", style = MaterialTheme.typography.titleLarge)
         Text("Um cursor para tocar nos botões reais do aplicativo. Permanece ativo ao trocar de tela e para quando você sai do NEXUS.")
         Text("Indicador: mover. Pinça curta: tocar. Duas pinças: dois toques. Segure a pinça por 0,45 s: arrastar; solte para liberar. Dois dedos estendidos: toque e mova a mão para rolar a lista sob o cursor.")
-        Button(onClick = { if (session.mouseActive) session.stopMouse() else session.startMouse() }, enabled = session.mouseActive || !global.active && policy.handTrackingSupported) {
+        Button(onClick = {
+            if (session.mouseActive) session.stopMouse()
+            else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startInternalMouse()
+            else internalCameraPermission.launch(Manifest.permission.CAMERA)
+        }, enabled = session.mouseActive || !global.active && policy.handTrackingSupported) {
             Text(if (session.mouseActive) "PARAR mouse" else "Ativar mouse interno")
         }
         if (global.active) Text("Pare o mouse global antes de ativar o mouse interno.")
@@ -88,8 +115,6 @@ private fun MouseScreen(session: GestureSession) {
         Text("Toques enviados: ${session.clicks} · duplos: ${session.doubleClicks}")
         Button(onClick = { testCount++ }, modifier = Modifier.fillMaxWidth()) { Text("Botão real de teste: $testCount") }
         Text("O toque mantido é cancelado se a mão desaparecer. Use PARAR em caso de dificuldade. O painel de controle mantém o botão PARAR visível; a imagem da câmera é opcional.", style = MaterialTheme.typography.bodySmall)
-        HorizontalDivider()
-        GlobalMousePanel(onBeforeStart = session::stopMouse)
         Text("Precisão e atraso dependem da iluminação e do aparelho. Toques e câmera ainda precisam de teste físico no dispositivo utilizado.", style = MaterialTheme.typography.bodySmall)
         repeat(8) { Card(Modifier.fillMaxWidth()) { Text("Área de rolagem · item ${it + 1}", Modifier.padding(18.dp)) } }
     }
@@ -231,7 +256,7 @@ private fun CubeScreen() {
             OutlinedButton(onClick = { front = !front; frame = HandFrame(); cube = controller.release() }, enabled = capabilities.hasFrontCamera && capabilities.hasRearCamera) { Text("Trocar câmera") }
         }
         if (!policy.handTrackingSupported) Text("Rastreamento de mãos indisponível neste aparelho. A exploração manual do cubo continua disponível.")
-        else if (policy.maxHands < 2) Text("Este perfil reduz o rastreamento a uma mão para preservar recursos. A manipulação com duas mãos está indisponível neste aparelho.")
+        else Text("Duas mãos habilitadas: o rastreador reduz resolução e frequência em perfis econômicos. A viabilidade e o atraso precisam ser medidos no aparelho; use uma mão se necessário.", style = MaterialTheme.typography.bodySmall)
         if (global.active) Text("O mouse global está usando a câmera. Pare essa sessão antes de iniciar o rastreamento 3D; o controle manual continua disponível.")
         Row {
             Checkbox(showPreview, { showPreview = it; previewPrefs.edit().putBoolean("cube_show_preview", it).apply() })

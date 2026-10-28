@@ -163,7 +163,10 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         if (text.isEmpty() && image == null) return false
         if (text.length > 24_000) { report("Divida a mensagem em partes de até 24.000 caracteres."); return false }
         val config = settings.value
-        if (!canUseAi(config, image != null)) return false
+        // CORE can calculate and propose local actions without an optional LLM.
+        // Keep image/provider validation for every request not handled by tools.
+        val toolAnswer = AiCoordinator.builtInResponse(AiMessage("user", text, image))
+        if (toolAnswer == null && !canUseAi(config, image != null)) return false
         val selectedAtSend = _selected.value
         val conversationAtSend = conversationGeneration
         val generation = ++responseGeneration
@@ -187,8 +190,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     conversationId
                 }
                 val history = repository.conversationMessages(id).map { AiMessage(it.role, it.content, it.imagePath) }
-                val token = if (config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
-                val answer = provider.complete(config, token, history, memories.value.map { it.content })
+                val token = if (toolAnswer == null && config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
+                val answer = toolAnswer ?: provider.complete(config, token, history, memories.value.map { it.content })
                 val completion = AiCompletion.fromText(answer)
                 repository.addMessage(id, "assistant", completion.text)
                 if (generation == responseGeneration && conversationAtSend == conversationGeneration) {
@@ -226,7 +229,6 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         val id = _selected.value ?: return false
         if (deletingData || modifyingLocalModel || _busy.value || _importing.value) return false
         val config = settings.value
-        if (!canUseAi(config)) return false
         val generation = ++responseGeneration
         _busy.value = true
         _error.value = null
@@ -237,8 +239,11 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     if (generation == responseGeneration) report("Não há mensagem pendente para tentar novamente.")
                     return@launch
                 }
-                val token = if (config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
-                val answer = provider.complete(config, token,
+                val last = history.last()
+                val toolAnswer = AiCoordinator.builtInResponse(AiMessage(last.role, last.content, last.imagePath))
+                if (toolAnswer == null && !canUseAi(config, last.imagePath != null)) return@launch
+                val token = if (toolAnswer == null && config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
+                val answer = toolAnswer ?: provider.complete(config, token,
                     history.map { AiMessage(it.role, it.content, it.imagePath) }, memories.value.map { it.content })
                 val completion = AiCompletion.fromText(answer)
                 repository.addMessage(id, "assistant", completion.text)
@@ -570,6 +575,9 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     preferences.sessionToken = ""
                     check(getApplication<Application>().getSharedPreferences("nexus_gestures", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {
                         "Não foi possível apagar as preferências de gestos. Tente novamente."
+                    }
+                    check(getApplication<Application>().getSharedPreferences("nexus_tracking", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {
+                        "Não foi possível apagar o perfil de rastreamento."
                     }
                     check(getApplication<Application>().getSharedPreferences("nexus_hands_free", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {
                         "Não foi possível apagar as preferências de mãos livres. Tente novamente."

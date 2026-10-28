@@ -21,7 +21,10 @@ import xml.etree.ElementTree as ET
 
 APP_ID = "br.com.nexus.assistant"
 COMPONENT = f"{APP_ID}.test/androidx.test.runner.AndroidJUnitRunner"
-CORE_CLASSES = f"{APP_ID}.CoreInstallationTest,{APP_ID}.CoreOptionalModelsTest"
+CORE_CLASSES = ",".join(f"{APP_ID}.{name}" for name in (
+    "CoreInstallationTest", "CoreOptionalModelsTest", "CoreArithmeticToolsTest",
+    "N41PermissionBoundaryTest", "gestures.HandImagePipelineTest"))
+CORE_EXPECTED_TESTS = 10
 EXTENSION_CLASS = f"{APP_ID}.ExtensionDataSmokeTest"
 ROOT = Path(__file__).resolve().parents[1]
 HAND_BYTES = 7_819_105
@@ -201,7 +204,7 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
         wait_default_network(False)
         result = instrument(output / "core-instrumentation.txt", "-e", "class", CORE_CLASSES,
                             "-e", "nexusCoreSmoke", "true", COMPONENT, timeout=240)
-        report = decode_report(result, "nexus_core_report", 2)
+        report = decode_report(result, "nexus_core_report", CORE_EXPECTED_TESTS)
         (output / "core-observations.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         validate_core(report)
         reports["core"] = report
