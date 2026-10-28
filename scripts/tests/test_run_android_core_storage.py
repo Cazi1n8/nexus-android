@@ -3,6 +3,7 @@ import base64
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -200,6 +201,52 @@ class DisposableDeviceRunnerTest(unittest.TestCase):
                 patch.object(runner.time, "sleep"), self.assertRaises(RuntimeError):
             runner.run(self.output, allow_reset_emulator=True)
         self.assertFalse(any("instrument" in args for args in self.calls))
+        self.assertEqual(self.network, {"wifi": "0", "data": "1"})
+
+    def test_timeout_preserves_partial_status_and_collects_synthetic_diagnostics(self):
+        partial = b"INSTRUMENTATION_STATUS: nexus_core_stage=before_real_tracker\n"
+        def timed_out(*args, **kwargs):
+            if "instrument" in args:
+                self.assertEqual(kwargs["timeout"], 240)
+                raise subprocess.TimeoutExpired(["adb", *args], 240, output=partial, stderr=b"partial stderr")
+            if args[:3] == ("shell", "logcat", "-d"):
+                return b"Synthetic emulator crash fixture\n"
+            if args[:3] == ("shell", "dumpsys", "activity"):
+                return b"Synthetic emulator process fixture\n"
+            return self.adb(*args, **kwargs)
+        with patch.object(runner, "adb", side_effect=timed_out), self.assertRaises(subprocess.TimeoutExpired):
+            runner.run(self.output, allow_reset_emulator=True, with_extensions=True)
+        self.assertEqual((self.output / "core-instrumentation.txt").read_bytes(), partial)
+        self.assertEqual((self.output / "core-instrumentation.stderr.txt").read_bytes(), b"partial stderr")
+        self.assertIn("Synthetic emulator", (self.output / "failure-logcat.txt").read_text())
+        self.assertIn("Synthetic emulator", (self.output / "failure-activity-top.txt").read_text())
+        self.assertIn("Synthetic emulator", (self.output / "failure-activity-processes.txt").read_text())
+        self.assertEqual(json.loads((self.output / "failure-diagnostics.json").read_text())["collectionErrors"], [])
+        self.assertEqual(self.network, {"wifi": "0", "data": "1"})
+        self.assertEqual(ET.parse(self.output / "junit.xml").getroot().get("failures"), "1")
+        self.assertFalse((self.output / "extension-instrumentation.txt").exists())
+
+    def test_timeout_handles_text_or_absent_partial_output(self):
+        self.output.mkdir()
+        target = self.output / "instrumentation.txt"
+        for stdout, stderr in (("partial UTF-8: câmera", None), (None, "stderr textual")):
+            error = subprocess.TimeoutExpired(["adb"], 240, output=stdout, stderr=stderr)
+            with patch.object(runner, "adb", side_effect=error), self.assertRaises(subprocess.TimeoutExpired):
+                runner.instrument(target, runner.COMPONENT, timeout=240)
+            self.assertEqual(target.read_text(), stdout or "")
+            self.assertEqual(target.with_suffix(".stderr.txt").read_text(), stderr or "")
+
+    def test_failed_diagnostics_never_replace_original_timeout_or_prevent_restore(self):
+        def failed_collection(*args, **kwargs):
+            if "instrument" in args:
+                raise subprocess.TimeoutExpired(["adb"], 240)
+            if args[:3] in (("shell", "logcat", "-d"), ("shell", "dumpsys", "activity")):
+                raise RuntimeError("Synthetic disconnected diagnostics fixture")
+            return self.adb(*args, **kwargs)
+        with patch.object(runner, "adb", side_effect=failed_collection), self.assertRaises(subprocess.TimeoutExpired):
+            runner.run(self.output, allow_reset_emulator=True)
+        errors = json.loads((self.output / "failure-diagnostics.json").read_text())["collectionErrors"]
+        self.assertEqual(len(errors), 3)
         self.assertEqual(self.network, {"wifi": "0", "data": "1"})
 
 

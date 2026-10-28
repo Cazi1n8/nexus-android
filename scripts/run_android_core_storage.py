@@ -37,6 +37,41 @@ def adb(*arguments: str, timeout: int = 180) -> bytes:
     return result.stdout
 
 
+def instrument(output: Path, *arguments: str, timeout: int) -> str:
+    """Keep partial JUnit/status output when adb times out before normal exit."""
+    try:
+        raw = adb("shell", "am", "instrument", "-w", "-r", *arguments, timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        def as_bytes(value):
+            if value is None:
+                return b""
+            return value.encode("utf-8", errors="replace") if isinstance(value, str) else value
+        output.write_bytes(as_bytes(error.stdout))
+        output.with_suffix(".stderr.txt").write_bytes(as_bytes(error.stderr))
+        raise
+    output.write_bytes(raw)
+    return raw.decode("utf-8")
+
+
+def collect_failure_diagnostics(output: Path) -> None:
+    """Synthetic logs only: run() has already refused physical/existing devices."""
+    errors = []
+    commands = {
+        "failure-logcat.txt": ("shell", "logcat", "-d", "-t", "400", "-v", "threadtime"),
+        "failure-activity-top.txt": ("shell", "dumpsys", "activity", "top"),
+        "failure-activity-processes.txt": ("shell", "dumpsys", "activity", "processes"),
+    }
+    for name, arguments in commands.items():
+        try:
+            (output / name).write_bytes(adb(*arguments, timeout=15))
+        except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:
+            errors.append(f"{name}: {type(error).__name__}")
+    (output / "failure-diagnostics.json").write_text(json.dumps({
+        "scope": "Fresh disposable emulator only; synthetic CORE and extension fixtures, no physical/user installation.",
+        "collectionErrors": errors,
+    }, indent=2) + "\n", encoding="utf-8")
+
+
 def unique_object(pairs):
     result = {}
     for key, value in pairs:
@@ -148,7 +183,9 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
     original = {"wifi": network_control("wifi_on"), "data": network_control("mobile_data")}
     output.mkdir(parents=True, exist_ok=True)
     for name in ("core-instrumentation.txt", "core-observations.json", "extension-instrumentation.txt",
-                 "extension-observations.json", "junit.xml", "network-restoration.json"):
+                 "core-instrumentation.stderr.txt", "extension-instrumentation.stderr.txt",
+                 "extension-observations.json", "junit.xml", "network-restoration.json", "failure-logcat.txt",
+                 "failure-activity-top.txt", "failure-activity-processes.txt", "failure-diagnostics.json"):
         (output / name).unlink(missing_ok=True)
     started = time.monotonic()
     status, failure = "failed", ""
@@ -162,9 +199,8 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
         changed = True
         set_network(False)
         wait_default_network(False)
-        result = adb("shell", "am", "instrument", "-w", "-r", "-e", "class", CORE_CLASSES,
-                     "-e", "nexusCoreSmoke", "true", COMPONENT, timeout=240).decode("utf-8")
-        (output / "core-instrumentation.txt").write_text(result, encoding="utf-8")
+        result = instrument(output / "core-instrumentation.txt", "-e", "class", CORE_CLASSES,
+                            "-e", "nexusCoreSmoke", "true", COMPONENT, timeout=240)
         report = decode_report(result, "nexus_core_report", 2)
         (output / "core-observations.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         validate_core(report)
@@ -172,9 +208,8 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
         if with_extensions:
             set_network(True)
             wait_default_network(True)
-            result = adb("shell", "am", "instrument", "-w", "-r", "-e", "class", EXTENSION_CLASS,
-                         "-e", "nexusExtensionSmoke", "true", COMPONENT, timeout=900).decode("utf-8")
-            (output / "extension-instrumentation.txt").write_text(result, encoding="utf-8")
+            result = instrument(output / "extension-instrumentation.txt", "-e", "class", EXTENSION_CLASS,
+                                "-e", "nexusExtensionSmoke", "true", COMPONENT, timeout=900)
             report = decode_report(result, "nexus_extension_report", 1)
             (output / "extension-observations.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
             validate_extensions(report)
@@ -183,6 +218,7 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
         return reports
     except BaseException as error:
         failure = f"{type(error).__name__}: {error}"
+        collect_failure_diagnostics(output)
         raise
     finally:
         if changed:

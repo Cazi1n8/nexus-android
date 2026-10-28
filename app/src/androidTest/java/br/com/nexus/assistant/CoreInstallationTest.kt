@@ -35,6 +35,8 @@ import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 
 /**
  * Opt-in CORE installation test, including the minified coreTest build.
@@ -43,10 +45,20 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class CoreInstallationTest {
-    @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order = 0) val progress = object : TestWatcher() {
+        override fun starting(description: Description) { stage("before_activity_launch") }
+    }
+    @get:Rule(order = 1) val compose = createAndroidComposeRule<MainActivity>()
+
+    private fun stage(name: String) {
+        InstrumentationRegistry.getInstrumentation().sendStatus(0, Bundle().apply {
+            putString("nexus_core_stage", name)
+        })
+    }
 
     @Test(timeout = 120_000L)
     fun coreKeepsTrackingOfflineAndOpensStorageWithoutStartingOptionalResources() {
+        stage("test_body_started")
         assumeTrue("Dedicated CORE proof requires an installation without optional assets", BuildConfig.CORE_INSTALLATION)
         assumeTrue("Opt in with nexusCoreSmoke=true on a fresh disposable emulator",
             InstrumentationRegistry.getArguments().getString("nexusCoreSmoke") == "true")
@@ -88,16 +100,20 @@ class CoreInstallationTest {
             assertEquals(7_819_105L, handBytes)
             assertEquals("fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1", handHash)
             report.put("handModelBytes", handBytes).put("handModelSha256", handHash)
+            stage("assets_verified")
 
             val options = HandLandmarker.HandLandmarkerOptions.builder()
                 .setBaseOptions(BaseOptions.builder().setModelAssetPath("hand_landmarker.task").build())
                 .setRunningMode(RunningMode.VIDEO).setNumHands(1).build()
+            stage("creating_hand_tracker")
             val tracker = HandLandmarker.createFromOptions(context, options)
+            stage("hand_tracker_created")
             val bitmap = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888)
             val image = BitmapImageBuilder(bitmap).build()
             try {
                 assertTrue("A blank frame must not invent a hand", tracker.detectForVideo(image, 1_000L).landmarks().isEmpty())
                 report.put("realHandTrackerProcessedBlankFrame", true)
+                stage("blank_frame_processed")
             } finally {
                 image.close()
                 bitmap.recycle()
@@ -116,9 +132,11 @@ class CoreInstallationTest {
             lateinit var model: NexusViewModel
             compose.runOnUiThread { model = SharedNexusModel.get(context) }
             compose.waitUntil(15_000) { compose.onAllNodesWithText("EXPLORE O NEXUS").fetchSemanticsNodes().isNotEmpty() }
+            stage("home_opened")
             compose.onNodeWithText("Central de extensões").performScrollTo().performClick()
             compose.onNodeWithText("CENTRAL DE EXTENSÕES").assertIsDisplayed()
             compose.onNodeWithText("NEXUS AI").assertIsDisplayed()
+            stage("extensions_opened")
             compose.onNodeWithContentDescription("Voltar").performClick()
             compose.onNodeWithText("Armazenamento").performScrollTo().performClick()
             compose.onNodeWithText("Central de armazenamento").assertIsDisplayed()
@@ -129,6 +147,7 @@ class CoreInstallationTest {
             compose.onNodeWithText("Gerenciar modelos de IA").performScrollTo().performClick()
             compose.onNodeWithText("MODELOS DE IA OPCIONAIS").assertIsDisplayed()
             report.put("extensionsUiOpened", true).put("storageMeasurementRendered", true).put("manageModelsButtonNavigated", true)
+            stage("storage_and_models_opened")
             compose.onNodeWithContentDescription("Voltar").performClick()
             compose.onNodeWithContentDescription("Voltar").performClick()
             compose.onNodeWithText("Mouse virtual").performScrollTo().performClick()
