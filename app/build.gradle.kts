@@ -7,8 +7,24 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val bundleModel = providers.gradleProperty("nexusBundleModel").map(String::toBoolean).getOrElse(true)
+// CORE ships the hand tracker; large conversation/vision data is opt-in.
+val bundleModel = providers.gradleProperty("nexusBundleModel").map(String::toBoolean).getOrElse(false)
+val bundleVision = providers.gradleProperty("nexusBundleVision").map(String::toBoolean).getOrElse(false)
 val bundledAssets = rootProject.file(".build-deps/bundled-assets")
+val preparedAssets = layout.buildDirectory.dir("generated/nexusAssets")
+val prepareNexusAssets by tasks.registering(Sync::class) {
+    into(preparedAssets)
+    from(layout.projectDirectory.dir("src/main/assets")) {
+        if (!bundleVision) exclude("ocr/**", "vision/**")
+    }
+    if (bundleModel) from(bundledAssets)
+}
+val selectedAbis = providers.gradleProperty("nexusAbis").orNull
+    ?.split(',')?.map(String::trim)?.filter(String::isNotEmpty)
+    ?: listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+check(selectedAbis.isNotEmpty() && selectedAbis.all { it in setOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86") }) {
+    "nexusAbis deve conter apenas arquiteturas oficiais suportadas, separadas por vírgula."
+}
 // Explicit opt-in: release credentials come only from the developer/CI environment.
 // A missing value must stop a requested signed build, never fall back to a debug key.
 val releaseSigningRequested = providers.gradleProperty("nexusReleaseSigning").map(String::toBoolean).getOrElse(false)
@@ -25,14 +41,16 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 25
-        versionName = "3.0.0-alpha.2"
+        versionCode = 26
+        versionName = "3.0.0-alpha.3-core"
         buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
+        buildConfigField("boolean", "BUNDLED_VISION", bundleVision.toString())
+        buildConfigField("boolean", "CORE_INSTALLATION", (!bundleModel && !bundleVision).toString())
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         // Universal installation; local LLM inference is packaged only for 64-bit ABIs.
         // 32-bit devices retain the UI, voice and optional HTTP provider.
-        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86") }
+        ndk { abiFilters += selectedAbis }
         externalNativeBuild {
             cmake {
                 arguments += listOf(
@@ -79,7 +97,18 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+        // Small, installable evaluation build using the existing local test key.
+        // This does not create a production signing identity.
+        create("coreTest") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            matchingFallbacks += listOf("release")
+        }
     }
+    testBuildType = providers.gradleProperty("nexusTestBuildType").getOrElse("debug")
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -87,7 +116,7 @@ android {
     kotlinOptions { jvmTarget = "17" }
     // MediaPipe model loaders may memory-map these assets.
     androidResources { noCompress += listOf("task", "tflite", "gguf") }
-    if (bundleModel) sourceSets.getByName("main").assets.srcDir(bundledAssets)
+    sourceSets.getByName("main").assets.setSrcDirs(listOf(preparedAssets))
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     // JVM tests use explicit streams/files; packaging gigabytes of Android assets here is unnecessary.
     testOptions { unitTests.isIncludeAndroidResources = false }
@@ -124,7 +153,7 @@ val verifyOcrRuntime by tasks.registering {
     }
 }
 
-// Both verified offline profiles ship in one APK; choose one by the stable device budget.
+// The legacy full package remains an explicit developer option, never the CORE default.
 val verifyBundledModel by tasks.registering {
     val expected = listOf(
         Triple("qwen2.5-0.5b-instruct-q4_k_m.gguf", 491_400_032L, "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"),
@@ -166,9 +195,22 @@ val verifyMediaPipeRuntime by tasks.registering {
     }
 }
 tasks.named("preBuild").configure {
-    dependsOn(verifyMediaPipeRuntime)
+    dependsOn(verifyMediaPipeRuntime, prepareNexusAssets)
     if (bundleModel) dependsOn(verifyBundledModel)
 }
+
+val verifyCoreHandModel by tasks.registering {
+    val handModel = layout.projectDirectory.file("src/main/assets/hand_landmarker.task")
+    inputs.file(handModel)
+    doLast {
+        val file = handModel.asFile
+        check(file.isFile && file.length() == 7_819_105L &&
+            sha256(file) == "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1") {
+            "O CORE precisa do rastreador offline íntegro. Execute python3 scripts/fetch_hand_model.py."
+        }
+    }
+}
+tasks.named("preBuild").configure { dependsOn(verifyCoreHandModel) }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.05.01")

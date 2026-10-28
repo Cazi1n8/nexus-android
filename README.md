@@ -1,78 +1,112 @@
 # NEXUS para Android
 
-Projeto Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
+Aplicativo Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Etapa atual: NEXUS AI 3.0, alpha.2 (versionCode 25), em validação.** Esta etapa preserva Mouse Virtual, Mãos Livres, 3D, Libras, histórico e configurações. Veja a [correção de desempenho da alpha.2](docs/RELATORIO_IA3_ALPHA_2.md), o [progresso atual](PROGRESSO_NEXUS_AI_3.md), as [avaliações da IA](TESTES_NEXUS_AI.md), os [testes de segundo plano](TESTES_SEGUNDO_PLANO.md) e a [auditoria de segurança](AUDITORIA_PLAY_PROTECT.md). Compilar e passar testes unitários não comprova a qualidade das respostas nem a instalação no seu celular.
+**Etapa atual: NEXUS CORE 3.0.0-alpha.3-core, versionCode 26.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
 
-[Guia simples para começar no celular](COMECE_AQUI_NO_CELULAR.md).
+## Tamanho medido e APK
 
-## APK de teste e estado atual
+Os arquivos abaixo foram realmente compilados e medidos. MB e GB são decimais; estes são tamanhos dos APKs, não uma previsão do total instalado no Samsung A03.
 
-**[Baixar o APK alpha.2 diretamente, sem login](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.2-download-16/NEXUS-3.0.0-alpha.2.apk)**. Arquivo de aproximadamente 1,74 GB; abra `NEXUS-3.0.0-alpha.2.apk`, sem extrair ZIP. É o mesmo APK do [artefato de teste 16](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844327/artifacts/12682941109), preservado sem recompilar ou assinar novamente. No Android, 28 testes comuns passaram (quatro opt-in ignorados), o primeiro chat offline e seis inferências nativas com reutilização/cancelamento de contexto passaram. Isso não significa que os 15 testes de qualidade da IA ou a instalação pelo Play Protect foram aprovados.
+| APK local | Bytes | Tamanho | Comparação com alpha.2 |
+| --- | ---: | ---: | ---: |
+| Alpha.2 debug anterior | 1.738.201.604 | 1,74 GB | Referência |
+| CORE debug | 121.054.931 | 121,05 MB | 93,04% menor |
+| CORE `coreTest`, assinado para testes e otimizado com R8 | 98.878.796 | 98,88 MB | 94,31% menor |
 
-A compilação local debug e release terminou em 8 min 45 s: 190 testes JVM e 116 testes de scripts aprovados; lint debug/release sem erros, com 47 avisos e uma informação. O release local está sem assinatura e não é instalável; o artefato acima contém o build debug para avaliação. A linguagem informal ainda produz erros reais e os serviços de câmera/voz precisam de teste físico. Mantenha o Play Protect ativado; se houver bloqueio, use o procedimento oficial da auditoria.
+Os dois GGUFs obrigatórios da alpha.2 somavam **1.608.720.768 bytes**, 92,55% daquele APK. O CORE não os empacota; também deixa OCR e classificação de objetos para download. O modelo de mãos de **7.819.105 bytes** continua incluído e verificado. A comparação entre debug e debug isola melhor a mudança de empacotamento; a variante `coreTest` também remove código e recursos não utilizados.
 
-A avaliação completa terminou: **15 casos, 35 gerações reais e duas ferramentas**, 37 respostas persistidas e contexto recuperado após 20 turnos. **A qualidade foi reprovada**, incluindo desculpas mal interpretadas e alegação falsa de acesso à câmera. [Resultados reais e revisão](TESTES_NEXUS_AI.md). O ganho de desempenho não significa inteligência corrigida.
+**Download público do novo CORE: em preparação.** O build local instalável está em `app/build/outputs/apk/coreTest/app-coreTest.apk`. A publicação e os testes instrumentados específicos do CORE ainda precisam ser concluídos; não há link novo verificado nesta etapa do registro.
 
-## Mudanças em validação
+O [APK alpha.2 histórico](https://github.com/Cazi1n8/nexus-android/releases/download/v3.0.0-alpha.2-download-16/NEXUS-3.0.0-alpha.2.apk) continua disponível sem login, mas possui aproximadamente 1,74 GB e **não contém a otimização CORE**. Não use seu tamanho ou seu hash para validar o novo arquivo.
 
-- Identidade fixa **NEXUS**, separada de nome preferido do usuário, personalidade, instruções e preferências. Migração das configurações existentes.
-- Contexto por orçamento de tokens, com contagem real no runtime e remoção de turnos antigos completos. Sob pressão, trechos literais identificados preservam referências; não há limite fixo de quatro mensagens ou resumo inventado.
-- Alpha.2 reaproveita o processamento do prefixo idêntico do histórico e descarta o cache ao mudar de conversa ou alterar dados pessoais. Vinte comparações reais com os dois modelos mantiveram o texto idêntico; cancelamento e recuperação passaram no JNI do computador. Isso corrige trabalho repetido, sem comprovar a inteligência solicitada.
-- Geração local real com parâmetros de amostragem e finalização explícita. Nenhum rodapé programado é acrescentado às respostas. Falhas por resposta vazia, marcadores internos ou repetição excessiva geram erro técnico, sem resposta falsa.
-- Histórico local com busca, renomeação, continuação, exclusão e novo contexto. Markdown, blocos de código, copiar, ouvir e interromper no chat.
-- Calculadora local: `10+10÷10×10 = 20`; `25 vezes 18 = 450`. Perguntas gerais continuam no modelo de linguagem, que pode errar.
-- Imagens: OCR real e classificação local de objetos com EfficientNet-Lite0. Categorias são hipóteses; isso não equivale à interpretação geral de imagens por um modelo multimodal. [Visão local ao vivo](docs/VISAO_LOCAL_AO_VIVO.md) avalia quadros periódicos, com intervalo e prévia opcionais.
-- Sessões independentes de mouse global e voz fora do aplicativo, iniciadas pelo usuário, com notificações e botões de parada. Compartilham a IA, sem carregar outro modelo de conversa. **Os cenários físicos de segundo plano ainda precisam de validação.**
-- Voz do Android em pt-BR, correção da primeira resposta silenciosa e seleção de idioma quando o mecanismo não enumera vozes. O serviço de fala pode utilizar rede.
-- Mouse com suavização por tempo e cadência adaptativa. Libras com tolerância corrigida ao intervalo entre quadros e candidatas experimentais L/V/Y; não reconhece nem certifica o alfabeto inteiro.
-- MediaPipe derivado de forma reproduzível para usar a fábrica de métricas no-op prevista no código oficial. Não altera os binários nativos; fontes, hashes e limites constam na auditoria.
+## O que está incluído e o que pode ser baixado
 
-A qualidade de um modelo pequeno não equivale à de um serviço avançado. Os modelos reais estão sendo avaliados com os pedidos relatados pelo usuário; resultados incorretos permanecem registrados como falha. Não há backend NEXUS público implantado, API privada dentro do APK ou fallback remoto escondido. O [servidor opcional](server/README.md) usa um modelo real configurado pelo responsável.
+| Recurso | Instalação CORE |
+| --- | --- |
+| Interface, navegação, configurações, histórico e memória local | Incluídos |
+| CameraX, MediaPipe, modelo de mãos, cursor, clique e rolagem | Incluídos; não precisam de pesos de chat nem internet para o rastreamento |
+| Serviços opcionais de mouse global e voz | Código incluído; ativação manual, consentimento e notificações |
+| Central de Extensões e Central de Armazenamento | Incluídas |
+| Chat com IA offline | Modelo opcional: compacto 491.400.032 bytes ou 1,5B 1.117.320.736 bytes, conforme compatibilidade |
+| Classificação local de objetos Vision | Dados opcionais: 5.434.517 bytes |
+| OCR português e inglês | Dados opcionais: 6.095.844 bytes |
+| 3D e exercícios experimentais de Libras | Código integrado; usam o rastreador incluído, sem baixar código adicional |
+| Voz Android em pt-BR | Código integrado; reconhecimento/TTS e eventuais pacotes de voz dependem do mecanismo Android instalado |
+| IA online | Cliente integrado; precisa de servidor real configurado e autorização de envio. Não há backend NEXUS público implantado |
 
-## Usar e testar no Android
+Os pacotes baixados são **dados de modelos de origens fixadas**, com tamanho e SHA-256 verificados. Não são `.dex`, bibliotecas `.so` ou plugins executáveis remotos. Nesta versão, os códigos leves de Vision, 3D, Libras e voz permanecem no APK; a Central de Extensões informa isso. Módulos binários independentes da Google Play ainda não foram implementados.
 
-Android **8.0/API 26 ou superior**. Compatibilidade é verificada por recurso; não existe garantia de todos os recursos em qualquer celular. IA local exige processo ARM64/x86_64, memória e espaço suficientes. A recomendação usa recursos medidos, sem lista fixa de modelos de celular. Em aparelhos compatíveis, o app escolhe o perfil de maior capacidade que cabe na margem disponível; o perfil compacto tem qualidade mais limitada.
+**Não há download automático ao abrir o Chat ou o aplicativo.** A seleção por compatibilidade recomenda um perfil, mas a instalação do modelo depende de sua escolha. Baixar um perfil não muda silenciosamente o perfil usado na conversa.
 
-1. Em **Personalidade**, configure o nome do usuário. Pergunte no Chat “Qual é meu nome?” e “Qual é seu nome?”. Confira ambos separadamente.
-2. Abra **Chat IA** e aguarde a cópia/verificação da IA incluída. Não é outro download. Teste texto, cálculo e anexo.
-3. Em **Assistente de voz**, teste o áudio e conceda microfone somente ao ativar a escuta. Para sair da tela, use **Voz fora do aplicativo → Iniciar sessão de voz**.
-4. Em **Central de controle**, ative mouse e voz separadamente. O mouse global precisa do consentimento e do serviço de acessibilidade oficial. As notificações permitem parar uma sessão ou todas.
-5. Em **NEXUS Vision**, inicie a classificação ao vivo; o intervalo representa quadros analisados, não compreensão contínua de vídeo.
+## Usar e conferir no celular
 
-A conversa de voz opcional alterna escuta, resposta e fala por até **15 minutos ou 30 perguntas**, com no máximo duas tentativas após silêncio. O modo básico espera novo toque em OUVIR. **Não há detector permanente de “Ei, NEXUS”.** Android/fabricante pode interromper câmera, microfone ou processo por restrições de bateria, memória ou permissões. Vision, Libras, Mãos Livres e 3D usam câmera vinculada à tela; não são apresentados como serviços globais.
+Android **8.0/API 26 ou superior**. A instalação universal mantém ARM32, ARM64, x86 e x86_64. O NEXUS consulta os recursos reais do Android, sem presumir RAM ou arquitetura pelo nome “Galaxy A03”. A IA local exige processo de 64 bits, memória e espaço suficientes; uma limitação da IA local não desativa o mouse offline.
 
-A versão completa com os dois perfis incluídos é grande: o APK debug local tem 1.738.201.604 bytes. Reserve pelo menos **8 GB livres** para download, extração, instalação e cópia selecionada; atualizações podem precisar de mais espaço. Não há download de um APK diferente por modelo de telefone. O hash e a assinatura do APK do GitHub podem diferir do arquivo local; confira o `SHA256SUMS.txt` do próprio artefato.
+1. Na Home, abra **Mouse virtual** para usar o rastreador incluído. A câmera só deve ser autorizada ao ativar o recurso. O mouse global usa consentimento e acessibilidade oficiais; a notificação permite interrompê-lo.
+2. Abra **Central de extensões** para escolher os dados opcionais. Consulte o tamanho antes de baixar e aguarde a verificação. Os dados de classificação e OCR permitem as análises locais de Vision.
+3. Para conversar offline, abra **Gerenciar modelos de IA**, escolha um modelo compatível e confirme o download. Depois selecione **Usar este modelo no chat**. Sem modelo local e sem servidor online configurado, o Chat informa essa condição, sem simular respostas.
+4. Abra **Armazenamento → Atualizar medição**. A tela separa aplicativo, dados e cache informados pelo Android e mostra modelos, downloads parciais, extensões, imagens de conversa, banco, preferências e outros arquivos privados.
+5. Em **Gerenciar modelos de IA**, remova explicitamente um perfil que não queira manter. Em **Gerenciar extensões e pacotes**, remova os dados de visão. **Limpar cache temporário** preserva modelos, conversas, configurações e cache de código.
 
-## Play Protect e distribuição
+Uma atualização para CORE **preserva os dados antigos**: os cerca de 498 MB relatados não desaparecem automaticamente. A cópia privada do modelo compacto, mais os dados OCR copiados na alpha.2, somam 497.495.876 bytes; é uma hipótese compatível com o relato, ainda sem inspeção física do A03. A Central permite medir e remover os pacotes conscientemente. O cache de 13,51 MB não era a causa dos 1,90 GB do aplicativo.
 
-O usuário relatou bloqueio da alpha.4 pelo Play Protect. A mensagem não prova qual permissão ou comportamento causou a decisão. A auditoria distingue problemas confirmados de hipóteses; não houve aprovação do Google ou teste de instalação física desta nova etapa.
+Os totais do Android incluem otimizações e contabilização do sistema. A medição lógica dos arquivos não é somada novamente a esses totais; o cache é separado dos dados sem contá-lo duas vezes. A consulta é somente do próprio NEXUS, sem permissão para observar armazenamento de outros aplicativos.
 
-A publicação automática de novos APKs debug nas Releases continua pausada. A alpha.2 do build 16 foi publicada pontualmente por solicitação do responsável, com link direto sem login, preservando o APK e certificado existentes. O Actions mantém artefatos de teste, que exigem login no GitHub. A [assinatura de distribuição](docs/ASSINATURA_E_DISTRIBUICAO.md) usa a chave privada estável do responsável, configurada em Secrets; essa chave definitiva ainda não foi fornecida. Builds release sem esses Secrets permanecem **sem assinatura e não instaláveis**. Não foi criada uma nova chave de produção para substituir silenciosamente a anterior.
+## Estado real das outras funções
 
-Mantenha o Play Protect ativado. Se a instalação for bloqueada, registre versão, hash, certificado e mensagem para [revisão oficial](docs/PLAY_PROTECT_REVISAO.md). Não remova a instalação atual antes de exportar os dados e conferir a possibilidade de atualização: certificados diferentes impedem atualização direta. O APK histórico alpha.4 está no [relatório correspondente](docs/RELATORIO_ALPHA_4.md); ele não contém as correções 3.0.
+A redução de tamanho **não muda a capacidade dos modelos de linguagem**. A avaliação completa da alpha.2 registrou 15 casos, 35 gerações reais e duas ferramentas; a qualidade foi reprovada por erros de interpretação e alegação falsa de acesso à câmera. Os mesmos modelos continuam opcionais, com essas limitações. [Resultados de IA](TESTES_NEXUS_AI.md) e [progresso 3.0](PROGRESSO_NEXUS_AI_3.md).
+
+- A identidade **NEXUS** é separada do nome do usuário; preferências, histórico, Markdown, copiar, ouvir e interromper permanecem no projeto.
+- O contexto usa orçamento de tokens e reaproveitamento do prefixo, sem limite fixo de quatro mensagens. A calculadora real resolve `10+10÷10×10 = 20` e `25 vezes 18 = 450`; o modelo ainda pode errar outros problemas.
+- Vision local faz OCR e classificação de objetos em quadros periódicos. Não equivale à compreensão geral de imagens por um modelo multimodal nem a processamento contínuo de vídeo. Um provedor remoto compatível com imagens exige configuração e consentimento.
+- Mouse global e voz têm sessões independentes iniciadas pelo usuário, notificações e parada. **Continuidade, precisão e consumo na câmera/microfone físicos do A03 ainda precisam ser testados.**
+- A voz depende de SpeechRecognizer/TTS instalados e pode usar rede. A conversa opcional tem limite de 15 minutos ou 30 perguntas e até duas tentativas após silêncio; não há detector permanente de “Ei, NEXUS”.
+- Libras possui candidatas experimentais L/V/Y e exercícios preparatórios; não reconhece nem certifica o alfabeto inteiro. O 3D usa projeção e mãos rastreadas, sem posicionamento espacial preciso de realidade aumentada.
+
+Vision, Libras, Mãos Livres e 3D usam câmera vinculada à tela. Restrições de Android, fabricante, bateria, memória ou permissões podem interromper recursos; não há promessa de operação ilimitada. [Testes de segundo plano](TESTES_SEGUNDO_PLANO.md).
 
 ## Compilar no computador
 
 JDK 17, Android SDK 35, build-tools 35.0.0, NDK 28.2.13676358 e CMake 3.22.1. Defina `ANDROID_HOME` ou `sdk.dir` em `local.properties` (fora do Git). Gradle Wrapper 8.11.1; reserve 4 GB de heap para compilação.
 
+Preparação do CORE, sem baixar os GGUFs:
+
 ```bash
 python3 scripts/fetch_llama_cpp.py
 python3 scripts/fetch_hand_model.py
 python3 scripts/prepare_mediapipe_runtime.py
-python3 scripts/fetch_object_model.py --with-test-fixture
-python3 scripts/fetch_ocr_models.py
 python3 scripts/fetch_ocr_runtime.py
-python3 scripts/fetch_bundled_model.py --with-balanced
-./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
+./gradlew --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleDebugAndroidTest
 ```
 
-No Windows, use `gradlew.bat`. APK de teste: `app/build/outputs/apk/debug/app-debug.apk`. Os arquivos grandes ficam fora do Git; os scripts verificam fontes oficiais, tamanho e SHA-256 e o Gradle verifica ambos os GGUFs e AARs antes de empacotar. [Licenças de terceiros](THIRD_PARTY_NOTICES.md).
+No Windows, use `gradlew.bat`. O runtime nativo de IA e OCR continua integrado para usar dados opcionais; seus pesos não são obrigatórios. Saídas:
 
-Para testes de infraestrutura sem pesos, use `-PnexusBundleModel=false`; essa variante não oferece IA incluída sem preparação. `assembleRelease` sem assinatura serve para análise estática. A distribuição assinada exige o procedimento documentado e teste real do APK resultante.
+- `app/build/outputs/apk/debug/app-debug.apk`: depuração, sem redução R8.
+- `app/build/outputs/apk/coreTest/app-coreTest.apk`: teste instalável, R8 e redução de recursos; usa a chave de testes existente, não uma identidade de produção.
+- `assembleRelease` sem credenciais: análise do release sem assinatura; o resultado **não é instalável**. Para distribuir com chave estável, siga [assinatura e distribuição](docs/ASSINATURA_E_DISTRIBUICAO.md).
 
-## Privacidade e verificações
+Para repetir a variante antiga com todos os dados embutidos, prepare os arquivos e opte explicitamente:
 
-Conversas/memórias autorizadas ficam em Room; preferências em DataStore. Token opcional fica protegido pelo Android Keystore. Diagnóstico técnico é local e não contém mensagens, fotos, nomes, caminhos ou chaves. Detalhes do aparelho só aparecem por escolha explícita. Não são usados IMEI, número de série, contatos, SMS ou leitura de janelas de outros aplicativos. O serviço de acessibilidade executa gestos autorizados; câmera/microfone são opcionais e visíveis.
+```bash
+python3 scripts/fetch_bundled_model.py --with-balanced
+python3 scripts/fetch_object_model.py --with-test-fixture
+python3 scripts/fetch_ocr_models.py
+./gradlew -PnexusBundleModel=true -PnexusBundleVision=true assembleDebug
+```
 
-Nesta retomada da alpha.2, **190 testes JVM e 116 testes Python dos scripts passaram**, além dos testes Android identificados acima. O servidor opcional mantém 44 testes aprovados e continua sem implantação pública. Os resultados completos e a avaliação semântica são atualizados no [progresso 3.0](PROGRESSO_NEXUS_AI_3.md). Resultados anteriores permanecem identificados nos relatórios históricos.
+`nexusBundleModel=false` e `nexusBundleVision=false` são os padrões. `-PnexusAbis=x86_64` é uma opção para emulador, não uma exigência para o celular; a compilação padrão mantém as quatro arquiteturas. Na Google Play, AAB e mecanismos oficiais de entrega exigem configuração própria; o APK manual atual oferece downloads de dados verificados. [Detalhes e limites da entrega modular](docs/ENTREGA_MODULAR_ANDROID.md). [Licenças de terceiros](THIRD_PARTY_NOTICES.md).
+
+## Verificações desta etapa
+
+O build local terminou com `BUILD SUCCESSFUL` em 7 min 45 s: **205 testes JVM aprovados**, sem falhas, erros ou ignorados; lint debug e `coreTest` com zero erros, 50 avisos e uma informação em cada relatório. Ambos os APKs e o APK de testes Android foram gerados. Os scripts Python existentes tiveram 130 testes aprovados; no servidor opcional, 25 de 44 casos passaram e 19 foram ignorados nesta execução. Testes de inventário, migração de modelos, limpeza e pacotes opcionais têm evidências em [PROGRESSO_ARMAZENAMENTO.md](PROGRESSO_ARMAZENAMENTO.md).
+
+Os testes instrumentados específicos de instalação CORE e download de extensões ainda estão em preparação/execução. Os resultados Android históricos da alpha.2 não substituem esses testes. Não houve medição da nova instalação em A03 nem aprovação do Play Protect.
+
+## Segurança e atualização
+
+Conversas/memórias autorizadas ficam em Room; preferências em DataStore. O token opcional usa Android Keystore. O diagnóstico técnico é local e não registra mensagens, fotos, nomes ou chaves. Não usamos IMEI, SMS, contatos, leitura de janelas alheias ou `PACKAGE_USAGE_STATS`. Acessibilidade executa somente gestos autorizados; câmera e microfone são opcionais e visíveis. [Auditoria Play Protect](AUDITORIA_PLAY_PROTECT.md).
+
+**Mantenha o Play Protect ativado.** O motivo exato do bloqueio relatado não foi comprovado. Se o APK for bloqueado, registre versão, hash, certificado e mensagem para [revisão oficial](docs/PLAY_PROTECT_REVISAO.md). Não há garantia de aprovação por reduzir o tamanho.
+
+O certificado do CORE local difere do APK alpha.2 público do build 16. A chave privada temporária daquele runner não está disponível; a assinatura antiga não pode ser reproduzida a partir do APK. **Certificados diferentes impedem atualização direta. Exporte seus dados antes de qualquer substituição e não remova a instalação atual sem conferir a assinatura.** Não foi criada uma chave de produção para substituir silenciosamente a anterior. O responsável ainda precisa configurar sua chave estável em Secrets para futuras distribuições. Publicações de APK de teste devem registrar o certificado real de cada arquivo.

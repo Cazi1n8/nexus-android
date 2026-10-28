@@ -1,0 +1,18 @@
+{
+  "scope": "Host Kotlin2.1.20/JUnit4.13.2 checks of file scanning, deletion scope and storage arithmetic; no Android services or physical device invoked.",
+  "tests": 8,
+  "failures": 0,
+  "errors": 0,
+  "androidServicesInvoked": false,
+  "physicalSamsungA03Tested": false,
+  "repositoryCompiledAgainstAndroidSdk": 35,
+  "composeCompilationVerifiedByThisTest": false,
+  "junitOutput": "JUnit version 4.13.2\n........\nTime: 0.069\n\nOK (8 tests)\n\n",
+  "sourceSha256": {
+    "app/src/main/java/br/com/nexus/assistant/storage/StorageFileScanner.kt": "42e40a02817ac3e52ef6881de16fc10bc45c7baeb7411bf502ce1003ff0e9622",
+    "app/src/main/java/br/com/nexus/assistant/storage/StorageRepository.kt": "2f0a24b2aea6754e2acc3b4fa3672aa90a355fe34b8590e6ff9d77b983e6c24d",
+    "app/src/main/java/br/com/nexus/assistant/storage/StorageModels.kt": "0f66194834e0058ef825bc0a2aafc59d11b9adce86f183735a200073223ef5b8",
+    "app/src/main/java/br/com/nexus/assistant/storage/StorageCenterScreen.kt": "325042dc7c496b3947448e475a667313631ac8542b329c3e6f16d188e984c3c2",
+    "app/src/test/java/br/com/nexus/assistant/storage/StorageFileScannerTest.kt": "6829be770b686d03bbe423f5517cb97c7578f69bc69b647ade9de59fb0df6ac6"
+  }
+}

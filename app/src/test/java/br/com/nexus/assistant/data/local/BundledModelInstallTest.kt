@@ -70,6 +70,33 @@ class BundledModelInstallTest {
     }
 
     @Test(timeout = 15_000L)
+    fun coreUpgradeReusesAnEarlierBundledCopyAndCanRemoveItWithoutDownloading() = runBlocking<Unit> {
+        val oldApplication = manager()
+        oldApplication.installBundled { ByteArrayInputStream(payload) }
+        val otherProfile = File(directory, "other-profile.gguf").apply { writeText("another installed pack") }
+        val history = File(directory, "history-to-preserve.json").apply { writeText("authorized conversation fixture") }
+
+        // The CORE build no longer includes the asset, but the app's private
+        // verified copy is already present after an update with the same signer.
+        val core = manager()
+        core.refresh()
+        assertReady(core, LocalModelSource.NETWORK)
+        core.download()
+        assertReady(core, LocalModelSource.NETWORK)
+        assertEquals(payload.size.toLong(), destination.length())
+        assertFalse(partial.exists())
+        assertEquals(0, requests.get())
+
+        core.delete()
+        assertEquals(LocalModelStatus.ABSENT, core.state.value.status)
+        assertFalse(destination.exists())
+        assertFalse(partial.exists())
+        assertEquals("another installed pack", otherProfile.readText())
+        assertEquals("authorized conversation fixture", history.readText())
+        assertEquals(0, requests.get())
+    }
+
+    @Test(timeout = 15_000L)
     fun aCompleteVerifiedPartialIsPromotedWithoutOpeningTheApkAsset() = runBlocking<Unit> {
         partial.writeBytes(payload)
         val manager = manager()
@@ -313,9 +340,9 @@ class BundledModelInstallTest {
         catch (_: AiException) { }
     }
 
-    private fun assertReady(manager: LocalModelManager) {
+    private fun assertReady(manager: LocalModelManager, source: LocalModelSource = LocalModelSource.BUNDLED) {
         assertEquals(LocalModelStatus.READY, manager.state.value.status)
-        assertEquals(LocalModelSource.BUNDLED, manager.state.value.source)
+        assertEquals(source, manager.state.value.source)
         assertEquals(payload.size.toLong(), manager.state.value.downloadedBytes)
         assertEquals(payload.size.toLong(), manager.state.value.verifiedBytes)
         assertArrayEquals(payload, manager.requireReadyFile().readBytes())

@@ -6,6 +6,10 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.SystemClock
 import androidx.exifinterface.media.ExifInterface
+import br.com.nexus.assistant.extensions.ExtensionCatalog
+import br.com.nexus.assistant.extensions.ExtensionPackId
+import br.com.nexus.assistant.extensions.ExtensionRepository
+import br.com.nexus.assistant.extensions.ExtensionUnavailableException
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -13,6 +17,8 @@ import com.google.mediapipe.tasks.vision.imageclassifier.ImageClassifier
 import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
@@ -27,6 +33,8 @@ class LocalObjectClassifier(context: Context) : AutoCloseable {
     private val application = context.applicationContext
     private val closed = AtomicBoolean(false)
     private var engine: ImageClassifier? = null
+    private var modelLease: AutoCloseable? = null
+    private var mappedModel: ByteBuffer? = null
 
     suspend fun classify(file: File): ImageObservation = withContext(WORKER) {
         ensureOpen(); ensureActive()
@@ -59,14 +67,24 @@ class LocalObjectClassifier(context: Context) : AutoCloseable {
         if (!informative(bitmap)) return ImageObservation(emptyList(), bitmap.width, bitmap.height, 0, lowDetail = true)
         try {
             val classifier = engine ?: run {
-                verifyBundledModel()
-                ImageClassifier.createFromOptions(application,
+                val packages = ExtensionRepository.get(application)
+                val lease = packages.acquire(ExtensionPackId.VISION_OBJECTS)
+                try {
+                    val data = packages.verifiedPrivateFile(ExtensionCatalog.objects.files.single())
+                    val options = BaseOptions.builder()
+                    val buffer = if (data != null) data.inputStream().channel.use {
+                        it.map(FileChannel.MapMode.READ_ONLY, 0, data.length())
+                    } else null
+                    if (buffer != null) options.setModelAssetBuffer(buffer)
+                    else { verifyBundledModel(); options.setModelAssetPath(MODEL_ASSET) }
+                    ImageClassifier.createFromOptions(application,
                     ImageClassifier.ImageClassifierOptions.builder()
-                    .setBaseOptions(BaseOptions.builder().setModelAssetPath(MODEL_ASSET).build())
+                    .setBaseOptions(options.build())
                     .setRunningMode(RunningMode.IMAGE)
                     .setMaxResults(3)
                     .setScoreThreshold(.20f)
-                    .build()).also { engine = it }
+                    .build()).also { engine = it; modelLease = lease; mappedModel = buffer }
+                } catch (failure: Throwable) { lease.close(); throw failure }
             }
             ensureOpen()
             val input = BitmapImageBuilder(bitmap).build()
@@ -77,6 +95,9 @@ class LocalObjectClassifier(context: Context) : AutoCloseable {
                 .sortedByDescending { it.score() }.take(3).map { ObjectCandidate(it.categoryName(), it.score()) }
             return ImageObservation(candidates, bitmap.width, bitmap.height, SystemClock.elapsedRealtime() - start)
         } catch (cancelled: CancellationException) { throw cancelled
+        } catch (failure: ExtensionUnavailableException) {
+            throw LocalVisionException(failure.message ?: "Instale o pacote de objetos na Central de Extensões.", failure)
+        } catch (failure: LocalVisionException) { throw failure
         } catch (failure: LinkageError) {
             throw LocalVisionException("A classificação de objetos não está disponível nesta arquitetura.", failure)
         } catch (failure: OutOfMemoryError) {
@@ -89,7 +110,10 @@ class LocalObjectClassifier(context: Context) : AutoCloseable {
     private fun verifyBundledModel() {
         val digest = MessageDigest.getInstance("SHA-256")
         var total = 0L
-        application.assets.open(MODEL_ASSET).use { input ->
+        val source = try { application.assets.open(MODEL_ASSET) } catch (missing: IOException) {
+            throw LocalVisionException("Instale NEXUS Vision · objetos na Central de Extensões para classificar imagens localmente.", missing)
+        }
+        source.use { input ->
             val buffer = ByteArray(64 * 1024)
             while (true) {
                 ensureOpen()
@@ -101,7 +125,7 @@ class LocalObjectClassifier(context: Context) : AutoCloseable {
             }
         }
         val sha = digest.digest().joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
-        if (total != MODEL_BYTES || sha != MODEL_SHA256) throw LocalVisionException("O modelo de objetos está ausente ou corrompido. Prepare o APK novamente.")
+        if (total != MODEL_BYTES || sha != MODEL_SHA256) throw LocalVisionException("O modelo de objetos está ausente ou corrompido. Confira o pacote na Central de Extensões.")
     }
 
     override fun close() {
@@ -109,7 +133,11 @@ class LocalObjectClassifier(context: Context) : AutoCloseable {
         EXECUTOR.execute {
             val closing = engine
             engine = null
-            runCatching { closing?.close() }
+            try { runCatching { closing?.close() } } finally {
+                mappedModel = null
+                modelLease?.close()
+                modelLease = null
+            }
         }
     }
     private fun ensureOpen() { if (closed.get()) throw CancellationException("A sessão de visão foi encerrada.") }

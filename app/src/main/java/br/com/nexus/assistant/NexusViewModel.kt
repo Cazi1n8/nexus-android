@@ -55,6 +55,13 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     private var modelDownloadJob: Job? = null
     private val _localModelDownloadActive = MutableStateFlow(false)
     val localModelDownloadActive = _localModelDownloadActive.asStateFlow()
+    private val _localModelOperationProfile = MutableStateFlow<LocalModelProfile?>(null)
+    val localModelOperationProfile = _localModelOperationProfile.asStateFlow()
+    /** Both optional packs, including an installed profile that is not selected for chat. */
+    val localModelStates = combine(localModels.map { (profile, manager) ->
+        manager.state.map { profile to it }
+    }) { states -> states.toMap() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, localModels.mapValues { it.value.state.value })
     private var modifyingLocalModel = false
     private val _assistantReplies = MutableSharedFlow<String>(extraBufferCapacity = 1)
     val assistantReplies = _assistantReplies.asSharedFlow()
@@ -119,6 +126,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     private var deletingData = false
     private val _importing = MutableStateFlow(false)
     val importing = _importing.asStateFlow()
+    private val _clearingTemporaryCache = MutableStateFlow(false)
+    val clearingTemporaryCache = _clearingTemporaryCache.asStateFlow()
 
     init {
         if (!BuildConfig.BUNDLED_MODEL) {
@@ -262,7 +271,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             report("A captura não pertence ao cache do NEXUS.")
             return
         }
-        if (deletingData || _busy.value || _importing.value) {
+        if (deletingData || _clearingTemporaryCache.value || _busy.value || _importing.value) {
             source.delete()
             return
         }
@@ -273,7 +282,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun importImage(uri: Uri) {
-        if (deletingData || _busy.value || _importing.value) return
+        if (deletingData || _clearingTemporaryCache.value || _busy.value || _importing.value) return
         val generation = ++imageGeneration
         // Allocate the name before switching dispatchers so cancellation can always remove it.
         val destination = File(imageDirectory, "${UUID.randomUUID()}.jpg")
@@ -369,11 +378,19 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
 
     fun downloadLocalModel() = startLocalModelPreparation()
 
-    private fun startLocalModelPreparation() {
+    /** Explicit pack download; installation alone does not change the selected chat profile. */
+    fun downloadLocalModel(profile: LocalModelProfile) = startLocalModelPreparation(profile)
+
+    /** Revalidates private files left by an earlier version. Does not start a download. */
+    fun refreshLocalModels() = viewModelScope.launch {
+        if (deletingData || modifyingLocalModel || modelDownloadJob != null) return@launch
+        localModels.values.forEach { it.refresh() }
+    }
+
+    private fun startLocalModelPreparation(profile: LocalModelProfile = effectiveProfile(settings.value)) {
         // A cancelled job can still be closing its socket and file. Keep the
         // barrier until completion rather than queuing a second download.
         if (deletingData || modifyingLocalModel || modelDownloadJob != null) return
-        val profile = effectiveProfile(settings.value)
         if (!DevicePolicy.canRunProfile(deviceCapabilities.value, profile)) {
             report(if (!devicePolicy.value.localAiSupported) devicePolicy.value.reason
                 else "Este aparelho não tem a margem de RAM exigida para o modelo equilibrado. Escolha o perfil compacto.")
@@ -396,6 +413,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             catch (failure: Exception) { report(failure.message ?: "Não foi possível concluir a preparação da IA.") }
         }
         modelDownloadJob = job
+        _localModelOperationProfile.value = profile
         _localModelDownloadActive.value = true
         job.invokeOnCompletion {
             // Completion can arrive from an IO cancellation. Keep both the
@@ -404,6 +422,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch(Dispatchers.Main.immediate) {
                 if (modelDownloadJob === job) {
                     modelDownloadJob = null
+                    _localModelOperationProfile.value = null
                     _localModelDownloadActive.value = false
                 }
             }
@@ -413,9 +432,32 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
 
     fun cancelLocalModelDownload() { modelDownloadJob?.cancel() }
 
-    fun deleteLocalModel() = mutate {
+    /** Only disposable cache files; models, OCR data, history and code cache stay intact. */
+    suspend fun clearTemporaryCache(): String = withContext(Dispatchers.Main.immediate) {
+        if (deletingData || _clearingTemporaryCache.value) {
+            return@withContext "Aguarde a operação de armazenamento atual terminar."
+        }
+        _clearingTemporaryCache.value = true
+        try {
+            // Image import owns temporary cache streams. Stop and await cleanup
+            // before deleting cache; a new import is refused until this ends.
+            cancelImageImport()
+            runningImports.toList().forEach { it.join() }
+            val result = br.com.nexus.assistant.storage.StorageRepository(getApplication()).clearTemporaryCache()
+            val megabytes = String.format(java.util.Locale.forLanguageTag("pt-BR"), "%.2f", result.removedBytes / 1_000_000.0)
+            buildString {
+                append("Cache temporário removido: $megabytes MB em ${result.removedFiles} arquivo(s).")
+                if (result.failures > 0) append(" ${result.failures} item(ns) não puderam ser removidos.")
+                if (result.skippedSymlinks > 0) append(" Links simbólicos foram preservados.")
+            }
+        } finally { _clearingTemporaryCache.value = false }
+    }
+
+    fun deleteLocalModel() = deleteLocalModel(effectiveProfile(settings.value))
+
+    /** Removes this pack and any partial download, preserving chat, memories and other packs. */
+    fun deleteLocalModel(profile: LocalModelProfile) = mutate {
         modifyingLocalModel = true
-        val profile = effectiveProfile(settings.value)
         try {
             modelDownloadJob?.cancel()
             modelDownloadJob?.join()

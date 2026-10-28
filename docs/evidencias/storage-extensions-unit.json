@@ -1,0 +1,26 @@
+{
+  "scope": "Kotlin/JUnit on Linux; does not download a real pack, open a native classifier, run Android camera or measure A03 installation. Root Gradle/instrumentation results remain separate.",
+  "testsPassed": 6,
+  "failures": 0,
+  "compiler": "Kotlin 2.1.20",
+  "junit": "4.13.2",
+  "output": "JUnit version 4.13.2\n......\nTime: 0.059\n\nOK (6 tests)\n\n",
+  "sourceSha256": {
+    "app/src/main/java/br/com/nexus/assistant/extensions/ExtensionCatalog.kt": "60f4b23da3bb3ef8b4f4593d11e38272952511d170a1042b561758046961518c",
+    "app/src/main/java/br/com/nexus/assistant/extensions/PackAccess.kt": "5be133a2ea727487d9436ba5b7565f01cb5e9ecae9111b5a4ded3f2da8319407",
+    "app/src/test/java/br/com/nexus/assistant/extensions/ExtensionCatalogTest.kt": "dd15cf45dc1c0274b86940ff0b983096dc644b7281dc6dffef096b12e81a60df",
+    "app/src/test/java/br/com/nexus/assistant/extensions/PackAccessTest.kt": "6b3c0f87567be32d82c8cd2b1e0b0b854b267290621f3fef8953a36482fb38b3"
+  },
+  "dataPackages": {
+    "visionObjectsBytes": 5434517,
+    "visionOcrBytes": 6095844,
+    "totalBytes": 11530361
+  },
+  "checks": [
+    "HTTPS immutable pinned data catalog, no executable models",
+    "exact hash and length validation",
+    "private-path and .part symlink rejection",
+    "package mutation blocked while native readers retain leases",
+    "independent package access and idempotent lease release"
+  ]
+}

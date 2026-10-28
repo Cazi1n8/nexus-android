@@ -1,6 +1,8 @@
 # Progresso histórico do NEXUS 0.1
 
-**Estado atual 3.0:** veja [PROGRESSO_NEXUS_AI_3.md](PROGRESSO_NEXUS_AI_3.md), [testes de IA](TESTES_NEXUS_AI.md) e [auditoria](AUDITORIA_PLAY_PROTECT.md).
+**Estado atual: NEXUS CORE 3.0.0-alpha.3-core (versionCode 26).** Veja [PROGRESSO_ARMAZENAMENTO.md](PROGRESSO_ARMAZENAMENTO.md) e a [auditoria de tamanho](AUDITORIA_ARMAZENAMENTO.md). APK CORE otimizado local: **98.878.796 bytes**, medidos após compilação; modelos de conversa e dados de Vision são opcionais. O novo download público e os testes instrumentados CORE ainda precisam de conclusão.
+
+**Histórico da IA 3.0:** veja [PROGRESSO_NEXUS_AI_3.md](PROGRESSO_NEXUS_AI_3.md), [testes de IA](TESTES_NEXUS_AI.md) e [auditoria de segurança](AUDITORIA_PLAY_PROTECT.md). A redução de armazenamento não aprova a qualidade da IA nem o Play Protect.
 
 **Histórico 2.0:** veja [PROGRESSO_NEXUS_2.md](PROGRESSO_NEXUS_2.md) e [relatório alpha.4](docs/RELATORIO_ALPHA_4.md). A etapa alpha.4 está em verificação e não conclui todos os pedidos. A documentação abaixo é histórica.
 

@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.SystemClock
 import androidx.exifinterface.media.ExifInterface
+import br.com.nexus.assistant.extensions.ExtensionPackId
+import br.com.nexus.assistant.extensions.ExtensionRepository
+import br.com.nexus.assistant.extensions.ExtensionUnavailableException
 import com.googlecode.tesseract.android.TessBaseAPI
 import java.io.File
 import java.io.IOException
@@ -56,7 +59,9 @@ class LocalTextReader(context: Context) : AutoCloseable {
         val source = validateSource(file)
         var bitmap: Bitmap? = null
         var engine: TessBaseAPI? = null
+        var modelLease: AutoCloseable? = null
         try {
+            modelLease = ExtensionRepository.get(application).acquire(ExtensionPackId.VISION_OCR)
             val modelDirectory = prepareModels()
             ensureActive()
             ensureOpen()
@@ -78,6 +83,8 @@ class LocalTextReader(context: Context) : AutoCloseable {
             throw cancelled
         } catch (failure: LocalTextException) {
             throw failure
+        } catch (failure: ExtensionUnavailableException) {
+            throw LocalTextException(failure.message ?: "Confira o pacote OCR na Central de Extensões.", failure)
         } catch (failure: OutOfMemoryError) {
             throw LocalTextException("Não há memória livre suficiente para ler esta imagem. Feche outros aplicativos ou use uma foto menor.", failure)
         } catch (failure: LinkageError) {
@@ -86,7 +93,9 @@ class LocalTextReader(context: Context) : AutoCloseable {
             throw LocalTextException("Não foi possível ler o texto desta imagem. Tente uma foto nítida, bem iluminada e com as letras maiores.", failure)
         } finally {
             // Access and release the native instance only on the worker that owns it.
-            try { engine?.recycle() } finally { bitmap?.recycle() }
+            try { engine?.recycle() } finally {
+                try { bitmap?.recycle() } finally { modelLease?.close() }
+            }
         }
     }
 
@@ -125,7 +134,10 @@ class LocalTextReader(context: Context) : AutoCloseable {
             if (verified(destination, model)) continue
             val temporary = File.createTempFile("ocr-", ".part", tessdata)
             try {
-                application.assets.open("ocr/${model.language}.traineddata").use { input ->
+                val asset = try { application.assets.open("ocr/${model.language}.traineddata") } catch (missing: IOException) {
+                    throw LocalTextException("Instale NEXUS Vision · leitura de texto na Central de Extensões para usar OCR offline.", missing)
+                }
+                asset.use { input ->
                     temporary.outputStream().use { output ->
                         val buffer = ByteArray(64 * 1024)
                         var size = 0L

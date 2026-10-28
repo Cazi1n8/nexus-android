@@ -56,7 +56,7 @@ jobs:
           python3 scripts/fetch_ocr_runtime.py
           python3 scripts/fetch_bundled_model.py --with-balanced
       - name: Compilar APK completo e bateria instrumentada
-        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
+        run: gradle -PnexusBundleModel=true -PnexusBundleVision=true --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace assembleDebug assembleDebugAndroidTest
       - name: Habilitar KVM no executor temporário
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

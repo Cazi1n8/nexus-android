@@ -1,0 +1,16 @@
+{
+  "scope": "Actual production model manager + files on Linux JVM. Synthetic 160 KiB transport fixture, no Android device, model inference or Play Protect test.",
+  "jvmTests": 18,
+  "failures": 0,
+  "newRegression": "coreUpgradeReusesAnEarlierBundledCopyAndCanRemoveItWithoutDownloading",
+  "migrationBehavior": "Verified private model copied by a previous bundled app remains READY after a fresh manager refresh and explicit download call, with zero HTTP requests and one model file. Removing it preserves the other pack and history fixture.",
+  "androidTestAdded": "CoreOptionalModelsTest.coreOmitsGenerativeWeightsAndDoesNotStartADownloadWhenChatPreparationIsRequested",
+  "androidTestExecution": "pending_root_build_and_CI",
+  "junitOutput": "JUnit version 4.13.2\n..................\nTime: 0.505\n\nOK (18 tests)\n\n",
+  "sourceSha256": {
+    "app/src/main/java/br/com/nexus/assistant/data/local/LocalModelCatalog.kt": "4d76576eebdd01bf6ba6a2402cb9ecb7fab21cd611049b9a8c0af469dce691f0",
+    "app/src/main/java/br/com/nexus/assistant/data/local/LocalModelManager.kt": "1ff520b9ca22b9fa9822897e8a4dc4c06bd9320107710411a0c6264a8deb6008",
+    "app/src/main/java/br/com/nexus/assistant/data/local/ModelIntegrity.kt": "92671ff3d11372277e4a8072e05c708313ff837f82b689acaeb9cbb14887018e",
+    "app/src/test/java/br/com/nexus/assistant/data/local/BundledModelInstallTest.kt": "20fa1778344d71aa7340f7264611a0795cb67d4a87d037d8da4d77d62c1c36bf"
+  }
+}

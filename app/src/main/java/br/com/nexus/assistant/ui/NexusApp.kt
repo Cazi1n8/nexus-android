@@ -90,13 +90,20 @@ import kotlin.math.sin
 import java.io.File
 import br.com.nexus.assistant.device.vision.LocalTextReader
 import br.com.nexus.assistant.device.vision.OcrResult
+import br.com.nexus.assistant.extensions.ExtensionCenterScreen
+import br.com.nexus.assistant.extensions.ExtensionGate
+import br.com.nexus.assistant.extensions.ExtensionPackId
+import br.com.nexus.assistant.storage.StorageCenterScreen
 
 private data class Destination(val route: String, val title: String, val subtitle: String, val icon: ImageVector)
 private val destinations = listOf(
+    Destination("mouse", "Mouse virtual", "Cursor por rastreamento da mão", Icons.Default.Mouse),
+    Destination("extensions", "Central de extensões", "Escolher pacotes opcionais", Icons.Default.Extension),
+    Destination("storage", "Armazenamento", "Modelos, dados e cache reais", Icons.Default.Storage),
+    Destination("models", "Modelos de IA", "Baixar, reutilizar e remover", Icons.Default.Download),
     Destination("chat", "Chat IA", "Texto, contexto e imagens", Icons.Default.Forum),
     Destination("voice", "Assistente de voz", "Ouvir, conversar e interromper", Icons.Default.Mic),
     Destination("vision", "NEXUS Vision", "Texto e objetos em quadros locais", Icons.Default.CenterFocusStrong),
-    Destination("mouse", "Mouse virtual", "Cursor por rastreamento da mão", Icons.Default.Mouse),
     Destination("hands", "Mãos livres", "Associar poses a ações internas", Icons.Default.PanTool),
     Destination("cube", "NEXUS 3D", "Cubo controlado pelas mãos", Icons.Default.ViewInAr),
     Destination("libras", "NEXUS Libras", "Exercícios preparatórios", Icons.Default.SignLanguage),
@@ -227,6 +234,18 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
                 Splash { nav.navigate("home") { popUpTo("splash") { inclusive = true } } }
             }
             composable("home") { Home(model, settings, navigate) }
+            composable("extensions") {
+                ExtensionCenterScreen(onOpenAi = { navigate("models") }, onOpenVision = { navigate("vision") },
+                    onOpenThreeD = { navigate("cube") }, onOpenLibras = { navigate("libras") },
+                    onOpenVoice = { navigate("voice") }, onOpenStorage = { navigate("storage") })
+            }
+            composable("storage") {
+                StorageCenterScreen(onManageModels = { navigate("models") }, onManageExtensions = { navigate("extensions") },
+                    onManageData = { navigate("memory") }, onClearCache = { model.clearTemporaryCache() })
+            }
+            composable("models") {
+                LocalModelsScreen(model, onOpenSettings = { navigate("settings") }, onOpenStorage = { navigate("storage") })
+            }
             composable("chat") { ChatScreen(model, voice, settings, navigate) }
             composable("voice") {
                 CompatibilityGate(capabilities.hasMicrophone && voiceState.available, "Conversa por voz",
@@ -240,7 +259,10 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
             }
             composable("vision") {
                 // Gallery OCR is usable without camera permission or camera hardware.
-                VisionScreen(model, voice, settings, navigate)
+                if (settings.aiMode == AiMode.NEXUS_LOCAL) ExtensionGate(
+                    required = setOf(ExtensionPackId.VISION_OBJECTS, ExtensionPackId.VISION_OCR),
+                    onManageExtensions = { navigate("extensions") }) { VisionScreen(model, voice, settings, navigate) }
+                else VisionScreen(model, voice, settings, navigate)
             }
             for ((name, mode) in listOf("mouse" to GestureMode.MOUSE, "hands" to GestureMode.HANDS, "cube" to GestureMode.CUBE)) {
                 composable(name) {
@@ -377,13 +399,18 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
     Text((if (BuildConfig.BUNDLED_MODEL) "IA incluída no APK" else "IA local por download") +
         " · versão ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", color = NexusCyan,
         style = MaterialTheme.typography.labelSmall)
+    if (BuildConfig.CORE_INSTALLATION) {
+        InfoCard("NEXUS CORE", "Mouse e rastreamento de mãos offline incluídos. Os modelos de conversa e dados de visão são opcionais; nenhum pacote grande é baixado automaticamente.")
+        Button(onClick = { navigate("mouse") }, modifier = Modifier.fillMaxWidth()) { Text("Abrir mouse offline") }
+        OutlinedButton(onClick = { navigate("extensions") }, modifier = Modifier.fillMaxWidth()) { Text("Escolher pacotes opcionais") }
+    }
     InfoCard(if (local) "NEXUS AI · NO APARELHO" else "PROVEDOR PERSONALIZADO",
         if (local && !compatibleLocal) {
             if (!policy.localAiSupported) policy.reason else "O modelo escolhido exige mais memória do que o perfil deste aparelho permite. Ative o ajuste automático ou selecione o modelo compacto em Configurações."
         }
         else if (local && configured) "Modelo local pronto. Suas conversas são processadas neste aparelho, sem servidor ou chave."
         else if (bundledChat) "A IA de texto já está incluída neste APK. Abra o Chat: a cópia local e a verificação são feitas no aparelho, sem baixar outro modelo."
-        else if (local) "Baixe uma vez o modelo de texto gratuito para conversar sem servidor, conta ou chave. O download precisa de internet e espaço livre."
+        else if (local) "IA de conversa opcional: escolha e autorize um modelo em Modelos de IA para conversar offline. O mouse não depende desses dados."
         else if (configured) "Modelo: ${settings.model}. A disponibilidade será verificada ao enviar uma mensagem."
         else "Configure seu provedor opcional ou selecione NEXUS AI local nas configurações.")
     Button(onClick = { navigate(if (configured || bundledChat) "chat" else "settings") }, modifier = Modifier.fillMaxWidth()) {
@@ -446,7 +473,7 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
         if (local && BuildConfig.BUNDLED_MODEL && localState.status != LocalModelStatus.READY) {
             BundledModelPanel(model, onUseCustom = { navigate("settings") }, showDetails = false)
         } else if (local && localState.status != LocalModelStatus.READY) {
-            TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Preparar modelo local em Configurações") }
+            TextButton(onClick = { navigate("models") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Gerenciar modelo offline opcional") }
         } else if (!local && (settings.endpoint.isBlank() || !settings.remoteConsent)) {
             TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Configurar provedor personalizado") }
         }
