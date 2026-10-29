@@ -236,7 +236,7 @@ def run(output: Path, *, allow_reset_emulator: bool = False, require_critical_ch
                              name="evaluateTheFifteenRequestedCasesWithTheBundledModel",
                              time=f"{time.monotonic() - started:.3f}")
         if status != "passed":
-            ET.SubElement(case, "failure", message="Android AI evaluation did not complete").text = failure
+            ET.SubElement(case, "failure", message="Android AI evaluation failed execution or required quality checks").text = failure
         ET.ElementTree(suite).write(output / "junit.xml", encoding="utf-8", xml_declaration=True)
 
 
@@ -252,7 +252,7 @@ def main() -> int:
         report = run(args.output, allow_reset_emulator=args.allow_reset_emulator,
                      require_critical_checks=args.require_critical_checks)
     except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as error:
-        print(f"Bateria Android não concluída: {error}", file=sys.stderr)
+        print(f"Bateria Android reprovada ou incompleta: {error}", file=sys.stderr)
         return 1
     print("Bateria real de quinze casos executada; examine as observações e as respostas, inclusive os erros.")
     print(json.dumps({"modelProfile": report["modelProfile"], "casesExecuted": len(report["cases"]),

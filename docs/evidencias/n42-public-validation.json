@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "scope": "Public technical summary only; no conversation transcripts, personal names or generated replies. Full test records retained in private workspace.",
+  "applicationSourceCommit": "de3e22b1a99f103dc75924f8cf6e50841e5a6a05",
+  "applicationSourceTree": "da9bc5623510529e3833d16c4f58d8f697a86255",
+  "versionName": "4.1.0-alpha.2-core",
+  "versionCode": 28,
+  "workflows": {
+    "technicalPassed": 6,
+    "semanticFailed": 1
+  },
+  "jvm": {
+    "tests": 298,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "python": {
+    "tests": 173,
+    "failures": 0
+  },
+  "server": {
+    "tests": 56,
+    "failures": 0
+  },
+  "androidCore": {
+    "passed": 12,
+    "skipped": 0,
+    "realEglSixShapesPassed": true,
+    "realCameraDenialServicePassed": true
+  },
+  "androidExtensions": {
+    "passed": 1,
+    "realHttpsDataBytes": 11530361
+  },
+  "androidGeneral": {
+    "total": 45,
+    "passed": 35,
+    "skipped": 10,
+    "failures": 0
+  },
+  "aiAndroid": {
+    "casesCompleted": 15,
+    "actualGenerations": 35,
+    "calculatorExecutions": 1,
+    "actionProposals": 1,
+    "persistedAssistantMessages": 37,
+    "technicalFailures": 0,
+    "elapsedMilliseconds": 1385470,
+    "criticalGatePassed": false,
+    "criticalFailedCaseIds": [
+      9
+    ],
+    "mechanicalCasesSatisfied": 10,
+    "mechanicalChecksAreNotQualityCertification": true,
+    "codexReviewFalsePositiveCaseIds": [
+      3,
+      7,
+      12,
+      13
+    ],
+    "independentHumanReviewPerformed": false
+  },
+  "hostTextEvaluations": {
+    "initialActualGenerations": 53,
+    "additionalQwen7bGenerations": 14,
+    "additionalSmol3bGenerations": 7,
+    "newModelsApproved": 0,
+    "newWeightBytesAddedToApk": 0,
+    "unapprovedPromptPrototypeReverted": true
+  },
+  "multimodalHost": {
+    "actualGenerations": 4,
+    "generalVisionQualityApproved": false
+  },
+  "apkCi": {
+    "bytes": 108652058,
+    "sha256": "da35fb93a94436109be12b82079ab9102a6f83c89bdd9310cb3da2ad6f18f760",
+    "certificateSha256": "fa6d7278f338b47ca3660ba3e51e270949a6f4cae3e453ebf9c111a1e82fc2e7",
+    "testCertificate": true,
+    "signatureVerified": true,
+    "zipAlignment16KiBVerified": true,
+    "permissionCount": 9,
+    "packagePolicyViolations": 0,
+    "artifactId": 12919601582
+  },
+  "apkLocal": {
+    "bytes": 108635674,
+    "sha256": "556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f",
+    "certificateSha256": "ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79"
+  },
+  "ciLint": {
+    "errors": 0,
+    "warningsPerDebugAndCoreTest": 58,
+    "informationPerVariant": 1
+  },
+  "releaseApk": {
+    "bytes": 108623386,
+    "signed": false,
+    "installable": false
+  },
+  "publication": {
+    "publicReleaseCreated": false,
+    "rawTranscriptPublication": "withheld after automatic approval review; retained privately"
+  },
+  "pending": {
+    "physicalGalaxyA03": true,
+    "globalMouseOutsideApp": true,
+    "physicalSttTts": true,
+    "realTwoHands": true,
+    "linguisticValidation": true,
+    "playProtectApproval": true,
+    "integratedProductionAiBackend": true
+  }
+}

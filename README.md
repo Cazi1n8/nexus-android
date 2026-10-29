@@ -14,7 +14,11 @@ No código desta revisão, respostas de servidores compatíveis passam a usar **
 
 O caminho real cliente Kotlin→gateway→modelo multimodal também foi executado com uma imagem de teste. O modelo identificou um hambúrguer, mas inventou ingredientes e levou esses erros à pergunta seguinte: **o transporte visual funciona, porém a qualidade do candidato foi reprovada**. Um controle adicional sem imagem continuou ambíguo; não há aprovação da IA geral ou visual. [Respostas e revisão](docs/evidencias/n42-vision-model-review.json).
 
-Também foram corrigidos o bloqueio da voz à espera de um modelo ausente no CORE e callbacks que podiam continuar após a parada da voz ou do mouse. O 3D existente ganha cenas locais com seis formas e vários objetos; Libras ganha aulas introdutórias e feedback preparatório por dedo. A compilação final terminou com **298 testes JVM aprovados**, 173 testes de scripts e 56 do servidor; Lint sem erros. O CORE foi medido em **108,64 MB**. Novos testes Android, funcionamento físico no Galaxy A03 e aprovação pelo Play Protect continuam pendentes. [Resultados, hashes e limites](PROGRESSO_NEXUS_4_1.md).
+Também foram corrigidos o bloqueio da voz à espera de um modelo ausente no CORE e callbacks que podiam continuar após a parada da voz ou do mouse. O 3D existente ganha cenas locais com seis formas e vários objetos; Libras ganha aulas introdutórias e feedback preparatório por dedo. A compilação final terminou com **298 testes JVM aprovados**, 173 testes de scripts e 56 do servidor; Lint sem erros. O CORE foi medido em **108,64 MB**. Os novos testes Android em emulador passaram; funcionamento físico no Galaxy A03 e aprovação pelo Play Protect continuam pendentes. [Resultados, hashes e limites](PROGRESSO_NEXUS_4_1.md).
+
+## Fechamento verificável da alpha.2
+
+[Relatório técnico atualizado, APK de avaliação e hashes](docs/NEXUS_4_1_ALPHA2_RESULTADOS_PUBLICOS.md): seis workflows técnicos aprovados, avaliação semântica reprovada. O CORE CI tem **108.652.058 bytes (108,65 MB)**. Nenhum candidato de IA maior foi promovido; não há backend de produção implantado. Testes físicos no Galaxy A03 e aprovação do Play Protect permanecem pendentes. Os registros novos são publicados apenas como resultados técnicos agregados, sem diálogos.
 
 ## Tamanho medido e APK
 
