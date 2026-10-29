@@ -30,3 +30,11 @@ As regressões novas verificam URLs de origem, base `/v1` e endpoint completo se
 Não foram verificados por esta suíte: conexão com Ollama/API externa, compreensão de imagens, qualidade de respostas, latência de modelos, TLS de uma implantação, acessibilidade, câmera/microfone ou execução no Android. O gateway realmente troca HTTP nos testes de loopback, mas recebe respostas controladas: isso não equivale a testar um LLM. O estado da compilação Android e eventuais testes separados de modelo devem ser consultados em [PROGRESSO.md](../PROGRESSO.md).
 
 A primeira entrega encontrou erros de permissão nos testes por sockets e registrou **22 aprovados e 18 ignorados**, de 40 testes. Após as correções desta revisão, a execução sem rede registrou **25 aprovados e 19 ignorados**, de 44 testes. Esses resultados foram superados pela execução final acima, com sockets autorizados: **44 aprovados e zero ignorados**. Solicitações de permissão interrompidas não foram registradas como testes executados.
+
+## Continuidade em 29/10/2026
+
+Comando: `python3 -m unittest discover -s server/tests -v`, com sockets locais autorizados.
+
+Resultado: **56 testes, zero falhas, zero ignorados**. O conjunto inclui os 44 testes anteriores e 12 novos de negociação de ferramentas, SSE, pesquisa e capacidades. Um teste HTTP recebe o primeiro fragmento SSE antes de liberar o restante no upstream, comprovando entrega incremental nesse transporte controlado. Os demais verificam conclusão real, limites, codificação, ocultação de metadados privados, configuração de pesquisa fixa e separação de fontes.
+
+Não há modelo de IA nem pesquisa pública nesses testes. Eles não aprovam a qualidade do NEXUS AI, o reconhecimento de objetos ou uma implantação online. O log local desta execução está em `/workspace/tooling/n42-server-tests-network.log`; o resultado de CI das alterações novas deve ser registrado separadamente.

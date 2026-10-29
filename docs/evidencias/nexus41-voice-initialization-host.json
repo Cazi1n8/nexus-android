@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "scope": "Host JVM execution of actual TTS initialization generation and speech-watchdog policy. Not Android speech synthesis, recognition, audio focus or physical Galaxy A03 test.",
+  "tests": 4,
+  "exitCode": 0,
+  "seconds": 0.1407,
+  "output": "JUnit version 4.13.2\n....\nTime: 0.006\n\nOK (4 tests)\n\n",
+  "sourceSha256": {
+    "app/src/main/java/br/com/nexus/assistant/device/VoiceInitialization.kt": "60bb3dcffc90347cb4fbe5a9405d6e419a3b86ae9bad935addd44e39778cced2",
+    "app/src/test/java/br/com/nexus/assistant/device/VoiceInitializationTest.kt": "e695f4d77b169ed94e44c91aa3c40678715456dd6b8823ec31dd11b2ca62995b"
+  }
+}

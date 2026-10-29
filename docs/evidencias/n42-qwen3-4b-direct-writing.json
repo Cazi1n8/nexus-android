@@ -1,0 +1,453 @@
+{
+  "cases": [
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "01_user_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 394,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 29801,
+      "generatedTokens": 32,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 33580,
+      "promptTokens": 394,
+      "query": "Qual é meu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Meu nome é NEXUS. O nome que você disse é Calebe — é o nome da pessoa que está falando comigo. 😊",
+      "totalMs": 33579,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 386,
+      "caseId": "02_assistant_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 8,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 639,
+      "generatedTokens": 10,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 1685,
+      "promptTokens": 394,
+      "query": "Qual é seu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Meu nome é NEXUS. 😊",
+      "totalMs": 1685,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "03_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 14,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 836,
+      "generatedTokens": 163,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 21776,
+      "promptTokens": 398,
+      "query": "Me faz um texto de desculpa.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro, aqui está um texto de desculpas neutro e sincero que você pode adaptar conforme a situação:\n\n---\n\nDesculpe por tudo isso. Entendo que minha atitude ou falta de atenção causou desconforto, e sei que isso não deveria acontecer. Foi um erro meu, e quero que você saiba que estou reparando na situação e tentando melhorar. Se houver algo que eu possa fazer para compensar ou corrigir, fico à disposição. Obrigado por me dar a oportunidade de explicar.\n\n---\n\nSe quiser, posso personalizar com mais detalhes — como o contexto (ex: atraso, desrespeito, falha em uma tarefa etc.) — só dizer!",
+      "totalMs": 21776,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "12_typo_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 17,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 688,
+      "generatedTokens": 98,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 10092,
+      "promptTokens": 401,
+      "query": "chat me ajda faze um texo de descupa",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro! Fala aí, Calebe. Quer um texto de descrição para quê? Por exemplo:\n\n- Um produto (como uma roupa, gadget ou serviço)?  \n- Um perfil no Instagram ou LinkedIn?  \n- Uma apresentação para vender algo?  \n- Uma descrição de serviço ou empresa?\n\nMe diz o contexto e eu te ajudo a escrever um texto claro, atrativo e bem feito — sem complicar demais. 😊",
+      "totalMs": 10092,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "09_camera",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 16,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 623,
+      "generatedTokens": 72,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 7747,
+      "promptTokens": 400,
+      "query": "Você consegue ver o que estou vendo?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Não, eu não consigo ver o que você está vendo. Sou um assistente de texto e não tenho capacidade de visualizar imagens, vídeos ou qualquer conteúdo do ambiente físico. Mas posso ajudar a interpretar ou descrever o que você me disser — basta me contar o que está acontecendo! 😊",
+      "totalMs": 7747,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "16_heldout_message",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 28,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 1258,
+      "generatedTokens": 192,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 21341,
+      "promptTokens": 412,
+      "query": "escreve um pedido de desculpas pra eu mandar pra uma amiga, sem inventar o motivo",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro, aqui está um pedido de desculpas simples, sincero e sem inventar motivos:\n\n---\n\nOi [Nome da amiga],\n\nEu queria pedir desculpas por não ter respondido suas mensagens recentemente. Fiquei meio desorganizado e não queria te deixar na expectativa de que eu estava ignorando você. Sinto muito por ter te feito esperar ou sentir que estou distante.\n\nTe valorizo muito como amiga e sei que é importante manter o contato. Vou melhorar isso e ficar mais atento a tudo que você compartilha comigo.\n\nObrigado por sempre ser tão paciente e por me dar espaço para crescer.  \n\nCom carinho,  \nCalebe\n\n---\n\nSe quiser adaptar com um tom mais leve, formal ou específico (por exemplo, por falta de tempo ou por algo que aconteceu), posso ajustar também!",
+      "totalMs": 21341,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "17_heldout_code",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 30,
+      "finishReason": "token_limit",
+      "firstTokenMs": 1352,
+      "generatedTokens": 512,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 125476,
+      "promptTokens": 414,
+      "query": "Em Python, por que usar x = lista.append(4) faz x virar None? Mostre a correção.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Em Python, quando você escreve:\n\n```python\nx = lista.append(4)\n```\n\no valor de `x` vira `None` porque **`append()` não retorna o valor que foi adicionado**, ele apenas modifica a lista *in place* (no lugar). O método `append()` é um método mutador e, por convenção, **retorna `None`** após realizar a operação.\n\n---\n\n### 📌 Explicação simples:\n- `lista.append(4)` adiciona o número 4 ao final da lista.\n- Mas ele **não retorna o valor 4**, nem o novo tamanho da lista — ele só altera a lista.\n- Portanto, `x = lista.append(4)` atribui `None` a `x`.\n\nExemplo:\n\n```python\nlista = [1, 2, 3]\nx = lista.append(4)\nprint(x)  # Saída: None\nprint(lista)  # Saída: [1, 2, 3, 4] → a lista foi modificada\n```\n\n---\n\n### ✅ Correção:\nSe você quer armazenar o valor 4 (ou o resultado da operação), **você precisa usar outra forma**, como:\n\n#### Opção 1: Usar `+` para criar uma nova lista com o valor adicionado\n```python\nlista = [1, 2, 3]\nnova_lista = lista + [4]\nprint(nova_lista)  # [1, 2, 3, 4]\n```\n\n#### Opção 2: Se quiser adicionar e manter a referência original:\n```python\nlista = [1, 2, 3]\nlista.append(4)\n# Agora lista é [1, 2, 3, 4], mas se você precisa armazenar o valor, faça:\nvalor_adicionado = 4\n```\n\n#### Opção 3 (se quiser \"guardar\" o valor adicionado como uma variável):\n```python\nlista = [1, 2, 3]\nvalor_adicionado = 4\nlista.append(valor_adicionado)  # agora lista tem o valor 4\n```\n\n---\n\n### 💡 Dica para lembrar:\n> **Métodos que modificam listas (como `append`, `remove`, `insert`) retornam `None`.**  \n> Se você precisa do",
+      "totalMs": 125476,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "18_heldout_math",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 33,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 2713,
+      "generatedTokens": 211,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 56578,
+      "promptTokens": 417,
+      "query": "Quanto é 50 + 50 + 50 × 50? Explique a ordem das operações.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Vamos calcular:\n\n**50 + 50 + 50 × 50**\n\nPrimeiro, precisamos seguir a **ordem das operações** (regra BODMAS ou PEMDAS):\n\n- **Multiplicação** é feita antes da adição.\n\nEntão:\n\n1. Faça a multiplicação:  \n   \\( 50 \\times 50 = 2500 \\)\n\n2. Agora some os outros termos:  \n   \\( 50 + 50 + 2500 = 2600 \\)\n\n✅ Resposta final: **2600**\n\n**Explicação da ordem das operações**:  \nDe acordo com as regras matemáticas, multiplicações e divisões são realizadas antes de somas e subtrações, quando estão na mesma expressão. Assim, o produto \\( 50 \\times 50 \\) é calculado primeiro, e depois somam-se os resultados.",
+      "totalMs": 56577,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "19_heldout_transform",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 22,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 1711,
+      "generatedTokens": 29,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 7832,
+      "promptTokens": 406,
+      "query": "Crie uma mensagem de duas frases agradecendo pela reunião.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Foi um prazer ter conversado com você durante a reunião. Agradeço pela atenção e pelo tempo dedicado ao diálogo.",
+      "totalMs": 7832,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 435,
+      "caseId": "19_heldout_transform",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 21,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 2091,
+      "generatedTokens": 14,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 4,
+      "maxOutputTokens": 512,
+      "milliseconds": 5208,
+      "promptTokens": 456,
+      "query": "Agora deixe mais informal e curta.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Foi bom conversar com você! Obrigado pelo tempo.",
+      "totalMs": 5208,
+      "turn": 2,
+      "usedMessages": 4,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "20_heldout_short_text",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 31,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 3974,
+      "generatedTokens": 22,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 9987,
+      "promptTokens": 415,
+      "query": "faz uma mensagem curta pra eu agradecer um professor, sem colocar nome nem inventar o que ele fez",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Obrigado por tudo que você fez. Foi muito importante e ajudou a fazer a diferença.",
+      "totalMs": 9987,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    },
+    {
+      "cachedPromptTokens": 384,
+      "caseId": "21_heldout_uncertainty",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 22,
+      "finishReason": "end_of_turn",
+      "firstTokenMs": 1785,
+      "generatedTokens": 217,
+      "hostPeakResidentKiB": 4510172,
+      "inputMessages": 2,
+      "maxOutputTokens": 512,
+      "milliseconds": 44767,
+      "promptTokens": 406,
+      "query": "Qual será o resultado exato da próxima loteria? Dá pra garantir?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Não é possível garantir o resultado exato da próxima loteria. Os números sorteados são escolhidos aleatoriamente por um processo de sorteio justo e independente, com base em regras estabelecidas pela organização responsável (como a Caixa Econômica Federal no Brasil). Cada sorteio é um evento aleatório, e os resultados não podem ser preditos com precisão.\n\nAlém disso, apostar em loterias envolve risco, já que as probabilidades de acertar todos os números são extremamente baixas — por exemplo, na Mega-Sena, a chance de acertar os 6 números exatos é de aproximadamente **1 em 50 milhões**.\n\nPortanto:  \n❌ Não dá pra garantir o resultado.  \n✅ O resultado será aleatório e imprevisível.  \n\nSe quiser, posso te ajudar a entender como funciona o sorteio ou dar dicas sobre como gerenciar apostas de forma mais responsável. É só pedir!",
+      "totalMs": 44767,
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "direct_writing_pt"
+    }
+  ],
+  "contextTokens": 2048,
+  "executionStatus": "completed",
+  "fixture": {
+    "cases": [
+      {
+        "id": "01_user_name",
+        "turns": [
+          "Qual é meu nome?"
+        ]
+      },
+      {
+        "id": "02_assistant_name",
+        "turns": [
+          "Qual é seu nome?"
+        ]
+      },
+      {
+        "id": "03_apology",
+        "turns": [
+          "Me faz um texto de desculpa."
+        ]
+      },
+      {
+        "id": "12_typo_apology",
+        "turns": [
+          "chat me ajda faze um texo de descupa"
+        ]
+      },
+      {
+        "id": "09_camera",
+        "turns": [
+          "Você consegue ver o que estou vendo?"
+        ]
+      },
+      {
+        "id": "16_heldout_message",
+        "turns": [
+          "escreve um pedido de desculpas pra eu mandar pra uma amiga, sem inventar o motivo"
+        ]
+      },
+      {
+        "id": "17_heldout_code",
+        "turns": [
+          "Em Python, por que usar x = lista.append(4) faz x virar None? Mostre a correção."
+        ]
+      },
+      {
+        "id": "18_heldout_math",
+        "turns": [
+          "Quanto é 50 + 50 + 50 × 50? Explique a ordem das operações."
+        ]
+      },
+      {
+        "id": "19_heldout_transform",
+        "turns": [
+          "Crie uma mensagem de duas frases agradecendo pela reunião.",
+          "Agora deixe mais informal e curta."
+        ]
+      },
+      {
+        "id": "20_heldout_short_text",
+        "turns": [
+          "faz uma mensagem curta pra eu agradecer um professor, sem colocar nome nem inventar o que ele fez"
+        ]
+      },
+      {
+        "id": "21_heldout_uncertainty",
+        "turns": [
+          "Qual será o resultado exato da próxima loteria? Dá pra garantir?"
+        ]
+      }
+    ],
+    "contextTokens": 2048,
+    "maxOutputTokens": 512,
+    "threads": 2,
+    "variants": [
+      {
+        "id": "direct_writing_pt",
+        "system": "Você é NEXUS, um assistente prestativo que responde em português brasileiro. O nome preferido do usuário é Calebe; esse é o nome da pessoa atendida, não o seu.\nAtenda diretamente ao pedido atual. Use o histórico para continuar ou transformar o conteúdo ao qual o usuário se refere. Compreenda português informal, abreviações e erros de digitação pelo contexto.\nEm tarefas de escrita e edição, entregue primeiro o texto pronto para o usuário aproveitar. Sem detalhes de personalização, produza uma versão geral utilizável. Não exija informações opcionais antes de redigir. Perguntas e ofertas de ajuste só vêm depois do texto.\nNo texto redigido, a primeira pessoa representa o autor humano, e o NEXUS não é personagem. Não atribua ao autor acontecimentos, relações, causas ou intenções que ele não informou. Omita destinatário nominal e assinatura quando não forem pedidos.\nResponda de forma natural, clara e objetiva. Dê exemplos mínimos suficientes ao ensinar programação. Evite apresentações, cumprimentos e encerramentos automáticos. Reconheça incerteza e não invente fatos.\nCapacidades desta sessão: recebe mensagens de texto e, quando fornecidas, observações de ferramentas identificadas. Não recebe imagens, áudio ou vídeo ao vivo, não tem câmera ativa e não navega na internet. Use somente as evidências disponíveis. A execução de uma ação do aplicativo exige uma ferramenta autorizada e seu resultado; só confirme depois desse resultado."
+      }
+    ]
+  },
+  "hostPeakResidentKiB": 4510172,
+  "maxOutputTokens": 512,
+  "schemaVersion": 1,
+  "scope": "Actual unchanged NEXUS C++ engine on host CPU, synthetic prompts only; not Android, A03 or a semantic quality certification.",
+  "threads": 2,
+  "provenance": {
+    "modelSha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+    "modelBytes": 2497281120,
+    "fixtureSha256": "7fd864520ee9ccba7b6da630a959611bb2b2ad707e17317f15b9335fce888be3",
+    "sourcesSha256": {
+      "app/src/main/cpp/nexus_runtime.cpp": "9cf5afb373f85284831c35e9df03f318e4c83e3e2dddf344c3d81b73495eb6e1",
+      "app/src/main/cpp/nexus_runtime.hpp": "a20fc80059c5cc6d88dc5e69f5cfbbb4a6100e867dc30f7e14e9e59e8fa8d029",
+      "app/src/main/cpp/nexus_chat_template.hpp": "8542c1b07474236b6a01687b63bb9f99b10f73be41325e913f96e142723e9293",
+      "scripts/LocalAiVariantEvaluation.cpp": "7fffd241deb1175db270f56d4b38c45c599f9c4110dda69083c6a3bf3ea2a3a5",
+      "scripts/evaluate_local_ai_variants.py": "e50871a28bc5e5fccb43614597048277170ef5c3b39afe341e0fc7f2426d3adb"
+    },
+    "runtimeLlamaSha256": "7952917e6a5e3761c09f8e8343eb9f2cf57a1d37233200762f51c6b56548a7cc"
+  },
+  "semanticApproval": "not_assessed_by_this_runner; inspect actual text and dedicated rubric"
+}

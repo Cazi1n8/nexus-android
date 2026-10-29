@@ -2,6 +2,9 @@ package br.com.nexus.assistant.device
 
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -15,7 +18,6 @@ import br.com.nexus.assistant.device.voice.VoiceSessionRuntime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.util.Locale
 import java.util.UUID
 
 /** One controller per visible UI or explicit foreground voice service; never starts a service itself. */
@@ -48,36 +50,77 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
     private var recognitionTimeout: Runnable? = null
     private var queuedSpeech: QueuedSpeech? = null
     private var speechInitializationTimeout: Runnable? = null
+    private var engineInitializationTimeout: Runnable? = null
+    private var speechProgressTimeout: Runnable? = null
+    private val initialization = VoiceInitialization()
+    private var activeChunk: String? = null
+    private var chunkLengths: Map<String, Int> = emptyMap()
+    private var activeSpeechRate = 1f
+    private val audioAttributes = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_ASSISTANT).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
+    private val audioManager = appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private var focusHeld = false
+    private val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        .setAudioAttributes(audioAttributes).setAcceptsDelayedFocusGain(false).setWillPauseWhenDucked(true)
+        .setOnAudioFocusChangeListener({ change ->
+            if (!closed && change < 0 && focusHeld) {
+                stopSpeakingInternal()
+                mutableState.value = mutableState.value.copy(error = "A leitura foi pausada porque outra aplicação precisa do áudio. Toque em ouvir para continuar.")
+            }
+        }, main).build()
     private data class QueuedSpeech(val text: String, val language: String, val rate: Float,
         val voiceName: String, val pitch: Float, val onDone: (() -> Unit)?)
 
-    init {
-        onMain {
-            try {
-                tts = TextToSpeech(appContext) { status ->
-                    // An engine may call back during construction. Posting guarantees that
-                    // tts has been assigned before readiness or listener state is published.
-                    main.post { finishTtsInitialization(status) }
-                }
-            } catch (_: Exception) {
-                mutableState.value = mutableState.value.copy(ttsReady = false,
-                    error = "Não foi possível inicializar a voz do Android. Confira o mecanismo de texto para fala nas configurações do aparelho.")
+    init { onMain { initializeTts() } }
+
+    private fun initializeTts() {
+        if (closed || initialization.phase == VoiceInitialization.Phase.INITIALIZING) return
+        runCatching { tts?.shutdown() }
+        tts = null
+        val ticket = initialization.begin()
+        mutableState.value = mutableState.value.copy(ttsReady = false, languageReady = false, error = null)
+        engineInitializationTimeout?.let(main::removeCallbacks)
+        val timeout = Runnable { failTtsInitialization(ticket,
+            "O mecanismo de voz não terminou de iniciar. Confira as configurações de texto para fala do Android e tente novamente.") }
+        engineInitializationTimeout = timeout
+        main.postDelayed(timeout, 12_000L)
+        try {
+            tts = TextToSpeech(appContext) { status ->
+                // Posting also handles engines which call back during construction.
+                main.post { finishTtsInitialization(status, ticket) }
             }
+        } catch (_: Exception) {
+            failTtsInitialization(ticket,
+                "Não foi possível inicializar a voz do Android. Confira o mecanismo de texto para fala nas configurações do aparelho.")
         }
     }
 
-    private fun finishTtsInitialization(status: Int) {
-        if (closed) return
+    private fun failTtsInitialization(ticket: Long, message: String) {
+        if (!initialization.fail(ticket)) return
+        engineInitializationTimeout?.let(main::removeCallbacks)
+        engineInitializationTimeout = null
+        queuedSpeech = null
+        speechInitializationTimeout?.let(main::removeCallbacks)
+        speechInitializationTimeout = null
+        runCatching { tts?.shutdown() }
+        tts = null
+        mutableState.value = mutableState.value.copy(ttsReady = false, languageReady = false,
+            preparingSpeech = false, isSpeaking = false, error = message)
+    }
+
+    private fun finishTtsInitialization(status: Int, ticket: Long) {
+        if (closed || !initialization.pending(ticket)) return
         try {
             val engine = tts
             if (status != TextToSpeech.SUCCESS || engine == null) {
-                mutableState.value = mutableState.value.copy(ttsReady = false,
-                    error = "A síntese de voz não está disponível. Instale ou ative um mecanismo de texto para fala nas configurações do Android.")
+                failTtsInitialization(ticket, "A síntese de voz não está disponível. Instale ou ative um mecanismo de texto para fala nas configurações do Android.")
                 return
             }
             engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onStart(utteranceId: String?) = onMain {
                     if (!closed && finalUtterance != null && utteranceId?.startsWith(activeSpeechPrefix.orEmpty()) == true) {
+                        activeChunk = utteranceId
+                        armSpeechProgressTimeout(speechCompletionTimeoutMs(chunkLengths[utteranceId] ?: 600, activeSpeechRate))
                         mutableState.value = mutableState.value.copy(isSpeaking = true)
                     }
                 }
@@ -87,8 +130,12 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
                 override fun onError(utteranceId: String?) = finishSpeech(utteranceId, "Não foi possível reproduzir a resposta. Verifique o mecanismo de voz do Android.")
                 override fun onError(utteranceId: String?, errorCode: Int) = onError(utteranceId)
             })
+            check(engine.setAudioAttributes(audioAttributes) != TextToSpeech.ERROR)
             refreshVoices()
-            mutableState.value = mutableState.value.copy(ttsReady = true)
+            initialization.ready(ticket)
+            engineInitializationTimeout?.let(main::removeCallbacks)
+            engineInitializationTimeout = null
+            mutableState.value = mutableState.value.copy(ttsReady = true, error = null)
             updateLanguageAvailability()
             val pending = queuedSpeech
             queuedSpeech = null
@@ -97,31 +144,49 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
             mutableState.value = mutableState.value.copy(preparingSpeech = false)
             pending?.let { speak(it.text, it.language, it.rate, it.voiceName, it.pitch, it.onDone) }
         } catch (_: Exception) {
-            mutableState.value = mutableState.value.copy(ttsReady = false,
-                error = "O mecanismo de voz não respondeu durante a inicialização. Confira as configurações de texto para fala do Android.")
+            failTtsInitialization(ticket, "O mecanismo de voz não respondeu durante a inicialização. Confira as configurações de texto para fala do Android.")
         }
     }
 
     /** A selected network voice may use its engine's network service; prefer installed local voices. */
-    fun selectVoice(name: String?) = onMain { selectedVoice = name }
+    fun selectVoice(name: String?) = onMain {
+        selectedVoice = name?.takeIf(String::isNotBlank)
+        updateLanguageAvailability()
+    }
 
     /** Changing the assistant language also changes the eligible voices, never the reverse. */
     fun setLanguage(language: String) = onMain {
-        selectedLanguage = language
+        selectedLanguage = voiceLocale(language).toLanguageTag()
         refreshVoices()
         updateLanguageAvailability()
     }
 
     fun refreshLanguageVoices() = onMain {
         if (!closed) {
-            refreshVoices()
-            updateLanguageAvailability()
+            refreshRecognitionAvailability()
+            if (initialization.phase == VoiceInitialization.Phase.FAILED) initializeTts()
+            else {
+                refreshVoices()
+                updateLanguageAvailability()
+            }
         }
     }
 
+    private fun refreshRecognitionAvailability() {
+        val local = runCatching {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && SpeechRecognizer.isOnDeviceRecognitionAvailable(appContext)
+        }.getOrDefault(false)
+        val available = local || runCatching { SpeechRecognizer.isRecognitionAvailable(appContext) }.getOrDefault(false)
+        mutableState.value = mutableState.value.copy(available = available,
+            onDevice = if (mutableState.value.isListening) mutableState.value.onDevice else local)
+    }
+
     private fun updateLanguageAvailability() {
-        val available = mutableState.value.ttsReady && ttsSupportsLocale(selectedLanguage,
-            runCatching { tts?.isLanguageAvailable(Locale.forLanguageTag(selectedLanguage)) }.getOrNull())
+        val available = mutableState.value.ttsReady && when (chooseSpeechVoice(selectedLanguage, selectedVoice,
+            mutableVoices.value, runCatching { tts?.isLanguageAvailable(voiceLocale(selectedLanguage)) }.getOrNull())) {
+            is SpeechVoiceChoice.Named, SpeechVoiceChoice.EngineLanguageDefault -> true
+            SpeechVoiceChoice.LanguageUnavailable, SpeechVoiceChoice.ExplicitNetworkVoiceRequired -> false
+        }
         mutableState.value = mutableState.value.copy(languageReady = available, language = selectedLanguage)
     }
 
@@ -132,6 +197,7 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
     ) = onMain {
         if (closed || mutableState.value.isListening) return@onMain
         if (!mayUseSessionAudio()) return@onMain
+        refreshRecognitionAvailability()
         if (!mutableState.value.available) {
             mutableState.value = mutableState.value.copy(error = "Nenhum serviço de reconhecimento de fala está instalado neste aparelho.")
             return@onMain
@@ -139,7 +205,7 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
         stopSpeakingInternal()
         resultCallback = onResult
         endCallback = onEnd
-        beginRecognition(language, preferOnDevice = true)
+        beginRecognition(voiceLocale(language).toLanguageTag(), preferOnDevice = true)
     }
 
     private fun beginRecognition(language: String, preferOnDevice: Boolean) {
@@ -286,6 +352,11 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
         if (!mayUseSessionAudio()) return@onMain
         val engine = tts
         if (engine == null || !mutableState.value.ttsReady) {
+            if (initialization.phase == VoiceInitialization.Phase.FAILED) {
+                mutableState.value = mutableState.value.copy(preparingSpeech = false,
+                    error = "A voz do Android não está pronta. Confira as configurações de texto para fala e volte ao NEXUS para tentar novamente.")
+                return@onMain
+            }
             queuedSpeech = QueuedSpeech(text, language, rate, voiceName, pitch, onDone)
             speechInitializationTimeout?.let(main::removeCallbacks)
             val timeout = Runnable {
@@ -307,7 +378,7 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
             selectedLanguage = language
             refreshVoices()
             updateLanguageAvailability()
-            val languageAvailability = engine.setLanguage(Locale.forLanguageTag(language))
+            val languageAvailability = engine.setLanguage(voiceLocale(language))
             val metadata = engine.voices.orEmpty().map { VoiceOption(it.name, it.name,
                 it.locale.toLanguageTag(), it.isNetworkConnectionRequired) }
             val requestedVoice = voiceName.takeIf { it.isNotBlank() } ?: selectedVoice
@@ -338,11 +409,19 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
             }
             engine.setSpeechRate(if (rate.isFinite()) rate.coerceIn(0.5f, 2f) else 1f)
             engine.setPitch(if (pitch.isFinite()) pitch.coerceIn(0.5f, 2f) else 1f)
+            if (!acquireSpeechFocus()) {
+                mutableState.value = mutableState.value.copy(error = "Outra aplicação está usando o áudio. Aguarde e tente ouvir a resposta novamente.")
+                return@onMain
+            }
             val chunks = speechChunks(text)
             val id = UUID.randomUUID().toString()
             activeSpeechPrefix = id
             finalUtterance = "$id-${chunks.lastIndex}"
+            chunkLengths = chunks.mapIndexed { index, chunk -> "$id-$index" to chunk.length }.toMap()
+            activeSpeechRate = rate
+            activeChunk = null
             speechDone = onDone
+            armSpeechProgressTimeout(15_000L)
             mutableState.value = mutableState.value.copy(isSpeaking = true, error = null)
             for ((index, chunk) in chunks.withIndex()) {
                 val result = engine.speak(chunk, if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null, "$id-$index")
@@ -370,7 +449,37 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
         return false
     }
 
+    private fun acquireSpeechFocus(): Boolean {
+        val granted = audioManager.requestAudioFocus(focusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        focusHeld = granted
+        return granted
+    }
+
+    private fun releaseSpeechFocus() {
+        if (focusHeld) {
+            focusHeld = false
+            runCatching { audioManager.abandonAudioFocusRequest(focusRequest) }
+        }
+    }
+
+    private fun armSpeechProgressTimeout(delayMillis: Long) {
+        speechProgressTimeout?.let(main::removeCallbacks)
+        val prefix = activeSpeechPrefix
+        val timeout = Runnable {
+            if (!closed && prefix != null && prefix == activeSpeechPrefix && finalUtterance != null) {
+                stopSpeakingInternal()
+                mutableState.value = mutableState.value.copy(error = "O mecanismo de voz não confirmou a reprodução. A leitura foi encerrada; confira o áudio e tente novamente.")
+            }
+        }
+        speechProgressTimeout = timeout
+        main.postDelayed(timeout, delayMillis)
+    }
+
     private fun stopSpeakingInternal() {
+        speechProgressTimeout?.let(main::removeCallbacks)
+        speechProgressTimeout = null
+        activeChunk = null
+        chunkLengths = emptyMap()
         queuedSpeech = null
         speechInitializationTimeout?.let(main::removeCallbacks)
         speechInitializationTimeout = null
@@ -379,6 +488,7 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
         activeSpeechPrefix = null
         speechDone = null
         runCatching { tts?.stop() }
+        releaseSpeechFocus()
         mutableState.value = mutableState.value.copy(isSpeaking = false)
     }
 
@@ -390,9 +500,17 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
             finalUtterance = null
             activeSpeechPrefix = null
             speechDone = null
+            activeChunk = null
+            chunkLengths = emptyMap()
+            speechProgressTimeout?.let(main::removeCallbacks)
+            speechProgressTimeout = null
             if (error != null) runCatching { tts?.stop() }
+            releaseSpeechFocus()
             mutableState.value = mutableState.value.copy(isSpeaking = false, error = error)
             if (error == null) callback?.invoke()
+        } else if (activeChunk == utteranceId) {
+            activeChunk = null
+            armSpeechProgressTimeout(15_000L)
         }
     }
 
@@ -407,6 +525,9 @@ class VoiceController(context: Context, private val backgroundSessionOwner: Bool
     override fun close() = onMain {
         if (!closed) {
             closed = true
+            initialization.close()
+            engineInitializationTimeout?.let(main::removeCallbacks)
+            engineInitializationTimeout = null
             stopListeningInternal()
             stopSpeakingInternal()
             runCatching { tts?.shutdown() }
@@ -441,13 +562,13 @@ data class VoiceOption(val name: String, val label: String, val language: String
 
 /** Country is significant: a Brazilian Portuguese request cannot silently select pt-PT. */
 internal fun voiceMatchesLanguage(voiceTag: String, requestedTag: String): Boolean {
-    val voice = Locale.forLanguageTag(voiceTag)
-    val requested = Locale.forLanguageTag(requestedTag)
+    val voice = voiceLocale(voiceTag)
+    val requested = voiceLocale(requestedTag)
     return requested.language.isNotBlank() && requested.language == voice.language &&
         (requested.country.isBlank() || requested.country == voice.country)
 }
 
-internal fun speechChunks(text: String, limit: Int = TextToSpeech.getMaxSpeechInputLength() - 1): List<String> {
+internal fun speechChunks(text: String, limit: Int = minOf(600, TextToSpeech.getMaxSpeechInputLength() - 1)): List<String> {
     require(limit >= 2)
     val chunks = mutableListOf<String>()
     var remaining = text.trim()

@@ -34,6 +34,12 @@ def extension_report():
                 "syntheticUserDataPreserved")}}
 
 
+def boundary_report():
+    return {"schemaVersion": 1, "executionStatus": "passed", "androidApi": 29,
+            **{key: True for key in ("cameraPermissionRemainedDenied", "realServiceRejectedDeniedCamera",
+                                    "serviceStopped", "persistentCameraNotificationAbsent", "voiceStayedInactive")}}
+
+
 def instrumentation(report, *, key="nexus_core_report", tests=2):
     encoded = base64.b64encode(json.dumps(report).encode()).decode()
     return f"INSTRUMENTATION_STATUS: {key}={encoded}\nINSTRUMENTATION_STATUS_CODE: 0\n\n" \
@@ -99,6 +105,19 @@ class EvidenceDecoderTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             runner.validate_core(observed | {"mouseScreenWaitsForExplicitActivation": False})
 
+    def test_global_denial_requires_explicit_observations_and_compatible_api(self):
+        runner.validate_global_boundary(boundary_report())
+        for field in boundary_report():
+            if field in ("schemaVersion", "executionStatus"):
+                continue
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                runner.validate_global_boundary(boundary_report() | {field: None})
+        for api in (True, 25, "29"):
+            with self.subTest(api=api), self.assertRaises(ValueError):
+                runner.validate_global_boundary(boundary_report() | {"androidApi": api})
+        with self.assertRaises(ValueError):
+            runner.validate_global_boundary(boundary_report() | {"cameraPermissionRemainedDenied": 1})
+
     def test_optional_data_requires_actual_download_native_engine_and_safe_removal(self):
         for key in extension_report():
             if key in ("schemaVersion", "executionStatus"):
@@ -122,6 +141,7 @@ class DisposableDeviceRunnerTest(unittest.TestCase):
         self.emulator = True
         self.installed = False
         self.failed = False
+        self.missing_boundary = False
         self.network = {"wifi": "0", "data": "1"}
         change = patch.object(runner, "ROOT", self.root)
         change.start()
@@ -146,9 +166,18 @@ class DisposableDeviceRunnerTest(unittest.TestCase):
             if runner.CORE_CLASSES in args:
                 self.assertEqual(self.network, {"wifi": "0", "data": "0"})
                 self.assertIn("nexusCoreSmoke", args)
+                self.assertIn("nexusGlobalBoundarySmoke", args)
+                self.assertIn("nexusSceneSmoke", args)
+                self.assertIn(f"{runner.APP_ID}.gestures.SceneRenderingTest", runner.CORE_CLASSES)
+                self.assertEqual(runner.CORE_EXPECTED_TESTS, 12)
+                self.assertIn(f"{runner.APP_ID}.gestures.global.GlobalMousePermissionDenialTest", runner.CORE_CLASSES)
                 if self.failed:
                     return instrumentation(core_report() | {"executionStatus": "failed"}, tests=runner.CORE_EXPECTED_TESTS).encode()
-                return instrumentation(core_report(), tests=runner.CORE_EXPECTED_TESTS).encode()
+                output = instrumentation(core_report(), tests=runner.CORE_EXPECTED_TESTS)
+                if not self.missing_boundary:
+                    encoded = base64.b64encode(json.dumps(boundary_report()).encode()).decode()
+                    output = f"INSTRUMENTATION_STATUS: nexus_global_boundary_report={encoded}\n" + output
+                return output.encode()
             self.assertIn(runner.EXTENSION_CLASS, args)
             self.assertEqual(self.network, {"wifi": "1", "data": "1"})
             self.assertIn("nexusExtensionSmoke", args)
@@ -184,16 +213,25 @@ class DisposableDeviceRunnerTest(unittest.TestCase):
     def test_core_only_is_offline_and_restores_network_without_optional_download(self):
         with patch.object(runner, "adb", side_effect=self.adb):
             reports = runner.run(self.output, allow_reset_emulator=True)
-        self.assertEqual(reports, {"core": core_report()})
+        self.assertEqual(reports, {"core": core_report(), "globalBoundary": boundary_report()})
         self.assertEqual(self.network, {"wifi": "0", "data": "1"})
         self.assertFalse(any("push" in args or "run-as" in args or "-g" in args or "clear" in args for args in self.calls))
         self.assertEqual(len([args for args in self.calls if "instrument" in args]), 1)
         self.assertEqual(ET.parse(self.output / "junit.xml").getroot().get("failures"), "0")
 
+    def test_missing_global_denial_report_cannot_pass_or_start_extension_downloads(self):
+        self.missing_boundary = True
+        with patch.object(runner, "adb", side_effect=self.adb), self.assertRaises(ValueError):
+            runner.run(self.output, allow_reset_emulator=True, with_extensions=True)
+        self.assertFalse((self.output / "global-boundary-observations.json").exists())
+        self.assertEqual(len([args for args in self.calls if "instrument" in args]), 1)
+        self.assertEqual(ET.parse(self.output / "junit.xml").getroot().get("failures"), "1")
+        self.assertEqual(self.network, {"wifi": "0", "data": "1"})
+
     def test_extensions_run_only_after_core_in_explicit_online_stage(self):
         with patch.object(runner, "adb", side_effect=self.adb):
             reports = runner.run(self.output, allow_reset_emulator=True, with_extensions=True)
-        self.assertEqual(reports, {"core": core_report(), "extensions": extension_report()})
+        self.assertEqual(reports, {"core": core_report(), "globalBoundary": boundary_report(), "extensions": extension_report()})
         self.assertEqual(self.network, {"wifi": "0", "data": "1"})
         self.assertEqual(json.loads((self.output / "extension-observations.json").read_text()), extension_report())
 

@@ -28,7 +28,9 @@ import br.com.nexus.assistant.device.DevicePolicy
 import br.com.nexus.assistant.device.TrackingProfile
 import br.com.nexus.assistant.gestures.global.GlobalMousePanel
 import br.com.nexus.assistant.gestures.global.GlobalMouseRuntime
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class GestureMode { MOUSE, HANDS, CUBE }
@@ -225,37 +227,49 @@ private fun CubeScreen() {
         }
         return
     }
-    val controller = remember { CubeController() }
+    val controller = remember { SceneController() }
+    val store = remember(context) { SceneStore(context) }
+    val scope = rememberCoroutineScope()
     val previewPrefs = remember { context.getSharedPreferences("nexus_gestures", Context.MODE_PRIVATE) }
     var showPreview by remember { mutableStateOf(previewPrefs.getBoolean("cube_show_preview", false)) }
-    var cube by remember { mutableStateOf(controller.state) }
+    var scene by remember { mutableStateOf(controller.state) }
     var active by remember { mutableStateOf(false) }
     var front by remember { mutableStateOf(capabilities.hasFrontCamera) }
     var rotate by remember { mutableStateOf(false) }
     var frame by remember { mutableStateOf(HandFrame()) }
     var error by remember { mutableStateOf<String?>(null) }
+    var notice by remember { mutableStateOf<String?>(null) }
+    var saving by remember { mutableStateOf(false) }
     val global by GlobalMouseRuntime.state.collectAsState()
+    fun edit(change: () -> SceneState) {
+        try { scene = change(); error = null; notice = null }
+        catch (failure: IllegalArgumentException) { error = failure.message ?: "Não foi possível alterar a cena." }
+    }
+    fun stopCamera() { active = false; frame = HandFrame(); scene = controller.release() }
     fun startCamera() {
         if (!policy.handTrackingSupported || GlobalMouseRuntime.state.value.active) return
-        active = true; frame = HandFrame(); cube = controller.release(); error = null
+        active = true; frame = HandFrame(); scene = controller.release(); error = null
     }
     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) startCamera()
-        else error = "A câmera não foi autorizada. Você pode explorar o cubo manualmente e habilitar a permissão nas configurações do Android quando desejar."
+        else error = "A câmera não foi autorizada. Os controles manuais da cena continuam disponíveis."
     }
-    StopOnBackground { frame = HandFrame(); cube = controller.release() }
+    StopOnBackground { frame = HandFrame(); scene = controller.release() }
     GestureColumn {
         Text("NEXUS 3D · OpenGL ES", style = MaterialTheme.typography.titleLarge)
-        Text("Comece a pinça sobre o cubo para segurá-lo. Solte para liberar. Uma mão move ou gira. Duas pinças sobre o objeto ampliam, reduzem, giram e deslocam. Perder a mão solta o cubo.")
+        Text("Comece uma pinça sobre um objeto para segurá-lo. Solte para liberar. Uma mão move ou gira. Duas pinças sobre o mesmo objeto ampliam, reduzem, giram e deslocam. Perder a mão solta o objeto.")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
-                if (active) { active = false; frame = HandFrame(); cube = controller.release() }
+                if (active) stopCamera()
                 else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
                 else cameraPermission.launch(Manifest.permission.CAMERA)
-            }, enabled = active || !global.active && policy.handTrackingSupported) { Text(if (active) "Parar câmera" else "Iniciar câmera") }
-            OutlinedButton(onClick = { front = !front; frame = HandFrame(); cube = controller.release() }, enabled = capabilities.hasFrontCamera && capabilities.hasRearCamera) { Text("Trocar câmera") }
+            }, enabled = !saving && (active || !global.active && policy.handTrackingSupported)) {
+                Text(if (active) "Parar câmera" else "Iniciar câmera")
+            }
+            OutlinedButton(onClick = { front = !front; frame = HandFrame(); scene = controller.release() },
+                enabled = !saving && capabilities.hasFrontCamera && capabilities.hasRearCamera) { Text("Trocar câmera") }
         }
-        if (!policy.handTrackingSupported) Text("Rastreamento de mãos indisponível neste aparelho. A exploração manual do cubo continua disponível.")
+        if (!policy.handTrackingSupported) Text("Rastreamento de mãos indisponível neste aparelho. A exploração manual da cena continua disponível.")
         else Text("Duas mãos habilitadas: o rastreador reduz resolução e frequência em perfis econômicos. A viabilidade e o atraso precisam ser medidos no aparelho; use uma mão se necessário.", style = MaterialTheme.typography.bodySmall)
         if (global.active) Text("O mouse global está usando a câmera. Pare essa sessão antes de iniciar o rastreamento 3D; o controle manual continua disponível.")
         Row {
@@ -266,25 +280,90 @@ private fun CubeScreen() {
         Box(Modifier.fillMaxWidth().height(340.dp).background(Color.Black).border(1.dp, Color(0xFF31E7FA))
             .onSizeChanged { controller.aspect = it.width.toFloat() / it.height.coerceAtLeast(1) }) {
             if (active) HandCamera(front, Modifier.fillMaxSize(), onFrame = {
-                frame = it; cube = controller.update(it, rotate, .35f)
-            }, onError = { error = it; active = false; cube = controller.release() }, requestedHands = 2, showPreview = showPreview)
+                frame = it; scene = controller.update(it, rotate, .35f)
+            }, onError = { message -> stopCamera(); error = message }, requestedHands = 2, showPreview = showPreview)
             HandSkeleton(frame, Modifier.fillMaxSize())
-            CubeScene(cube, Modifier.fillMaxSize())
+            SceneView(scene, Modifier.fillMaxSize(), onRenderError = { message -> stopCamera(); error = message })
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        notice?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+        val selected = scene.selectedObject
         Text(when {
-            cube.bimanual -> "Selecionado com duas mãos"
-            cube.selected -> "Selecionado · ${if (rotate) "girando" else "movendo"}"
-            else -> "Objeto livre · comece uma nova pinça sobre ele"
+            selected?.transform?.bimanual == true -> "${selected.shape.label} · segurado com duas mãos"
+            selected?.transform?.selected == true -> "${selected.shape.label} · ${if (rotate) "girando" else "movendo"}"
+            selected != null -> "${selected.shape.label} selecionado · comece uma nova pinça sobre ele"
+            else -> "Cena vazia · crie um objeto abaixo"
         })
         Text(if (active) "Câmera ativa · ${frame.hands.size} mão(s) · ${frame.processingMs} ms" else "Câmera desligada · controle manual disponível")
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { rotate = !rotate; cube = controller.release() }) { Text(if (rotate) "Modo: girar" else "Modo: mover") }
-            OutlinedButton(onClick = { cube = controller.reset() }) { Text("Reiniciar") }
+        Text("Objetos: ${scene.objects.size}/${SceneState.MAX_OBJECTS}", style = MaterialTheme.typography.titleSmall)
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SceneShape.entries.forEach { shape ->
+                OutlinedButton(onClick = { edit { controller.create(shape) } },
+                    enabled = !saving && scene.objects.size < SceneState.MAX_OBJECTS) { Text("+ ${shape.label}") }
+            }
         }
-        Text("Explorar rotação manual")
-        Slider(cube.yaw.coerceIn(-3.14f, 3.14f), { cube = controller.setManualYaw(it) }, valueRange = -3.14f..3.14f)
-        Text("Renderização 3D real sobre a câmera. Sem posicionamento espacial de realidade aumentada. O cubo não gera toques de mouse.", style = MaterialTheme.typography.bodySmall)
+        if (scene.objects.isNotEmpty()) {
+            Text("Selecionar objeto")
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                scene.objects.forEachIndexed { index, item ->
+                    FilterChip(selected = selected?.id == item.id, onClick = { edit { controller.select(item.id) } },
+                        enabled = !saving, label = { Text("${index + 1} · ${item.shape.label}") })
+                }
+            }
+        }
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { edit { controller.duplicateSelected() } },
+                enabled = !saving && selected != null && scene.objects.size < SceneState.MAX_OBJECTS) { Text("Duplicar") }
+            OutlinedButton(onClick = { edit { controller.deleteSelected() } }, enabled = !saving && selected != null) { Text("Excluir objeto") }
+            OutlinedButton(onClick = { edit { controller.release() } }, enabled = !saving && selected?.transform?.selected == true) { Text("Soltar objeto") }
+        }
+        if (selected != null) {
+            Text("Cor do objeto")
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Ciano" to 0xFF31E7FA.toInt(), "Azul" to 0xFF548BFF.toInt(), "Rosa" to 0xFFFF69CD.toInt(),
+                    "Verde" to 0xFF70E995.toInt(), "Dourado" to 0xFFFFC75B.toInt()).forEach { (label, color) ->
+                    FilterChip(selected = selected.colorArgb == color, onClick = { edit { controller.setSelectedColor(color) } },
+                        enabled = !saving, label = { Text(label) })
+                }
+            }
+            Text("Rotação manual")
+            Slider(selected.transform.yaw.coerceIn(-3.14f, 3.14f), { edit { controller.setManualYaw(it) } },
+                enabled = !saving, valueRange = -3.14f..3.14f)
+            Text("Tamanho manual")
+            Slider(selected.transform.scale, { edit { controller.setManualScale(it) } }, enabled = !saving, valueRange = .1f.. .65f)
+        }
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { rotate = !rotate; scene = controller.release() }, enabled = !saving) {
+                Text(if (rotate) "Modo: girar" else "Modo: mover")
+            }
+            OutlinedButton(onClick = { edit { controller.reset() } }, enabled = !saving) { Text("Reiniciar cena") }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = {
+                val snapshot = controller.release().also { scene = it }
+                saving = true; error = null; notice = null
+                scope.launch {
+                    try { store.save(snapshot); notice = "Cena salva somente neste aparelho." }
+                    catch (cancelled: CancellationException) { throw cancelled }
+                    catch (failure: Exception) { error = failure.message ?: "Não foi possível salvar a cena." }
+                    finally { saving = false }
+                }
+            }, enabled = !saving) { Text("Salvar cena") }
+            OutlinedButton(onClick = {
+                stopCamera(); saving = true; error = null; notice = null
+                scope.launch {
+                    try {
+                        val saved = store.load()
+                        if (saved == null) notice = "Nenhuma cena foi salva ainda."
+                        else { scene = controller.restore(saved); notice = "Cena local aberta. Inicie a câmera quando desejar." }
+                    } catch (cancelled: CancellationException) { throw cancelled }
+                    catch (failure: Exception) { error = failure.message ?: "Não foi possível abrir a cena." }
+                    finally { saving = false }
+                }
+            }, enabled = !saving) { Text("Abrir cena") }
+        }
+        if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
+        Text("Renderização 3D real sobre a câmera. Sem posicionamento espacial de realidade aumentada. Até 12 objetos; uma seleção por vez. O controle 3D não gera toques de mouse. Salvar mantém um arquivo privado da cena, sem imagens da câmera.", style = MaterialTheme.typography.bodySmall)
     }
 }
 

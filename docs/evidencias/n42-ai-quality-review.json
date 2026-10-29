@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "evaluationDateUtc": "2026-10-29",
+  "scope": "Real host-CPU text generation with synthetic conversations. Source runtime hashes, model hashes, exact prompts and actual output are in each artifact. Codex read the raw output against the request; this is not an independent human review, Android/A03 benchmark or Play Protect approval.",
+  "totalExecutedTextGenerations": 53,
+  "full15CaseSuiteRerun": false,
+  "overallGeneralAiApproved": false,
+  "catalogPromotions": [],
+  "bundledModelBytesAddedToCore": 0,
+  "suites": [
+    {
+      "artifact": "n42-qwen25-1p5b-critical-ab.json",
+      "artifactSha256": "7c31cae0ca28f5275c19345bd613b9ca966d49cf7db39dc5b718487aad7335d1",
+      "model": "Qwen2.5 1.5B Instruct Q4_K_M",
+      "modelBytes": 1117320736,
+      "executedGenerations": 10,
+      "executionStatus": "completed",
+      "sumGenerationWallMs": 45157,
+      "approvedForGeneralAssistant": false,
+      "observedFailures": [
+        "production_baseline_prompt:03_apology",
+        "production_baseline_prompt:12_typo_apology",
+        "portuguese_task_prompt:03_apology",
+        "portuguese_task_prompt:12_typo_apology"
+      ],
+      "hostPeakResidentKiB": 1824456
+    },
+    {
+      "artifact": "n42-qwen35-2b-production-baseline.json",
+      "artifactSha256": "fd1ac74ce5ddf7a32cbf640010aecf81f069a0de90c3c2398099e17a526d5cd6",
+      "model": "Qwen3.5 2B Q4_K_M, legacy prefix",
+      "modelBytes": 1280835840,
+      "executedGenerations": 5,
+      "executionStatus": "completed",
+      "sumGenerationWallMs": 71856,
+      "approvedForGeneralAssistant": false,
+      "observedFailures": [
+        "03_apology:thinking/truncation",
+        "12_typo_apology:thinking/truncation",
+        "09_camera:false visual access"
+      ]
+    },
+    {
+      "artifact": "n42-qwen35-2b-correct-prefix.json",
+      "artifactSha256": "ec29f2d117afc82e3b8e092fc3873395e256b77c809bad31f7dbae66b32f3357",
+      "model": "Qwen3.5 2B Q4_K_M, official nonthinking prefix",
+      "modelBytes": 1280835840,
+      "executedGenerations": 10,
+      "executionStatus": "completed",
+      "sumGenerationWallMs": 107033,
+      "approvedForGeneralAssistant": false,
+      "observedFailures": [
+        "production_baseline_prompt:12_typo_apology",
+        "portuguese_task_prompt:03_apology",
+        "portuguese_task_prompt:12_typo_apology",
+        "portuguese_task_prompt:09_camera"
+      ],
+      "hostPeakResidentKiB": 1902432
+    },
+    {
+      "artifact": "n42-qwen35-2b-official-server-control.json",
+      "artifactSha256": "f260433768c13cd411471873852c30f2bc23b6fb202c80e469cb4235c2042468",
+      "model": "Qwen3.5 2B Q4_K_M, direct official Jinja server",
+      "modelBytes": 1280835840,
+      "executedGenerations": 6,
+      "executionStatus": "completed",
+      "sumGenerationWallMs": 57552,
+      "approvedForGeneralAssistant": false,
+      "observedFailures": [
+        "portuguese_task_prompt:03_apology",
+        "portuguese_task_prompt:12_typo_apology",
+        "portuguese_task_prompt:09_camera",
+        "minimal_pt:03_apology",
+        "minimal_pt:12_typo_apology"
+      ]
+    },
+    {
+      "artifact": "n42-qwen3-4b-critical-heldout.json",
+      "artifactSha256": "4e4e131630362b0f0be313e95ace7d55c379e1459babbdad748c578d30a7d7bc",
+      "model": "Qwen3 4B Instruct 2507 Q4_K_M",
+      "modelBytes": 2497281120,
+      "executedGenerations": 10,
+      "executionStatus": "completed",
+      "sumGenerationWallMs": 202191,
+      "approvedForGeneralAssistant": false,
+      "observedFailures": [
+        "03_apology:no draft",
+        "12_typo_apology:no draft",
+        "16_heldout_message:invented cause and signature",
+        "17_heldout_code:token limit"
+      ],
+      "hostPeakResidentKiB": 4510164
+    },
+    {
+      "artifact": "n42-qwen3-4b-direct-writing.json",
+      "artifactSha256": "268a20adefb8c9fda87e28189c68c841e41b66e1248552d1d54c2a5736fd2330",
+      "model": "Qwen3 4B Instruct 2507 Q4_K_M, direct writing prompt",
+      "modelBytes": 2497281120,
+      "executedGenerations": 12,
+      "executionStatus": "completed",
+      "sumGenerationWallMs": 346069,
+      "approvedForGeneralAssistant": false,
+      "observedFailures": [
+        "12_typo_apology:wrong task (description)",
+        "16_heldout_message:invented cause and signature",
+        "17_heldout_code:token limit"
+      ],
+      "hostPeakResidentKiB": 4510172
+    }
+  ],
+  "refined4bReview": [
+    {
+      "caseId": "01_user_name",
+      "verdict": "pass",
+      "reason": "Identifies Calebe as the user and NEXUS as the assistant."
+    },
+    {
+      "caseId": "02_assistant_name",
+      "verdict": "pass",
+      "reason": "Identifies NEXUS."
+    },
+    {
+      "caseId": "03_apology",
+      "verdict": "pass_with_limits",
+      "reason": "Now produces a generic usable apology before optional personalization; prose remains generic and does not establish general reliability."
+    },
+    {
+      "caseId": "12_typo_apology",
+      "verdict": "fail",
+      "reason": "Interprets the apology request as a description request and asks about product/profile descriptions."
+    },
+    {
+      "caseId": "09_camera",
+      "verdict": "pass",
+      "reason": "Explicitly denies camera/images access for this text-only session."
+    },
+    {
+      "caseId": "16_heldout_message",
+      "verdict": "fail",
+      "reason": "Despite explicit no invented reason, invents unanswered messages/disorganization and inserts Calebe signature."
+    },
+    {
+      "caseId": "17_heldout_code",
+      "verdict": "fail_incomplete",
+      "reason": "Explains append returns None correctly but hits the real 512-token limit with unfinished response; no repaired ending."
+    },
+    {
+      "caseId": "18_heldout_math",
+      "verdict": "pass",
+      "reason": "Computes multiplication first, then 50+50+2500=2600. This is model-only; app arithmetic tool has separate tests."
+    },
+    {
+      "caseId": "19_heldout_transform",
+      "turn": 1,
+      "verdict": "pass",
+      "reason": "Writes two sentences of thanks for a meeting."
+    },
+    {
+      "caseId": "19_heldout_transform",
+      "turn": 2,
+      "verdict": "pass",
+      "reason": "Uses actual prior answer and makes it shorter and more informal."
+    },
+    {
+      "caseId": "20_heldout_short_text",
+      "verdict": "pass",
+      "reason": "Writes short generic gratitude without names or a specific invented action; unvalidated as a broad writing skill."
+    },
+    {
+      "caseId": "21_heldout_uncertainty",
+      "verdict": "pass",
+      "reason": "Denies the ability to guarantee a future lottery result and explains randomness."
+    }
+  ],
+  "native4bTiming": {
+    "nativeFirstTokenIncludes": "prefill, wait for generation lock and lazy mmap page faults; excludes model load and Kotlin prompt construction",
+    "firstColdTokenMs": 29801,
+    "medianWarmFirstTokenMs": 1352,
+    "minTotalMs": 1685,
+    "maxTotalMs": 125476,
+    "hostPeakResidentKiB": 4510172,
+    "limits": "Raw measurements on a development host; concurrent compilation affects wall time. No Android/A03 speedup is established."
+  },
+  "defaultAiDependency": "No developer-hosted production AI endpoint, protected operator credentials or user authentication service is provisioned in this environment. Existing external-provider integration requires explicit configuration/consent. These host model processes are test fixtures only and are not a deployed NEXUS service.",
+  "decisions": [
+    "Do not add 2B or 4B weights to CORE or promote these candidates as approved.",
+    "4B host peak RSS is about 4.30 GiB before Android runtime/camera; do not recommend it automatically to the A03.",
+    "Keep original real failures and unmodified generated text; no canned apology, typo rewrite or repetition removal has been introduced.",
+    "Treat multimodal pipeline verification separately from general language quality."
+  ]
+}

@@ -192,6 +192,11 @@ private class PointerGestures(private val service: NexusAccessibilityService) {
     }
 
     fun accept(event: MouseEvent) {
+        val session = GlobalMouseRuntime.state.value
+        if (!session.active || session.paused) {
+            cancel()
+            return
+        }
         when (event) {
             is MouseEvent.Tap -> {
                 // The first short pinch already dispatched a tap. Dispatching this second
@@ -222,6 +227,16 @@ private class PointerGestures(private val service: NexusAccessibilityService) {
     }
 
     private fun pump() {
+        // A callback from Android may arrive between PARAR/PAUSAR and the
+        // Service's asynchronous destruction. It may release an existing stroke,
+        // but must never start a queued tap/down after consent has ended.
+        val session = GlobalMouseRuntime.state.value
+        if (!session.active || session.paused) {
+            pendingTap = null
+            pendingDown = null
+            pendingMove = null
+            if (stroke != null) finishing = true
+        }
         if (inFlight) return
         val current = stroke
         if (current != null) {

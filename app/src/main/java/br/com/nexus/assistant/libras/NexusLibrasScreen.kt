@@ -137,6 +137,8 @@ fun NexusLibrasScreen() {
                 runCatching {
                     val json = JSONObject().put("module", "NEXUS Libras · preparação")
                         .put("notASignLanguageAssessment", true)
+                        .put("studiedLessons", JSONArray(snapshot.studiedLessons.sorted()))
+                        .put("lessonProgressIsReadingAndConceptReview", true)
                         .put("completedExercises", JSONArray(snapshot.completed.sorted()))
                         .put("sessionsStarted", snapshot.sessions).put("stableHolds", snapshot.completions)
                         .put("lastCompletedAt", snapshot.lastCompletedAt).toString(2)
@@ -183,6 +185,13 @@ fun NexusLibrasScreen() {
                 Text("Os exercícios e esquemas são próprios. O algoritmo ainda precisa de validação com pessoas sinalizantes e educadores; o resultado não é uma correção linguística.", style = MaterialTheme.typography.bodySmall)
             }
         }
+        LessonLibrary(progress, onStudied = { lesson ->
+            scope.launch {
+                runCatching { repository.recordLessonStudied(lesson) }
+                    .onSuccess { feedback = "Leitura e revisão conceitual registradas. Isso não certifica conhecimento de Libras." }
+                    .onFailure { feedback = "Não consegui salvar a leitura. A aula continua disponível; tente novamente." }
+            }
+        }, onSourceError = { feedback = it })
         if (!letterPractice && !freeMode) PreparationExercise.entries.forEach { exercise ->
             OutlinedButton(onClick = {
                 gate.reset(); selected = exercise; completedThisSession = false; observedConfiguration = null
@@ -200,6 +209,7 @@ fun NexusLibrasScreen() {
             }
             Text("Alvo: ${selectedLetter.name} · treino experimental", style = MaterialTheme.typography.titleMedium)
             Text(selectedLetter.instruction)
+            ManualConfigurationIllustration(selectedLetter)
             Text("A correspondência verifica uma geometria limitada, não correção linguística. Ela não concede conquista ou certificação de Libras.", style = MaterialTheme.typography.bodySmall)
         } else if (freeMode) {
             Text("Mostre uma configuração de L, V ou Y. A hipótese estável aparece no canto da câmera; sem hipótese clara, nenhuma letra é exibida.", style = MaterialTheme.typography.bodyMedium)
@@ -281,11 +291,28 @@ fun NexusLibrasScreen() {
             }
         }
         Text(feedback, color = if (completedThisSession && !freeMode && !letterPractice || letterMatched) NexusCyan else MaterialTheme.colorScheme.onSurface)
+        if (running && !freeMode && !letterPractice) {
+            val currentAssessment = remember(frame, selected) { LibrasPracticeEvaluator.evaluate(frame.hands, selected) }
+            if (currentAssessment.fingers.isNotEmpty()) Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Observação geométrica por dedo", style = MaterialTheme.typography.titleSmall)
+                    currentAssessment.fingers.forEach { finger ->
+                        Text("${finger.finger}: ${finger.posture.label}. ${finger.message}", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("O polegar e os outros parâmetros de um sinal não são avaliados aqui.", style = MaterialTheme.typography.labelSmall)
+                }
+            }
+            if (completedThisSession) OutlinedButton(onClick = {
+                gate.reset(); completedThisSession = false; observedConfiguration = null
+                feedback = "Nova repetição: mantenha a configuração novamente. A câmera e a atividade continuam ativas."
+            }) { Text("Repetir este exercício sem parar a câmera") }
+        }
         if (running) Text("${frame.hands.size} mão(s) · análise ${frame.processingMs} ms · o resultado usa geometria, não uma porcentagem de acerto em Libras.", style = MaterialTheme.typography.bodySmall)
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Seu progresso de preparação", style = MaterialTheme.typography.titleMedium)
                 Text("${progress.completed.count { name -> PreparationExercise.entries.any { it.name == name } }} de 2 configurações praticadas • ${progress.sessions} sessões iniciadas • ${progress.completions} posições estáveis")
+                Text("${progress.studiedLessons.size} de ${LibrasLessons.entries.size} aulas lidas e revisadas. Esse registro é separado da avaliação geométrica.", style = MaterialTheme.typography.bodySmall)
                 if (progress.lastCompletedAt > 0L) Text("Último treino: ${DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(progress.lastCompletedAt))}", style = MaterialTheme.typography.bodySmall)
                 if (progress.completed.isNotEmpty()) Text("Conquista de prática: primeiro treino registrado ✓", color = NexusCyan)
                 if (PreparationExercise.entries.all { it.name in progress.completed }) Text("Conquista de prática: duas configurações exploradas ✓", color = NexusCyan)
@@ -296,17 +323,92 @@ fun NexusLibrasScreen() {
         }
         Text("Continue com referências educacionais", style = MaterialTheme.typography.titleMedium)
         Text("Para estudar sinais e sua execução completa, consulte conteúdos do INES e da UFSC. Essas instituições são referências de estudo; não validaram os exercícios nem o reconhecimento deste aplicativo.", style = MaterialTheme.typography.bodySmall)
-        SourceLink("INES · Instituto Nacional de Educação de Surdos", "https://www.ines.gov.br/") { feedback = it }
+        SourceLink("INES · Instituto Nacional de Educação de Surdos", "https://www.gov.br/ines/pt-br") { feedback = it }
         SourceLink("UFSC · estudos de Libras", "https://libras.ufsc.br/") { feedback = it }
         SourceLink(ManualLetterCandidate.REFERENCE_TITLE, ManualLetterCandidate.REFERENCE_URL) { feedback = it }
         Text("A referência descreve aspectos linguísticos e configurações de mão; não valida os limiares deste experimento. Ainda faltam avaliação com educadores e imagens de mãos reais antes de anunciar precisão no reconhecimento de letras.", style = MaterialTheme.typography.bodySmall)
     }
     if (deleteDialog) AlertDialog(onDismissRequest = { deleteDialog = false }, title = { Text("Excluir este progresso?") },
-        text = { Text("As contagens e conquistas de preparação serão apagadas deste aparelho.") },
+        text = { Text("As leituras de aulas, contagens e conquistas de preparação serão apagadas deste aparelho.") },
         confirmButton = { TextButton(onClick = {
             deleteDialog = false
             scope.launch { runCatching { repository.clear() }.onSuccess { feedback = "Progresso de preparação excluído." }.onFailure { feedback = "Não consegui excluir o progresso. Tente novamente." } }
         }) { Text("Excluir") } }, dismissButton = { TextButton(onClick = { deleteDialog = false }) { Text("Cancelar") } })
+}
+
+@Composable
+private fun LessonLibrary(
+    progress: LibrasProgress,
+    onStudied: (LibrasLessonId) -> Unit,
+    onSourceError: (String) -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var selected by rememberSaveable { mutableStateOf(LibrasLessonId.LANGUAGE) }
+    var answer by rememberSaveable(selected) { mutableStateOf<Int?>(null) }
+    val lesson = LibrasLessons.get(selected)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Biblioteca de introdução e revisão", style = MaterialTheme.typography.titleMedium)
+            Text("Três aulas curtas disponíveis offline, com fontes para aprofundar o estudo. Não substituem demonstrações completas ou orientação de educadores.", style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Recolher aulas" else "Abrir aulas e revisão") }
+            if (expanded) {
+                LibrasLessons.entries.forEach { entry ->
+                    OutlinedButton(onClick = { selected = entry.id }, modifier = Modifier.fillMaxWidth()) {
+                        Text((if (selected == entry.id) "✓ " else "") + entry.title +
+                            if (entry.id.name in progress.studiedLessons) " · leitura registrada" else "")
+                    }
+                }
+                Text(lesson.title, style = MaterialTheme.typography.titleMedium)
+                lesson.paragraphs.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                Text("Confira o conceito", style = MaterialTheme.typography.titleSmall)
+                Text(lesson.question)
+                lesson.answers.forEachIndexed { index, text ->
+                    OutlinedButton(onClick = { answer = index }, modifier = Modifier.fillMaxWidth()) {
+                        Text((if (answer == index) "✓ " else "") + text)
+                    }
+                }
+                answer?.let { selectedAnswer ->
+                    Text(if (lesson.acceptsAnswer(selectedAnswer)) "Conceito conferido. ${lesson.explanation}"
+                        else "Revise a explicação. ${lesson.explanation}", style = MaterialTheme.typography.bodySmall)
+                }
+                Button(onClick = { onStudied(lesson.id) }, enabled = answer?.let(lesson::acceptsAnswer) == true) {
+                    Text(if (lesson.id.name in progress.studiedLessons) "Registrar revisão da leitura" else "Registrar leitura e revisão")
+                }
+                SourceLink(lesson.sourceTitle, lesson.sourceUrl, onSourceError)
+                LibrasLessons.nextToStudy(progress.studiedLessons)?.takeIf { it.id != selected }?.let { next ->
+                    TextButton(onClick = { selected = next.id }) { Text("Próxima leitura sugerida: ${next.title}") }
+                }
+                Text("Responder esta pergunta verifica somente o conceito apresentado. Não é avaliação de produção, tradução ou fluência em Libras.", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
+/** Authored finger-configuration schematic, deliberately not a full sign demonstration. */
+@Composable
+private fun ManualConfigurationIllustration(letter: ManualLetterCandidate) {
+    val extended = when (letter) {
+        ManualLetterCandidate.L -> setOf(0, 1)
+        ManualLetterCandidate.V -> setOf(1, 2)
+        ManualLetterCandidate.Y -> setOf(0, 4)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Canvas(Modifier.fillMaxWidth().height(165.dp).background(Color(0xFF071521), RoundedCornerShape(12.dp))
+            .semantics { contentDescription = "Esquema de dedos da configuração experimental ${letter.name}. ${letter.instruction} Não demonstra orientação ou movimento linguístico." }) {
+            fun point(x: Float, y: Float) = Offset(size.width * x, size.height * y)
+            val base = listOf(point(.38f, .73f), point(.43f, .63f), point(.50f, .61f), point(.57f, .64f), point(.64f, .69f))
+            val tips = listOf(point(.21f, .39f), point(.40f, .16f), point(.51f, .11f), point(.62f, .19f), point(.74f, .29f))
+            val folded = listOf(point(.48f, .72f), point(.45f, .73f), point(.51f, .74f), point(.57f, .76f), point(.62f, .79f))
+            val wrist = point(.51f, .92f)
+            base.forEachIndexed { index, start ->
+                drawLine(NexusCyan.copy(alpha = .45f), wrist, start, 6f, StrokeCap.Round)
+                val end = if (index in extended) tips[index] else folded[index]
+                drawLine(if (index in extended) NexusCyan else Color.Gray, start, end, 9f, StrokeCap.Round)
+                drawCircle(if (index in extended) NexusCyan else Color.Gray, 5f, end)
+            }
+        }
+        Text("Esquema original apenas dos dedos estendidos/recolhidos. Observe orientação, localização, movimento e uso em contexto nas referências educacionais; o esquema não demonstra um sinal completo.", style = MaterialTheme.typography.bodySmall)
+    }
 }
 
 @Composable

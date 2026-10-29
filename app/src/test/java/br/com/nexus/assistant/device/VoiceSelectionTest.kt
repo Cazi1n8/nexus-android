@@ -37,4 +37,13 @@ class VoiceSelectionTest {
         assertEquals(SpeechVoiceChoice.Named(brazilian), chooseSpeechVoice("pt-BR", "en", listOf(english, brazilian), 2))
         assertEquals(SpeechVoiceChoice.LanguageUnavailable, chooseSpeechVoice("", null, emptyList(), 2))
     }
+    @Test fun enumeratedBrazilianVoiceWorksEvenWhenTheEngineReportsOnlyGenericLanguageSupport() {
+        val brazilian = voice("samsung-br", "pt-BR")
+        assertEquals(SpeechVoiceChoice.Named(brazilian),
+            chooseSpeechVoice("pt-BR", null, listOf(brazilian), 0))
+        assertEquals(SpeechVoiceChoice.Named(brazilian),
+            chooseSpeechVoice("pt_BR", null, listOf(brazilian), 0))
+        assertFalse(ttsSupportsLocale("pt-BR", 0))
+    }
+
 }

@@ -13,11 +13,23 @@ enum class PreparationExercise(val title: String, val instruction: String) {
 
 enum class PracticeObservation { NO_HAND, MULTIPLE_HANDS, UNUSABLE, ADJUST, MATCH }
 
+enum class PreparationFingerPosture(val label: String) {
+    EXTENDED("estendido"), FLEXED("flexionado"), UNCERTAIN("posição intermediária ou ambígua")
+}
+
+data class PreparationFingerFeedback(
+    val finger: String,
+    val posture: PreparationFingerPosture,
+    /** Instruction about this geometric exercise, never a correction to a Libras sign. */
+    val message: String,
+)
+
 data class PracticeAssessment(
     val observation: PracticeObservation,
     val message: String,
     /** Geometric preparation configuration only; never an inferred letter or sign. */
-    val configuration: PreparationExercise? = null
+    val configuration: PreparationExercise? = null,
+    val fingers: List<PreparationFingerFeedback> = emptyList(),
 )
 
 /**
@@ -28,6 +40,7 @@ data class PracticeAssessment(
 object LibrasPracticeEvaluator {
     private val fingers = listOf(intArrayOf(5, 6, 7, 8), intArrayOf(9, 10, 11, 12),
         intArrayOf(13, 14, 15, 16), intArrayOf(17, 18, 19, 20))
+    private val fingerNames = listOf("Indicador", "Médio", "Anelar", "Mínimo")
 
     /** Free exploration retains the same conservative visibility and ambiguity checks. */
     fun observe(hands: List<TrackedHand>): PracticeAssessment {
@@ -56,18 +69,28 @@ object LibrasPracticeEvaluator {
             }) {
             return PracticeAssessment(PracticeObservation.UNUSABLE, "Aproxime a mão e vire a palma para a câmera. Se houver oclusão, não consigo avaliar.")
         }
-        val matches = fingers.all { f ->
+        val details = fingers.mapIndexed { index, f ->
             val proximalAngle = angle(p[f[0]], p[f[1]], p[f[2]])
             val distalAngle = angle(p[f[1]], p[f[2]], p[f[3]])
             val tipFromWrist = length(p[0], p[f[3]])
             val jointFromWrist = length(p[0], p[f[1]])
-            when (exercise) {
-                PreparationExercise.EXTENDED -> proximalAngle >= 155f && distalAngle >= 150f && tipFromWrist > jointFromWrist * 1.17f
-                PreparationExercise.FLEXED -> proximalAngle <= 125f && tipFromWrist < jointFromWrist * 1.07f
+            val posture = when {
+                proximalAngle >= 155f && distalAngle >= 150f && tipFromWrist > jointFromWrist * 1.17f -> PreparationFingerPosture.EXTENDED
+                proximalAngle <= 125f && tipFromWrist < jointFromWrist * 1.07f -> PreparationFingerPosture.FLEXED
+                else -> PreparationFingerPosture.UNCERTAIN
             }
+            val desired = if (exercise == PreparationExercise.EXTENDED) PreparationFingerPosture.EXTENDED else PreparationFingerPosture.FLEXED
+            PreparationFingerFeedback(fingerNames[index], posture, when {
+                posture == PreparationFingerPosture.UNCERTAIN -> "Não consigo distinguir a flexão com segurança; ajuste o enquadramento e evite oclusão."
+                posture == desired -> "Compatível com o objetivo geométrico deste exercício."
+                exercise == PreparationExercise.EXTENDED -> "Foi observada flexão; neste exercício, estenda este dedo sem forçar."
+                else -> "Foi observada extensão; neste exercício, flexione este dedo sem forçar."
+            })
         }
-        return if (matches) PracticeAssessment(PracticeObservation.MATCH, "Configuração observada: ${exercise.title.lowercase()}. Mantenha a posição sem forçar.", exercise)
-        else PracticeAssessment(PracticeObservation.ADJUST, "A posição ainda está ambígua ou diferente da referência. Ajuste os quatro dedos e mantenha a palma de frente.")
+        val desired = if (exercise == PreparationExercise.EXTENDED) PreparationFingerPosture.EXTENDED else PreparationFingerPosture.FLEXED
+        val matches = details.all { it.posture == desired }
+        return if (matches) PracticeAssessment(PracticeObservation.MATCH, "Configuração observada: ${exercise.title.lowercase()}. Mantenha a posição sem forçar.", exercise, details)
+        else PracticeAssessment(PracticeObservation.ADJUST, "A configuração ainda não corresponde ao objetivo geométrico. Consulte a observação de cada dedo; posições ambíguas não recebem correção linguística.", fingers = details)
     }
 
     private fun squared(v: Float) = v * v

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "scope": "Actual production Kotlin HTTP client on Linux -> NEXUS gateway -> llama-server b11838 with pinned Qwen3.5-2B and image projector. Synthetic fixture, not Android camera, A03, public hosting or general vision certification.",
+  "actualRequests": 3,
+  "technicalFailures": 0,
+  "overallVisionQualityApproved": false,
+  "imageSha256": "08151ebb48f30a6cfbea02168ec0f3c0f1694d64c8d0f75ca08a63a89302853f",
+  "model": {
+    "repository": "unsloth/Qwen3.5-2B-GGUF",
+    "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+    "file": "Qwen3.5-2B-Q4_K_M.gguf",
+    "bytes": 1280835840,
+    "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+    "downloadMilliseconds": 75259,
+    "license": "apache-2.0",
+    "originalRepository": "Qwen/Qwen3.5-2B",
+    "originalRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+    "scope": "Community quantization of public Qwen weights; developer-only real evaluation data, not added to APK or model catalog."
+  },
+  "projector": {
+    "repository": "unsloth/Qwen3.5-2B-GGUF",
+    "revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+    "file": "mmproj-F16.gguf",
+    "sha256": "7035e9cb8d7c6a9681d07eef9a364783e86ea4cd73faab2eabb4f43a101830c7",
+    "bytes": 668227264,
+    "downloadSeconds": 38.43,
+    "scope": "Host evaluation only, not added to APK"
+  },
+  "observations": [
+    {
+      "caseId": "01_real_image",
+      "pixelsArrivedThroughActualModelProtocol": true,
+      "mainObjectIdentified": "hamburger",
+      "unsupportedDetails": [
+        "pork species",
+        "olives",
+        "garlic",
+        "chicken",
+        "specific cheese subtype"
+      ],
+      "verdict": "fails detailed visual grounding; correct coarse object is insufficient"
+    },
+    {
+      "caseId": "01_real_image_followup",
+      "actualPriorImageAndGeneratedAnswerUsed": true,
+      "verdict": "context retained but carries previous false ingredients; not approved"
+    },
+    {
+      "caseId": "02_no_image",
+      "verdict": "ambiguous yes about sent chat content; does not clearly explain absence of live camera/image; not a proven claim of actual camera access"
+    }
+  ],
+  "sourceReport": "n42-vision-remote-model.json",
+  "metrics": [
+    {
+      "caseId": "01_real_image",
+      "turnIndex": 0,
+      "firstTextMs": 23954,
+      "totalMs": 77805,
+      "finishReason": "stop",
+      "exactDeltasEqualFinal": true,
+      "trimmedDeltasEqualFinal": true
+    },
+    {
+      "caseId": "01_real_image",
+      "turnIndex": 1,
+      "firstTextMs": 23281,
+      "totalMs": 119707,
+      "finishReason": "stop",
+      "exactDeltasEqualFinal": true,
+      "trimmedDeltasEqualFinal": true
+    },
+    {
+      "caseId": "02_no_image",
+      "turnIndex": 0,
+      "firstTextMs": 1170,
+      "totalMs": 25185,
+      "finishReason": "stop",
+      "exactDeltasEqualFinal": true,
+      "trimmedDeltasEqualFinal": true
+    }
+  ],
+  "availabilityControlAfterExplicitInputMetadata": {
+    "artifact": "n42-vision-availability-model.json",
+    "technicalFailures": 0,
+    "result": "Still ambiguous yes about chat text, does not clearly deny live camera; semantic approval false",
+    "firstTextMs": 6733,
+    "totalMs": 10779
+  },
+  "temporaryServersStoppedConfirmed": true
+}

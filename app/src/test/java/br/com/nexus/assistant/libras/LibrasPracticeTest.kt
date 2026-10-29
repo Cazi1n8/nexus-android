@@ -85,6 +85,27 @@ class LibrasPracticeTest {
         assertEquals(PracticeObservation.UNUSABLE, observation(edgeOn))
     }
 
+    @Test fun perFingerFeedbackLocatesTheMeasuredMismatchWithoutApprovingTheWholeHand() {
+        val mixed = open.mapIndexed { index, point -> if (index in 9..12) bent[index] else point }
+        val result = LibrasPracticeEvaluator.evaluate(listOf(TrackedHand(mixed)), PreparationExercise.EXTENDED)
+        assertEquals(PracticeObservation.ADJUST, result.observation)
+        assertEquals(null, result.configuration)
+        assertEquals(listOf("Indicador", "Médio", "Anelar", "Mínimo"), result.fingers.map { it.finger })
+        assertEquals(PreparationFingerPosture.FLEXED, result.fingers[1].posture)
+        assertTrue(result.fingers[1].message.contains("estenda"))
+        assertTrue(result.fingers.filterIndexed { index, _ -> index != 1 }.all { it.posture == PreparationFingerPosture.EXTENDED })
+    }
+
+    @Test fun insufficientEvidenceNeverProducesAnInventedFingerCorrection() {
+        val clipped = open.mapIndexed { index, point -> if (index == 8) point.copy(x = .999f) else point }
+        for (hands in listOf(emptyList(), listOf(TrackedHand(open.dropLast(1))),
+                listOf(TrackedHand(open), TrackedHand(bent)), listOf(TrackedHand(clipped)))) {
+            val result = LibrasPracticeEvaluator.evaluate(hands, PreparationExercise.EXTENDED)
+            assertTrue(result.fingers.isEmpty())
+            assertEquals(null, result.configuration)
+        }
+    }
+
     @Test fun stableHoldRequiresDurationAndDistinctFramesAndEmitsOnce() {
         val gate = PracticeHoldGate()
         for (now in 1_000L..2_000L step 200L) assertFalse(gate.update(PracticeObservation.MATCH, now))

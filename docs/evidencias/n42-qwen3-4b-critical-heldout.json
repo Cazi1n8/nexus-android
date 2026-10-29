@@ -1,0 +1,363 @@
+{
+  "cases": [
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "01_user_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 336,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 16,
+      "hostPeakResidentKiB": 4510036,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 13589,
+      "promptTokens": 336,
+      "query": "Qual é meu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Meu nome é NEXUS. O seu nome é Calebe.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 328,
+      "caseId": "02_assistant_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 8,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 10,
+      "hostPeakResidentKiB": 4510036,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 1457,
+      "promptTokens": 336,
+      "query": "Qual é seu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Meu nome é NEXUS. 😊",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "03_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 14,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 100,
+      "hostPeakResidentKiB": 4510036,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 12406,
+      "promptTokens": 340,
+      "query": "Me faz um texto de desculpa.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro, pode me dar um pouco mais de detalhe? Por exemplo:  \n- Para quem é a desculpa? (amigo, namorado(a), colega de trabalho, etc.)  \n- O que aconteceu? (falha, engano, falta de atenção, etc.)  \n- Quer que seja formal ou mais simples e direto?  \n- Tem algum momento específico que quer incluir?  \n\nCom isso, faço um texto personalizado e sincero.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "12_typo_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 17,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 124,
+      "hostPeakResidentKiB": 4510036,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 14186,
+      "promptTokens": 343,
+      "query": "chat me ajda faze um texo de descupa",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro! Pode me dar mais detalhes sobre o texto de desculpas que você quer? Por exemplo:\n\n- Para quem? (ex: amigo, namorado, colega de trabalho)\n- O que aconteceu? (ex: você falou algo errado, não cumprir um prazo, foi injusto)\n- Qual o tom que você quer? (ex: sincero, leve, formal, emocionado)\n- Quer que eu crie uma versão curta ou mais longa?\n\nQuanto mais detalhes, melhor eu consigo te ajudar. 😊",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "09_camera",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 16,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 90,
+      "hostPeakResidentKiB": 4510036,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 18014,
+      "promptTokens": 342,
+      "query": "Você consegue ver o que estou vendo?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Não, eu não consigo ver o que você está vendo. Eu sou um assistente de texto e trabalho com base nas mensagens que você me envia. Não tenho capacidade de visualizar imagens, vídeos ou qualquer conteúdo do mundo real diretamente. Mas se você puder descrever o que está vendo, posso ajudar a entender, interpretar ou escrever algo com base nisso! 😊",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "16_heldout_message",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 28,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 215,
+      "hostPeakResidentKiB": 4510164,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 28362,
+      "promptTokens": 354,
+      "query": "escreve um pedido de desculpas pra eu mandar pra uma amiga, sem inventar o motivo",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Claro, aqui está um exemplo de pedido de desculpas que é sincero, respeitoso e não inventa motivos — só expressa o sentimento de arrependimento sem detalhar algo específico:\n\n---\n\nOi [nome da amiga],  \n\nEu queria pedir desculpas por ter ficado sem te responder ou por ter feito algo que pode ter causado desconforto. Sinto muito por isso, mesmo que não tenha sido intencional. Você é importante pra mim e valorizo nosso tempo juntos.  \n\nSe quiser falar sobre o que aconteceu, estou aqui para ouvir. Não preciso justificar nada — só quero que saibas que estou me sentindo mal por não ter cuidado com a forma como tudo foi tratado.  \n\nCom carinho,  \nCalebe  \n\n---\n\nSe quiser, posso adaptar o tom (mais leve, mais formal, mais direto etc.) conforme o seu relacionamento com ela. É só dizer!",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "17_heldout_code",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 30,
+      "finishReason": "token_limit",
+      "generatedTokens": 384,
+      "hostPeakResidentKiB": 4510164,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 43617,
+      "promptTokens": 356,
+      "query": "Em Python, por que usar x = lista.append(4) faz x virar None? Mostre a correção.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Ótima pergunta! Vamos explicar por que `x = lista.append(4)` faz `x` virar `None`, e como corrigir isso.\n\n---\n\n### 📌 Por que `x = lista.append(4)` retorna `None`?\n\nEm Python, o método `.append()` **não retorna nada** (ou seja, retorna `None`). Ele só modifica a lista *in loco* (na própria lista), adicionando um elemento ao final.\n\nOu seja:\n\n```python\nlista = [1, 2, 3]\nx = lista.append(4)\nprint(x)  # Saída: None\n```\n\nIsso acontece porque:\n- O método `.append()` é um **método de mutação**, e **não retorna o valor do elemento adicionado**, apenas altera a lista.\n- A sintaxe `lista.append(4)` é como dizer \"adicione 4 à lista\", e o resultado dessa operação é `None`.\n\n---\n\n### ✅ Como corrigir?\n\nSe você quer **armazenar o novo valor** (ou saber que o 4 foi adicionado), precisa **armazenar o elemento diretamente**, ou usar uma variável para armazenar o valor, não o método.\n\n#### ✅ Correção 1: Armazene o valor em uma variável\n```python\nlista = [1, 2, 3]\nvalor_adicionado = 4\nlista.append(valor_adicionado)\nprint(lista)  # Saída: [1, 2, 3, 4]\n```\n\nAgora `valor_adicionado` tem o valor 4 — como esperado.\n\n---\n\n#### ✅ Correção 2: Se quiser saber se o append foi bem-sucedido (e retornar algo",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "18_heldout_math",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 33,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 319,
+      "hostPeakResidentKiB": 4510164,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 54851,
+      "promptTokens": 359,
+      "query": "Quanto é 50 + 50 + 50 × 50? Explique a ordem das operações.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Vamos calcular:\n\n**50 + 50 + 50 × 50**\n\nPrimeiro, precisamos seguir a **ordem das operações** (regra PEMDAS ou BODMAS):\n\n- **Multiplicação é feita antes da adição**, mesmo que apareça primeiro no cálculo.\n\nEntão:\n\n1. Faça a multiplicação:  \n   \\( 50 \\times 50 = 2500 \\)\n\n2. Agora faça as somas:  \n   \\( 50 + 50 + 2500 = 2600 \\)\n\n✅ Portanto, o resultado é **2600**.\n\n🔹 **Explicação da ordem das operações**:  \nA regra diz que **multiplicações e divisões têm precedência sobre adições e subtrações**, e devem ser feitas da esquerda para a direita. Então, mesmo que a expressão pareça simples, a multiplicação \\( 50 \\times 50 \\) precisa ser feita antes de somar os outros termos.\n\n> O erro comum seria somar 50 + 50 + 50 primeiro (ficando 150), depois multiplicar por 50 (150 × 50 = 7500), mas isso está errado — a regra de ordem das operações não permite isso.  \n\n✅ Resposta correta: **2600**.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "19_heldout_transform",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 22,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 33,
+      "hostPeakResidentKiB": 4510164,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 9410,
+      "promptTokens": 348,
+      "query": "Crie uma mensagem de duas frases agradecendo pela reunião.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Muito obrigado pela reunião, foi muito útil e enriquecedor. Agradeço pelo tempo e pelas compartilhadas ideias.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 381,
+      "caseId": "19_heldout_transform",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 21,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 20,
+      "hostPeakResidentKiB": 4510164,
+      "inputMessages": 4,
+      "maxOutputTokens": 384,
+      "milliseconds": 6299,
+      "promptTokens": 402,
+      "query": "Agora deixe mais informal e curta.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Obrigado pela reunião, foi muito bom! Super agradecido pelo tempo.",
+      "turn": 2,
+      "usedMessages": 4,
+      "variant": "portuguese_task_prompt"
+    }
+  ],
+  "contextTokens": 2048,
+  "executionStatus": "completed",
+  "fixture": {
+    "cases": [
+      {
+        "id": "01_user_name",
+        "turns": [
+          "Qual é meu nome?"
+        ]
+      },
+      {
+        "id": "02_assistant_name",
+        "turns": [
+          "Qual é seu nome?"
+        ]
+      },
+      {
+        "id": "03_apology",
+        "turns": [
+          "Me faz um texto de desculpa."
+        ]
+      },
+      {
+        "id": "12_typo_apology",
+        "turns": [
+          "chat me ajda faze um texo de descupa"
+        ]
+      },
+      {
+        "id": "09_camera",
+        "turns": [
+          "Você consegue ver o que estou vendo?"
+        ]
+      },
+      {
+        "id": "16_heldout_message",
+        "turns": [
+          "escreve um pedido de desculpas pra eu mandar pra uma amiga, sem inventar o motivo"
+        ]
+      },
+      {
+        "id": "17_heldout_code",
+        "turns": [
+          "Em Python, por que usar x = lista.append(4) faz x virar None? Mostre a correção."
+        ]
+      },
+      {
+        "id": "18_heldout_math",
+        "turns": [
+          "Quanto é 50 + 50 + 50 × 50? Explique a ordem das operações."
+        ]
+      },
+      {
+        "id": "19_heldout_transform",
+        "turns": [
+          "Crie uma mensagem de duas frases agradecendo pela reunião.",
+          "Agora deixe mais informal e curta."
+        ]
+      }
+    ],
+    "contextTokens": 2048,
+    "maxOutputTokens": 384,
+    "threads": 2,
+    "variants": [
+      {
+        "id": "portuguese_task_prompt",
+        "system": "Você é NEXUS, um assistente prestativo que conversa em português brasileiro. O usuário se chama Calebe; esse é o nome da pessoa atendida, não o seu.\nAtenda diretamente à solicitação atual. Use o histórico para continuar ou transformar o conteúdo ao qual o usuário se refere. Compreenda português informal, abreviações e erros de digitação pelo contexto.\nQuando a pessoa pedir para escrever ou melhorar algo, entregue o texto solicitado, pronto para ela utilizar. Nesse texto, quem fala em primeira pessoa é o autor humano. Não invente fatos particulares, destinatários ou assinaturas. Faça uma pergunta somente se faltar informação indispensável; pedidos gerais permitem textos gerais.\nExplique com clareza, ajuste o nível de detalhe ao pedido e reconheça incerteza. Evite cumprimentos, apresentações e encerramentos automáticos em toda resposta.\nCapacidades desta sessão: recebe mensagens de texto e, quando fornecidas, observações de ferramentas identificadas. Não recebe imagens, áudio ou vídeo ao vivo, não tem uma câmera ativa e não navega na internet. Use somente as evidências realmente disponíveis. A execução de ações do aplicativo exige uma ferramenta autorizada e seu resultado; não diga que já executou uma ação sem esse resultado."
+      }
+    ]
+  },
+  "hostPeakResidentKiB": 4510164,
+  "maxOutputTokens": 384,
+  "schemaVersion": 1,
+  "scope": "Actual unchanged NEXUS C++ engine on host CPU, synthetic prompts only; not Android, A03 or a semantic quality certification.",
+  "threads": 2,
+  "provenance": {
+    "modelSha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+    "modelBytes": 2497281120,
+    "fixtureSha256": "6d0c3c027edb6685ad0d8d8f1fa557e6fd5218e2dffea827556aa69e9d758e42",
+    "sourcesSha256": {
+      "app/src/main/cpp/nexus_runtime.cpp": "faeaf87a39372655111c85439c122ddce666d5677c10322f9a03025c7c1fde45",
+      "app/src/main/cpp/nexus_runtime.hpp": "a20fc80059c5cc6d88dc5e69f5cfbbb4a6100e867dc30f7e14e9e59e8fa8d029",
+      "app/src/main/cpp/nexus_chat_template.hpp": "8542c1b07474236b6a01687b63bb9f99b10f73be41325e913f96e142723e9293",
+      "scripts/LocalAiVariantEvaluation.cpp": "7fffd241deb1175db270f56d4b38c45c599f9c4110dda69083c6a3bf3ea2a3a5",
+      "scripts/evaluate_local_ai_variants.py": "e50871a28bc5e5fccb43614597048277170ef5c3b39afe341e0fc7f2426d3adb"
+    },
+    "runtimeLlamaSha256": "7952917e6a5e3761c09f8e8343eb9f2cf57a1d37233200762f51c6b56548a7cc"
+  },
+  "semanticApproval": "not_assessed_by_this_runner; inspect actual text and dedicated rubric"
+}

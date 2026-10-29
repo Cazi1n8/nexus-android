@@ -73,6 +73,7 @@ class LocalAiProvider(
                             throw CancellationException("A sessão local foi interrompida.")
                         }
                         _diagnostics.value = _diagnostics.value.copy(state = "generating")
+                        val nativeStarted = System.nanoTime()
                         val result = NexusNativeBridge.generateResult(native, chat, maxTokens = outputTokens)
                         if (requestEpoch != epoch.get()) throw CancellationException("A sessão local foi interrompida.")
                         val issue = GenerationQuality.inspect(result.text)
@@ -82,6 +83,10 @@ class LocalAiProvider(
                             promptTokens = result.promptTokens, generatedTokens = result.generatedTokens,
                             cachedPromptTokens = result.cachedPromptTokens, evaluatedPromptTokens = result.evaluatedPromptTokens,
                             contextTokens = result.contextTokens, elapsedMilliseconds = (System.nanoTime() - started) / 1_000_000,
+                            firstTokenElapsedMilliseconds = result.firstTokenMilliseconds?.let {
+                                (nativeStarted - started) / 1_000_000 + it
+                            },
+                            nativeElapsedMilliseconds = result.nativeElapsedMilliseconds,
                             finishReason = result.finishReason, qualityIssue = issue?.name,
                         )
                         if (issue != null) throw AiException(when (issue) {

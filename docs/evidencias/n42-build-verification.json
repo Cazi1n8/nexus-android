@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "versionName": "4.1.0-alpha.2-core",
+  "versionCode": 28,
+  "baseCommit": "775382487c0eb5eef4e52e3ddfc613ec888b2908",
+  "build": {
+    "status": "passed",
+    "durationSeconds": 429,
+    "tasks": 207,
+    "executed": 61,
+    "upToDate": 146,
+    "gradle": "8.11.1",
+    "jdk": 17,
+    "targets": [
+      "testDebugUnitTest",
+      "lintDebug",
+      "lintCoreTest",
+      "assembleDebug",
+      "assembleCoreTest",
+      "assembleRelease",
+      "assembleCoreTestAndroidTest"
+    ]
+  },
+  "jvm": {
+    "tests": 298,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pythonScripts": {
+    "tests": 173,
+    "failures": 0,
+    "skipped": 0
+  },
+  "server": {
+    "tests": 56,
+    "failures": 0,
+    "skipped": 0
+  },
+  "lint": {
+    "debug": {
+      "Error": 0,
+      "Fatal": 0,
+      "Warning": 57,
+      "Information": 1
+    },
+    "coreTest": {
+      "Error": 0,
+      "Fatal": 0,
+      "Warning": 57,
+      "Information": 1
+    },
+    "release": {
+      "Error": 0,
+      "Fatal": 0,
+      "Warning": 47,
+      "Information": 1
+    }
+  },
+  "apks": [
+    {
+      "variant": "debug",
+      "file": "app/build/outputs/apk/debug/app-debug.apk",
+      "bytes": 114641829,
+      "sha256": "fbab57fc6abe9c7a3c481ad3a81fb31a9ac4eca481d2cbdaeb0348628d05ff71",
+      "signedForProduction": false
+    },
+    {
+      "variant": "coreTest",
+      "file": "app/build/outputs/apk/coreTest/app-coreTest.apk",
+      "bytes": 108635674,
+      "sha256": "556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f",
+      "signedForProduction": false
+    },
+    {
+      "variant": "release",
+      "file": "app/build/outputs/apk/release/app-release-unsigned.apk",
+      "bytes": 108623386,
+      "sha256": "c624df52a72cfb451c4a9768c30dbf4aca95a4ad9357839e2738d35127bff346",
+      "signedForProduction": false
+    }
+  ],
+  "hardwareValidation": {
+    "galaxyA03": false,
+    "physicalHands": false,
+    "microphoneAndSpeaker": false,
+    "globalMouseOutsideApp": false,
+    "playProtectApproval": false
+  },
+  "generalAiApproved": false,
+  "multimodalModelApproved": false,
+  "androidInstrumentationExecution": "pending GitHub Actions; no local KVM",
+  "publicApkRelease": "held; evaluation artifact only, test signing certificate",
+  "coreComparison": {
+    "previousAlpha1Bytes": 108520986,
+    "currentBytes": 108635674,
+    "deltaBytes": 114688,
+    "installedAndroidStorageMeasured": false
+  },
+  "zipAlignment16KiBCheckPassed": true,
+  "signatureVerifiedForEvaluationOnly": true,
+  "evaluationCertificateSha256": "ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79",
+  "signatureCompatibleWithPreviouslyPublishedCore22": false
+}

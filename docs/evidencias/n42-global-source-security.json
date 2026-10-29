@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "auditTimestampUtc": "2026-10-29T09:45:55.543002+00:00",
+  "status": "passed",
+  "finalManifest": false,
+  "package": "br.com.nexus.assistant",
+  "versionName": null,
+  "versionCode": null,
+  "permissions": [
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.CAMERA",
+    "android.permission.FOREGROUND_SERVICE",
+    "android.permission.FOREGROUND_SERVICE_CAMERA",
+    "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+    "android.permission.INTERNET",
+    "android.permission.POST_NOTIFICATIONS",
+    "android.permission.RECORD_AUDIO"
+  ],
+  "components": [
+    {
+      "type": "activity",
+      "name": "br.com.nexus.assistant.MainActivity",
+      "exported": true,
+      "permission": null,
+      "foregroundServiceType": null
+    },
+    {
+      "type": "service",
+      "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": "microphone"
+    },
+    {
+      "type": "service",
+      "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": "camera"
+    },
+    {
+      "type": "service",
+      "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+      "exported": true,
+      "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE",
+      "foregroundServiceType": null
+    }
+  ],
+  "accessibility": {
+    "accessibilityFeedbackType": "feedbackGeneric",
+    "canRetrieveWindowContent": "false",
+    "canPerformGestures": "true",
+    "canRequestFilterKeyEvents": "false",
+    "canTakeScreenshot": "false",
+    "description": "@string/nexus_accessibility_description",
+    "isAccessibilityTool": "false",
+    "notificationTimeout": "100"
+  },
+  "violations": [],
+  "limitations": [
+    "This is a manifest/resource boundary audit, not a Play Protect verdict.",
+    "Permission prompts, consent, camera/audio lifecycle and OEM behavior require runtime tests.",
+    "Dependencies, private data handling and native code require additional analysis."
+  ],
+  "input": "source_or_merged_xml_not_apk"
+}

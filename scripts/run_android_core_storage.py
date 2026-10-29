@@ -23,8 +23,9 @@ APP_ID = "br.com.nexus.assistant"
 COMPONENT = f"{APP_ID}.test/androidx.test.runner.AndroidJUnitRunner"
 CORE_CLASSES = ",".join(f"{APP_ID}.{name}" for name in (
     "CoreInstallationTest", "CoreOptionalModelsTest", "CoreArithmeticToolsTest",
-    "N41PermissionBoundaryTest", "gestures.HandImagePipelineTest"))
-CORE_EXPECTED_TESTS = 10
+    "N41PermissionBoundaryTest", "gestures.HandImagePipelineTest",
+    "gestures.global.GlobalMousePermissionDenialTest", "gestures.SceneRenderingTest"))
+CORE_EXPECTED_TESTS = 12
 EXTENSION_CLASS = f"{APP_ID}.ExtensionDataSmokeTest"
 ROOT = Path(__file__).resolve().parents[1]
 HAND_BYTES = 7_819_105
@@ -126,6 +127,17 @@ def validate_core(report: dict) -> None:
         raise ValueError("A tela do mouse não confirmou controles sem permissão, ativação explícita ou limitação real da câmera.")
 
 
+def validate_global_boundary(report: dict) -> None:
+    # This proves a real Service refusal only. Do not promote it to proof of
+    # physical hand tracking, successful global gestures or Play Protect approval.
+    for key in ("cameraPermissionRemainedDenied", "realServiceRejectedDeniedCamera", "serviceStopped",
+                "persistentCameraNotificationAbsent", "voiceStayedInactive"):
+        if report.get(key) is not True:
+            raise ValueError(f"Falta confirmação da recusa segura do mouse: {key}.")
+    if type(report.get("androidApi")) is not int or report["androidApi"] < 26:
+        raise ValueError("O teste de recusa não informou uma API Android compatível.")
+
+
 def validate_extensions(report: dict) -> None:
     # The Android test exercises the actual data repository and native engines.
     # Keep semantic recognition quality separate from transport/file integrity.
@@ -188,7 +200,7 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
     original = {"wifi": network_control("wifi_on"), "data": network_control("mobile_data")}
     output.mkdir(parents=True, exist_ok=True)
     for name in ("core-instrumentation.txt", "core-observations.json", "extension-instrumentation.txt",
-                 "core-instrumentation.stderr.txt", "extension-instrumentation.stderr.txt",
+                 "core-instrumentation.stderr.txt", "extension-instrumentation.stderr.txt", "global-boundary-observations.json",
                  "extension-observations.json", "junit.xml", "network-restoration.json", "failure-logcat.txt",
                  "failure-activity-top.txt", "failure-activity-processes.txt", "failure-diagnostics.json"):
         (output / name).unlink(missing_ok=True)
@@ -205,11 +217,16 @@ def run(output: Path, *, allow_reset_emulator: bool = False, with_extensions: bo
         set_network(False)
         wait_default_network(False)
         result = instrument(output / "core-instrumentation.txt", "-e", "class", CORE_CLASSES,
-                            "-e", "nexusCoreSmoke", "true", COMPONENT, timeout=240)
+                            "-e", "nexusCoreSmoke", "true", "-e", "nexusGlobalBoundarySmoke", "true",
+                            "-e", "nexusSceneSmoke", "true", COMPONENT, timeout=240)
         report = decode_report(result, "nexus_core_report", CORE_EXPECTED_TESTS)
         (output / "core-observations.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         validate_core(report)
         reports["core"] = report
+        boundary = decode_report(result, "nexus_global_boundary_report", CORE_EXPECTED_TESTS)
+        validate_global_boundary(boundary)
+        (output / "global-boundary-observations.json").write_text(json.dumps(boundary, indent=2) + "\n", encoding="utf-8")
+        reports["globalBoundary"] = boundary
         if with_extensions:
             set_network(True)
             wait_default_network(True)

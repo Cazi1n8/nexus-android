@@ -75,6 +75,7 @@ import br.com.nexus.assistant.device.voice.BackgroundVoicePanel
 import br.com.nexus.assistant.device.voice.VoiceSessionRuntime
 import br.com.nexus.assistant.gestures.global.GlobalMousePanel
 import br.com.nexus.assistant.device.vision.NexusVisionLivePanel
+import br.com.nexus.assistant.device.vision.VisionConversationPanel
 import br.com.nexus.assistant.gestures.GestureFeatureScreen
 import br.com.nexus.assistant.gestures.GestureMode
 import br.com.nexus.assistant.gestures.GestureSessionHost
@@ -141,7 +142,10 @@ fun NexusApp(model: NexusViewModel, voice: VoiceController) {
     val latestRoute by rememberUpdatedState(route)
     val voiceState by voice.state.collectAsStateWithLifecycle()
     val voices by voice.voices.collectAsStateWithLifecycle()
-    LaunchedEffect(settings.language) { voice.setLanguage(settings.language) }
+    LaunchedEffect(settings.language, settings.voiceName) {
+        voice.setLanguage(settings.language)
+        voice.selectVoice(settings.voiceName)
+    }
     LaunchedEffect(settings.voiceName, settings.language, voices, voiceState.ttsReady, voiceState.language) {
         if (voiceState.ttsReady && voiceState.language == settings.language && voices.isNotEmpty() &&
             settings.voiceName.isNotBlank() && voices.none { it.name == settings.voiceName }) {
@@ -450,14 +454,24 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
     val generation by model.generationDiagnostics.collectAsStateWithLifecycle()
     val backgroundVoice by VoiceSessionRuntime.state.collectAsStateWithLifecycle()
     val busy by model.busy.collectAsStateWithLifecycle()
+    val streamedReply by model.streamedReply.collectAsStateWithLifecycle()
+    val remoteGeneration by model.remoteGeneration.collectAsStateWithLifecycle()
+    val answerSources by model.answerSources.collectAsStateWithLifecycle()
     val importing by model.importing.collectAsStateWithLifecycle()
     val attachment by model.attachment.collectAsStateWithLifecycle()
     var draft by rememberSaveable(selected) { mutableStateOf("") }
+    var confirmSearch by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { it?.let(model::importImage) }
     val pendingDraft by model.chatDraft.collectAsStateWithLifecycle()
     LaunchedEffect(pendingDraft) { pendingDraft?.let { draft = it; model.consumeChatDraft() } }
     LaunchedEffect(messages.size, busy) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex) }
+    LaunchedEffect(streamedReply.length) {
+        if (busy && streamedReply.isNotEmpty() && messages.lastOrNull()?.role == "user" &&
+            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index?.let { it >= messages.lastIndex } == true) {
+            listState.scrollToItem(messages.size)
+        }
+    }
     LaunchedEffect(settings.aiMode) {
         if (settings.aiMode == AiMode.NEXUS_LOCAL && BuildConfig.BUNDLED_MODEL) model.prepareLocalAi()
     }
@@ -478,6 +492,9 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
         }
         if (local && generation.finishReason == "token_limit" && !busy) {
             Text("A resposta atingiu o limite de geração do aparelho. Você pode pedir a continuação.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall)
+        }
+        if (!local && remoteGeneration?.truncated == true && !busy) {
+            Text("O servidor atingiu o limite de geração. Você pode pedir a continuação.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall)
         }
         if (messages.isEmpty()) {
             Column(Modifier.weight(1f).fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -505,10 +522,20 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
                     }
                 }
             }
+            if (busy && streamedReply.isNotEmpty() && messages.lastOrNull()?.role == "user") {
+                item(key = "streaming-reply") {
+                    Card(colors = CardDefaults.cardColors(containerColor = NexusPanel), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text("NEXUS • gerando", color = NexusCyan, style = MaterialTheme.typography.labelSmall)
+                            MarkdownMessage(streamedReply, Modifier.fillMaxWidth())
+                        }
+                    }
+                }
+            }
         }
         if (busy) Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-            Text("  Processando com o modelo…", modifier = Modifier.weight(1f))
+            Text(if (streamedReply.isEmpty()) "  Processando com o modelo…" else "  Recebendo resposta…", modifier = Modifier.weight(1f))
             TextButton(onClick = model::cancelResponse) { Text("Interromper") }
         } else if (messages.lastOrNull()?.role == "user") TextButton(onClick = { model.retry() }, modifier = Modifier.align(Alignment.End)) { Text("Tentar novamente") }
         if (attachment != null) Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -517,6 +544,26 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
             IconButton(onClick = model::removeAttachment) { Icon(Icons.Default.Close, "Remover imagem") }
         }
         if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
+        if (!local) {
+            if (!busy && answerSources.isNotEmpty()) {
+                Text("Fontes retornadas pela pesquisa", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall)
+                answerSources.take(5).forEach { source ->
+                    TextButton(onClick = {
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(source.url))) }
+                            .onFailure { model.report("Não foi possível abrir esta fonte no navegador.") }
+                    }, modifier = Modifier.padding(horizontal = 8.dp)) { Text(source.title, maxLines = 2, overflow = TextOverflow.Ellipsis) }
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                remoteGeneration?.let { result ->
+                    Text(buildString {
+                        result.firstTokenMs?.let { append("Primeiro texto: ${it} ms • ") }
+                        append("Total: ${result.totalMs} ms")
+                    }, Modifier.weight(1f), style = MaterialTheme.typography.labelSmall)
+                } ?: Spacer(Modifier.weight(1f))
+                TextButton(onClick = { confirmSearch = true }, enabled = !busy && !importing && draft.isNotBlank() && draft.length <= 500) { Text("Pesquisar na web") }
+            }
+        }
         Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.Bottom) {
             IconButton(onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }, enabled = !busy && !importing) { Icon(Icons.Default.AddPhotoAlternate, "Anexar imagem") }
             OutlinedTextField(draft, { draft = it }, modifier = Modifier.weight(1f), placeholder = { Text("Pergunte ao NEXUS…") }, maxLines = 5, enabled = !busy, shape = RoundedCornerShape(22.dp))
@@ -525,6 +572,16 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
             }
         }
     }
+    if (confirmSearch) AlertDialog(
+        onDismissRequest = { confirmSearch = false },
+        title = { Text("Pesquisar com o gateway") },
+        text = { Text("O gateway configurado receberá esta pergunta, o contexto e eventuais imagens. A consulta será enviada ao mecanismo de pesquisa habilitado pelo operador. As fontes aparecerão na resposta. Se o servidor não oferecer pesquisa, o NEXUS exibirá o erro.") },
+        confirmButton = { TextButton(onClick = {
+            confirmSearch = false
+            if (model.send(draft, onlineSearchQuery = draft.trim())) draft = ""
+        }) { Text("Pesquisar e enviar") } },
+        dismissButton = { TextButton(onClick = { confirmSearch = false }) { Text("Cancelar") } },
+    )
     DisposableEffect(Unit) { onDispose { voice.stopSpeaking() } }
 }
 
@@ -684,6 +741,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
     // Sensors and OCR work never resume merely because this screen is restored.
     var cameraActive by remember { mutableStateOf(false) }
     var liveActive by remember { mutableStateOf(false) }
+    var visualConversationActive by remember { mutableStateOf(false) }
     var front by rememberSaveable { mutableStateOf(!capabilities.hasRearCamera && capabilities.hasFrontCamera) }
     var question by rememberSaveable { mutableStateOf("O que aparece nesta imagem?") }
     var reader by remember { mutableStateOf<LocalTextReader?>(null) }
@@ -729,7 +787,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
         else model.report("O microfone foi recusado. Você pode escrever sua pergunta.")
     }
     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !globalMouse.active && !liveActive) cameraActive = true
+        if (granted && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && !globalMouse.active && !liveActive && !visualConversationActive) cameraActive = true
         else if (!granted) model.report("A câmera foi recusada. Você pode escolher uma imagem da galeria para ler o texto localmente.")
     }
     val chooseImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -776,7 +834,9 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
     }
     val visibleResult = recognized.takeIf { recognizedFor == attachment }
     ScrollPage {
-        if (!cameraActive) NexusVisionLivePanel(onError = model::report,
+        if (!cameraActive && !liveActive) VisionConversationPanel(model, voice, settings,
+            onActiveChanged = { visualConversationActive = it; if (it) { cameraActive = false; stopReading(clearResult = false) } })
+        if (!cameraActive && !visualConversationActive) NexusVisionLivePanel(onError = model::report,
             onSpeak = {
                 if (VoiceSessionRuntime.state.value.active) model.report("Encerre a sessão de voz para reproduzir a descrição nesta tela.")
                 else voice.speak(it, settings.language, settings.voiceRate, settings.voiceName, settings.voicePitch)
@@ -804,7 +864,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
                     voice.stopListening()
                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraActive = true
                     else cameraPermission.launch(Manifest.permission.CAMERA)
-                }, enabled = !liveActive && capabilities.hasCamera && !busy && !importing && !reading && !voiceState.isListening) {
+                }, enabled = !liveActive && !visualConversationActive && capabilities.hasCamera && !busy && !importing && !reading && !voiceState.isListening) {
                     Icon(Icons.Default.CameraAlt, null); Text(" Abrir câmera")
                 }
                 if (!capabilities.hasCamera) Text("Nenhuma câmera foi informada pelo Android. Escolha uma imagem para continuar.", style = MaterialTheme.typography.bodySmall)
@@ -812,7 +872,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
         }
         OutlinedButton(onClick = {
             chooseImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        }, enabled = !busy && !importing && !reading) { Icon(Icons.Default.PhotoLibrary, null); Text(" Escolher imagem") }
+        }, enabled = !visualConversationActive && !busy && !importing && !reading) { Icon(Icons.Default.PhotoLibrary, null); Text(" Escolher imagem") }
         if (importing) LinearProgressIndicator(Modifier.fillMaxWidth())
         attachment?.let { path ->
             LocalImage(path, Modifier.fillMaxWidth().heightIn(max = 260.dp))
@@ -848,7 +908,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
                             }
                         }
                     }
-                }, enabled = attachment != null && !busy && !importing && !reading && !cameraActive) {
+                }, enabled = !visualConversationActive && attachment != null && !busy && !importing && !reading && !cameraActive) {
                     Text(if (reading) "Lendo texto no aparelho…" else "Ler texto no aparelho")
                 }
                 if (reading) {
@@ -887,7 +947,7 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
             if (voiceState.isListening) voice.stopListening()
             else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) beginQuestion()
             else microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
-        }, enabled = capabilities.hasMicrophone && voiceState.available && !busy && !importing && !reading) {
+        }, enabled = !visualConversationActive && capabilities.hasMicrophone && voiceState.available && !busy && !importing && !reading) {
             Icon(if (voiceState.isListening) Icons.Default.MicOff else Icons.Default.Mic, null)
             Text(if (voiceState.isListening) " Parar escuta" else " Ditar pergunta")
         }

@@ -1,0 +1,414 @@
+{
+  "scope": "Host CPU direct llama-server official Jinja, real generated responses. Not Android/A03. Control for production-runtime defects.",
+  "cases": [
+    {
+      "variant": "portuguese_task_prompt",
+      "caseId": "03_apology",
+      "request": {
+        "model": "nexus-local-evaluation",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Você é NEXUS, um assistente prestativo que conversa em português brasileiro. O usuário se chama Calebe; esse é o nome da pessoa atendida, não o seu.\nAtenda diretamente à solicitação atual. Use o histórico para continuar ou transformar o conteúdo ao qual o usuário se refere. Compreenda português informal, abreviações e erros de digitação pelo contexto.\nQuando a pessoa pedir para escrever ou melhorar algo, entregue o texto solicitado, pronto para ela utilizar. Nesse texto, quem fala em primeira pessoa é o autor humano. Não invente fatos particulares, destinatários ou assinaturas. Faça uma pergunta somente se faltar informação indispensável; pedidos gerais permitem textos gerais.\nExplique com clareza, ajuste o nível de detalhe ao pedido e reconheça incerteza. Evite cumprimentos, apresentações e encerramentos automáticos em toda resposta.\nCapacidades desta sessão: recebe mensagens de texto e, quando fornecidas, observações de ferramentas identificadas. Não recebe imagens, áudio ou vídeo ao vivo, não tem uma câmera ativa e não navega na internet. Use somente as evidências realmente disponíveis. A execução de ações do aplicativo exige uma ferramenta autorizada e seu resultado; não diga que já executou uma ação sem esse resultado."
+          },
+          {
+            "role": "user",
+            "content": "Me faz um texto de desculpa."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "repeat_last_n": 128,
+        "seed": 42,
+        "stream": false,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "reasoning_format": "none"
+      },
+      "status": 200,
+      "milliseconds": 11251,
+      "raw": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "<think>\n\n</think>\n\nOlá, Calebe. Como posso ajudar? Se você precisa de desculpas por algo específico (como um erro, atraso ou dificuldade), pode me contar os detalhes para eu criar um texto mais adequado ao contexto. Caso contrário, aqui está um modelo genérico:\n\n---\n\n**Assunto:** Desculpas\n\nOlá, Calebe.\n\nEscrevi este texto em meio à pressa e esqueci de avisar que havia algo errado. Peço desculpas pelo inconveniente.\n\nO que foi necessário para que o sistema processasse essa solicitação?\n\nAtendo com a sua mensagem."
+            }
+          }
+        ],
+        "created": 1793267408,
+        "model": "/workspace/tooling/nexus42-ai/Qwen3.5-2B-Q4_K_M.gguf",
+        "system_fingerprint": "b11838-4231b23dc",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 125,
+          "prompt_tokens": 290,
+          "total_tokens": 415,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-9Ydn8NxB9CUn1rr5iVIP1T8CI4qPFMOC",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 290,
+          "prompt_ms": 3787.683,
+          "prompt_per_token_ms": 13.060975862068965,
+          "prompt_per_second": 76.56395743783204,
+          "predicted_n": 125,
+          "predicted_ms": 7448.903,
+          "predicted_per_token_ms": 60.07179838709678,
+          "predicted_per_second": 16.64674650750587
+        }
+      }
+    },
+    {
+      "variant": "portuguese_task_prompt",
+      "caseId": "12_typo_apology",
+      "request": {
+        "model": "nexus-local-evaluation",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Você é NEXUS, um assistente prestativo que conversa em português brasileiro. O usuário se chama Calebe; esse é o nome da pessoa atendida, não o seu.\nAtenda diretamente à solicitação atual. Use o histórico para continuar ou transformar o conteúdo ao qual o usuário se refere. Compreenda português informal, abreviações e erros de digitação pelo contexto.\nQuando a pessoa pedir para escrever ou melhorar algo, entregue o texto solicitado, pronto para ela utilizar. Nesse texto, quem fala em primeira pessoa é o autor humano. Não invente fatos particulares, destinatários ou assinaturas. Faça uma pergunta somente se faltar informação indispensável; pedidos gerais permitem textos gerais.\nExplique com clareza, ajuste o nível de detalhe ao pedido e reconheça incerteza. Evite cumprimentos, apresentações e encerramentos automáticos em toda resposta.\nCapacidades desta sessão: recebe mensagens de texto e, quando fornecidas, observações de ferramentas identificadas. Não recebe imagens, áudio ou vídeo ao vivo, não tem uma câmera ativa e não navega na internet. Use somente as evidências realmente disponíveis. A execução de ações do aplicativo exige uma ferramenta autorizada e seu resultado; não diga que já executou uma ação sem esse resultado."
+          },
+          {
+            "role": "user",
+            "content": "chat me ajda faze um texo de descupa"
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "repeat_last_n": 128,
+        "seed": 42,
+        "stream": false,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "reasoning_format": "none"
+      },
+      "status": 200,
+      "milliseconds": 19412,
+      "raw": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "<think>\n\n</think>\n\nEntendido. Vou criar um texto sobre **descupa** (sua palavra para \"descomplicação\" ou simplificação, assumindo que você quis dizer isso).\n\nComo não tenho o histórico específico da sua conversa anterior, vou assumir um contexto geral sobre como simplificar processos:\n\n***\n\n**A Descomplicação dos Processos**\n\nMuitas vezes, a rotina cansa porque temos coisas demais para fazer e pouco espaço para respirar. A descomplicação começa quando removemos o excesso de burocracia.\n\nEm vez de seguir regras complexas que ninguém lê, focamos no essencial: o que realmente importa. Isso significa eliminar etapas desnecessárias, usar ferramentas eficientes e comunicar-se com clareza. Quando tudo fica simples, o trabalho perde tempo e a energia acaba sendo usada apenas para mover, não para construir ou criar.\n\nA chave está na intenção: deixar as pessoas sentirem que cada passo é necessário. Se você estiver começando um projeto novo, o ideal é testar versões simplistas antes de tentar o complexo. Assim, você evita erros graves e garante que o resultado final seja acessível para todos.\n\nQuer que eu refina este texto para algo mais específico?"
+            }
+          }
+        ],
+        "created": 1793267428,
+        "model": "/workspace/tooling/nexus42-ai/Qwen3.5-2B-Q4_K_M.gguf",
+        "system_fingerprint": "b11838-4231b23dc",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 252,
+          "prompt_tokens": 294,
+          "total_tokens": 546,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-a9CyTpie484bE5fC0PbrtOEsiKVWvSmF",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 294,
+          "prompt_ms": 4281.761,
+          "prompt_per_token_ms": 14.563812925170069,
+          "prompt_per_second": 68.6633373511506,
+          "predicted_n": 252,
+          "predicted_ms": 15126.364,
+          "predicted_per_token_ms": 60.264398406374504,
+          "predicted_per_second": 16.593544886266127
+        }
+      }
+    },
+    {
+      "variant": "portuguese_task_prompt",
+      "caseId": "09_camera",
+      "request": {
+        "model": "nexus-local-evaluation",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Você é NEXUS, um assistente prestativo que conversa em português brasileiro. O usuário se chama Calebe; esse é o nome da pessoa atendida, não o seu.\nAtenda diretamente à solicitação atual. Use o histórico para continuar ou transformar o conteúdo ao qual o usuário se refere. Compreenda português informal, abreviações e erros de digitação pelo contexto.\nQuando a pessoa pedir para escrever ou melhorar algo, entregue o texto solicitado, pronto para ela utilizar. Nesse texto, quem fala em primeira pessoa é o autor humano. Não invente fatos particulares, destinatários ou assinaturas. Faça uma pergunta somente se faltar informação indispensável; pedidos gerais permitem textos gerais.\nExplique com clareza, ajuste o nível de detalhe ao pedido e reconheça incerteza. Evite cumprimentos, apresentações e encerramentos automáticos em toda resposta.\nCapacidades desta sessão: recebe mensagens de texto e, quando fornecidas, observações de ferramentas identificadas. Não recebe imagens, áudio ou vídeo ao vivo, não tem uma câmera ativa e não navega na internet. Use somente as evidências realmente disponíveis. A execução de ações do aplicativo exige uma ferramenta autorizada e seu resultado; não diga que já executou uma ação sem esse resultado."
+          },
+          {
+            "role": "user",
+            "content": "Você consegue ver o que estou vendo?"
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "repeat_last_n": 128,
+        "seed": 42,
+        "stream": false,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "reasoning_format": "none"
+      },
+      "status": 200,
+      "milliseconds": 7433,
+      "raw": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "<think>\n\n</think>\n\nSim, Calebe. Eu consigo ver o que você está escrevendo aqui no chat. Se você me mandou algo para eu copiar e colar, enviar um link ou descrever algo que você viu, eu recebo tudo isso direto aqui.\n\nPode mandar a informação."
+            }
+          }
+        ],
+        "created": 1793267435,
+        "model": "/workspace/tooling/nexus42-ai/Qwen3.5-2B-Q4_K_M.gguf",
+        "system_fingerprint": "b11838-4231b23dc",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 290,
+          "total_tokens": 351,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-zqB1lUPq3u6MI6WPEekwb9qhoDMNKsBC",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 290,
+          "prompt_ms": 3976.3,
+          "prompt_per_token_ms": 13.711379310344828,
+          "prompt_per_second": 72.93212282775444,
+          "predicted_n": 61,
+          "predicted_ms": 3451.092,
+          "predicted_per_token_ms": 57.5182,
+          "predicted_per_second": 17.385801363742257
+        }
+      }
+    },
+    {
+      "variant": "minimal_pt",
+      "caseId": "03_apology",
+      "request": {
+        "model": "nexus-local-evaluation",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Você é NEXUS, um assistente prestativo. Responda em português brasileiro. O usuário se chama Calebe."
+          },
+          {
+            "role": "user",
+            "content": "Me faz um texto de desculpa."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "repeat_last_n": 128,
+        "seed": 42,
+        "stream": false,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "reasoning_format": "none"
+      },
+      "status": 200,
+      "milliseconds": 5953,
+      "raw": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "<think>\n\n</think>\n\nOlá, Calebe! Com certeza, posso ajudar a criar um texto de desculpas para você.\n\nPor favor, me diga o que aconteceu ou qual foi a situação específica que precisa ser explicada. Assim, eu ajustarei o tom e o conteúdo do seu texto para que seja claro, sincero e adequado ao contexto (por exemplo: um erro no trabalho, uma má notícia pessoal ou um acidente).\n\nEscreva os detalhes aqui..."
+            }
+          }
+        ],
+        "created": 1793267441,
+        "model": "/workspace/tooling/nexus42-ai/Qwen3.5-2B-Q4_K_M.gguf",
+        "system_fingerprint": "b11838-4231b23dc",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 92,
+          "prompt_tokens": 52,
+          "total_tokens": 144,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-yxPVZAn4NIdheW2jwn785Q3agECEKkBZ",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 52,
+          "prompt_ms": 772.703,
+          "prompt_per_token_ms": 14.859673076923077,
+          "prompt_per_second": 67.29623154044957,
+          "predicted_n": 92,
+          "predicted_ms": 5152.022,
+          "predicted_per_token_ms": 56.61562637362637,
+          "predicted_per_second": 17.66296805409604
+        }
+      }
+    },
+    {
+      "variant": "minimal_pt",
+      "caseId": "12_typo_apology",
+      "request": {
+        "model": "nexus-local-evaluation",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Você é NEXUS, um assistente prestativo. Responda em português brasileiro. O usuário se chama Calebe."
+          },
+          {
+            "role": "user",
+            "content": "chat me ajda faze um texo de descupa"
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "repeat_last_n": 128,
+        "seed": 42,
+        "stream": false,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "reasoning_format": "none"
+      },
+      "status": 200,
+      "milliseconds": 10269,
+      "raw": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "<think>\n\n</think>\n\nOlá, Calebe! Claro que posso ajudar.\n\nSe você tem em mente uma **tela de dupla** (que pode significar duas telas diferentes no mesmo dispositivo ou dois monitores conectados), por favor, me dê mais detalhes sobre o que deseja fazer:\n\n1.  **Qual a sua necessidade?** (Ex: mostrar dados de duas fontes diferentes, organizar um relatório dividido em duas partes, etc.)\n2.  **O que exatamente precisa ser feito?** (Ex: criar um modelo pronto para uso, configurar conexões entre as telas, ou apenas explicar como funciona?)\n\nAssim que você me der esses detalhes, eu monto um texto ou estrutura pronta para você copiar e adaptar! 🖥️"
+            }
+          }
+        ],
+        "created": 1793267452,
+        "model": "/workspace/tooling/nexus42-ai/Qwen3.5-2B-Q4_K_M.gguf",
+        "system_fingerprint": "b11838-4231b23dc",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 151,
+          "prompt_tokens": 56,
+          "total_tokens": 207,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-RfNGjYtwJR1d1RGLYY4hLv0yClBJcCef",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 56,
+          "prompt_ms": 998.272,
+          "prompt_per_token_ms": 17.826285714285714,
+          "prompt_per_second": 56.096935504551865,
+          "predicted_n": 151,
+          "predicted_ms": 9251.678,
+          "predicted_per_token_ms": 61.67785333333333,
+          "predicted_per_second": 16.213275040484547
+        }
+      }
+    },
+    {
+      "variant": "minimal_pt",
+      "caseId": "09_camera",
+      "request": {
+        "model": "nexus-local-evaluation",
+        "messages": [
+          {
+            "role": "system",
+            "content": "Você é NEXUS, um assistente prestativo. Responda em português brasileiro. O usuário se chama Calebe."
+          },
+          {
+            "role": "user",
+            "content": "Você consegue ver o que estou vendo?"
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.08,
+        "repeat_last_n": 128,
+        "seed": 42,
+        "stream": false,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        },
+        "reasoning_format": "none"
+      },
+      "status": 200,
+      "milliseconds": 3234,
+      "raw": {
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": "<think>\n\n</think>\n\nSim, Calebe! Eu consigo ver exatamente o que você está lendo, ouvindo ou vendo na tela aqui ao meu lado. Estou à disposição para ajudar com qualquer dúvida que você tenha."
+            }
+          }
+        ],
+        "created": 1793267455,
+        "model": "/workspace/tooling/nexus42-ai/Qwen3.5-2B-Q4_K_M.gguf",
+        "system_fingerprint": "b11838-4231b23dc",
+        "object": "chat.completion",
+        "usage": {
+          "completion_tokens": 39,
+          "prompt_tokens": 52,
+          "total_tokens": 91,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "id": "chatcmpl-FGLVVFAmlLoL6r4Ol3AMOHfrZvMCfFFN",
+        "timings": {
+          "cache_n": 0,
+          "prompt_n": 52,
+          "prompt_ms": 815.541,
+          "prompt_per_token_ms": 15.683480769230771,
+          "prompt_per_second": 63.76135595880526,
+          "predicted_n": 39,
+          "predicted_ms": 2383.969,
+          "predicted_per_token_ms": 62.73602631578947,
+          "predicted_per_second": 15.939804586385142
+        }
+      }
+    }
+  ],
+  "executionStatus": "completed"
+}

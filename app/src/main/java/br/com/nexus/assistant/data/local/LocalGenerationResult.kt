@@ -17,6 +17,9 @@ data class LocalGenerationResult(
     val maxOutputTokens: Int,
     val cachedPromptTokens: Int = 0,
     val evaluatedPromptTokens: Int = promptTokens,
+    /** Actual native timings, including prefill but excluding model load. Null for older runtimes. */
+    val firstTokenMilliseconds: Long? = null,
+    val nativeElapsedMilliseconds: Long? = null,
 ) {
     val truncated: Boolean get() = finishReason == "token_limit"
 
@@ -31,6 +34,8 @@ data class LocalGenerationResult(
                 maxOutputTokens = json.getInt("maxOutputTokens"),
                 cachedPromptTokens = json.optInt("cachedPromptTokens", 0),
                 evaluatedPromptTokens = json.optInt("evaluatedPromptTokens", json.getInt("promptTokens")),
+                firstTokenMilliseconds = json.takeIf { it.has("firstTokenMs") }?.getLong("firstTokenMs"),
+                nativeElapsedMilliseconds = json.takeIf { it.has("totalMs") }?.getLong("totalMs"),
             )
             require(result.finishReason in setOf("end_of_turn", "token_limit")) { "Finalização de geração local inválida." }
             require(result.promptTokens >= 0 && result.generatedTokens in 0..result.maxOutputTokens &&
@@ -40,6 +45,11 @@ data class LocalGenerationResult(
                 result.cachedPromptTokens in 0..result.promptTokens &&
                 result.evaluatedPromptTokens == result.promptTokens - result.cachedPromptTokens &&
                 result.promptTokens + result.maxOutputTokens <= result.contextTokens) { "Metadados de geração local inconsistentes." }
+            require((result.firstTokenMilliseconds == null && result.nativeElapsedMilliseconds == null) ||
+                (result.firstTokenMilliseconds != null && result.nativeElapsedMilliseconds != null &&
+                    result.firstTokenMilliseconds >= 0 && result.nativeElapsedMilliseconds >= result.firstTokenMilliseconds)) {
+                "Tempos de geração local inconsistentes."
+            }
             return result
         }
 
@@ -61,6 +71,9 @@ data class LocalGenerationDiagnostics(
     val evaluatedPromptTokens: Int = 0,
     val contextTokens: Int = 0,
     val elapsedMilliseconds: Long = 0,
+    /** Request to first actual generated token, including model load and context construction. */
+    val firstTokenElapsedMilliseconds: Long? = null,
+    val nativeElapsedMilliseconds: Long? = null,
     val finishReason: String? = null,
     val qualityIssue: String? = null,
 )

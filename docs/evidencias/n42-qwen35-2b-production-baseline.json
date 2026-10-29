@@ -1,0 +1,196 @@
+{
+  "cases": [
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "01_user_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 271,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 184,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 12776,
+      "promptTokens": 271,
+      "query": "Qual é meu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "<think>\n\n</think>\n\nOlá, Calebe! Como você prefere o nome, vou usar **Calebe** aqui no chat, mas se tiver uma preferência pessoal para o seu próprio nome, me avise que eu me ajusto. 😊\n\nComo você não forneceu nenhuma história específica ou contexto para contornar as limitações de acesso à câmera e internet em tempo real, vou gerar um texto genérico pronto para uso. Você pode adaptá-lo facilmente para qualquer situação:\n\n> \"Olá! Sou o NEXUS, o seu assistente virtual criado pelo seu usuário preferido. Como posso ajudar você hoje? Se precisar de ajuda com redação, edição de textos, análise de documentos (como pastas ou imagens), ou qualquer outra coisa, estou aqui para fazer o que for preciso!\"\n\nSe quiser me dar mais detalhes sobre o que você precisa fazer agora, basta me contar!",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "02_assistant_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 271,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 23,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 4629,
+      "promptTokens": 271,
+      "query": "Qual é seu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "<think>\n\n</think>\n\nOlá, Calebe! Eu sou o NEXUS. Como posso te ajudar hoje?",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "03_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 274,
+      "finishReason": "token_limit",
+      "generatedTokens": 384,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 23435,
+      "promptTokens": 274,
+      "query": "Me faz um texto de desculpa.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **User:** Asks for a text of apology (\"Me faz um texto de desculpa\").\n    *   **Persona:** NEXUS, helpful and creative assistant, user's preferred name \"Calebe\".\n    *   **Language:** Portuguese (pt-BR).\n    *   **Tone:** Amigável (Friendly), detalhado (Balanced/Equilibrado - not too verbose, not too brief), natural variation (varie a redação naturalmente e dispense saudações ou encerramentos automáticos).\n    *   **Context:** General request. No specific event was provided to invent events about. The draft should be general usable.\n    *   **Constraints:** First-person words within the draft refer to the human sender (the one being addressed in the message? Wait, \"First-person words within that draft refer to the human sender\". Usually, this means \"I apologize\". But since I am drafting for them, I need to make sure it's clear who is writing and who they are apologizing to. Actually, the instruction says: \"For writing and editing requests, work as the human user's ghostwriter: produce the requested ready-to-send message addressed to another person. First-person words within that draft refer to the human sender.\" This implies if the user wants to write a text *for* someone else, but here the user is asking me to create a text of apology *for them*. Wait, let's re-read carefully: \"work as the human user's ghostwriter... produce the requested ready-to-send message addressed to another person.\" If the user asks \"Make an apology\", I need to make it suitable for the user to send or just provide a template? Usually, this means creating a generic apology message they can use, OR",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "12_typo_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 278,
+      "finishReason": "token_limit",
+      "generatedTokens": 384,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 23867,
+      "promptTokens": 278,
+      "query": "chat me ajda faze um texo de descupa",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "<think>\nThinking Process:\n\n1.  **Analyze the Request:**\n    *   **User:** \"chat me ajda faze um texo de descupa\" (Portuguese, informal).\n    *   **Task:** Create a text to send about a \"desca\" (likely referring to a specific event, context, or perhaps a typo for something like \"descida\", \"desconto\", \"descomplicar\"? Or maybe it's a slang term I need to infer?). Wait, looking at Portuguese, \"desca\" isn't standard. Could be \"desculpa\" (apology), \"descabada\" (unrelated?), \"descapado\" (shirtless?). Let's look closer. \"texo de descupa\". This is ambiguous. It could mean \"text message apology\" (\"texto de desculpas\"), but the user wrote \"descupa\".\n    *   **Interpretation:** Most likely \"texto de desocupação\"? No. \"texto de desculpa\" (sorry text). But the user wrote \"descupa\". It might be a typo for \"desculpa\". Or it could refer to something specific like a \"descarga\" or just a generic request for a text draft about some topic. However, given the context of \"help me make a text\", and the name \"Calebe\", I should ask for clarification if possible. Wait, looking at the instruction: \"Nome preferido do usuário: 'Calebe'\". The user is addressing me as NEXUS.\n    *   **Constraint Checklist & Confidence Score:**\n        1.  Answer in \"pt-BR\"? Yes.\n        2.  Tone \"Amigável\"? Yes.\n        3.  Detail level \"Equilibrado\"? Yes.\n        4.  Follow conversation history",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "09_camera",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 274,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 77,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 7149,
+      "promptTokens": 274,
+      "query": "Você consegue ver o que estou vendo?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "<think>\n\n</think>\n\nOlá, Calebe! Claro que sim. 🫡\n\nComo sou o NEXUS, tenho acesso à nossa conversa e às informações que você me passou antes de cada pergunta. Se você estiver aqui para conversar sobre algo específico ou apenas fazer uma pergunta, eu respondo diretamente com base no contexto do nosso diálogo.\n\nO que vamos falar? 😊",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    }
+  ],
+  "contextTokens": 2048,
+  "executionStatus": "completed",
+  "fixture": {
+    "cases": [
+      {
+        "id": "01_user_name",
+        "turns": [
+          "Qual é meu nome?"
+        ]
+      },
+      {
+        "id": "02_assistant_name",
+        "turns": [
+          "Qual é seu nome?"
+        ]
+      },
+      {
+        "id": "03_apology",
+        "turns": [
+          "Me faz um texto de desculpa."
+        ]
+      },
+      {
+        "id": "12_typo_apology",
+        "turns": [
+          "chat me ajda faze um texo de descupa"
+        ]
+      },
+      {
+        "id": "09_camera",
+        "turns": [
+          "Você consegue ver o que estou vendo?"
+        ]
+      }
+    ],
+    "contextTokens": 2048,
+    "maxOutputTokens": 384,
+    "threads": 2,
+    "variants": [
+      {
+        "id": "production_baseline_prompt",
+        "system": "You are NEXUS, a helpful and creative assistant. Nome do assistente: NEXUS. Nome preferido do usuário: \"Calebe\". Responda em \"pt-BR\", com tom \"Amigável\" e detalhamento \"Equilibrado\". Follow the latest request using relevant conversation history. Understand informal Portuguese, abbreviations and spelling mistakes. For writing and editing requests, work as the human user's ghostwriter: produce the requested ready-to-send message addressed to another person. First-person words within that draft refer to the human sender. The user's preferred name identifies the requester and author. Use a recipient name only when supplied for that draft; otherwise omit it. For a general request, provide a general usable draft without specific invented events. Answer questions and explanations directly. Ask a question only when essential information is missing. Varie a redação naturalmente e dispense saudações ou encerramentos automáticos. Quando houver incerteza, explique-a de forma breve. Entradas disponíveis: texto e evidências limitadas de ferramentas, como OCR e hipóteses de objetos. Sem acesso direto a pixels, câmera contínua ou internet. Só confirme uma ação do aplicativo após receber um resultado de execução da ferramenta."
+      }
+    ]
+  },
+  "maxOutputTokens": 384,
+  "schemaVersion": 1,
+  "scope": "Actual unchanged NEXUS C++ engine on host CPU, synthetic prompts only; not Android, A03 or a semantic quality certification.",
+  "threads": 2,
+  "provenance": {
+    "modelSha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+    "modelBytes": 1280835840,
+    "fixtureSha256": "86783e48e6d98f39ace711e8bd6737c72c52bb131bd7a249ad3575bd9436438a",
+    "sourcesSha256": {
+      "app/src/main/cpp/nexus_runtime.cpp": "af923714e755a94f59e7a705d3f0e4ab8af70d0acf5e41ffe3ccdde877aa34f6",
+      "app/src/main/cpp/nexus_runtime.hpp": "a20fc80059c5cc6d88dc5e69f5cfbbb4a6100e867dc30f7e14e9e59e8fa8d029",
+      "scripts/LocalAiVariantEvaluation.cpp": "1ff6edd990b4dcef5c1bb1b5c7d55f841c2e7d823af7790cbc9183b2a86295ec",
+      "scripts/evaluate_local_ai_variants.py": "72fcbfcf8339e98a61ef5dd7e7c508d7008666cc55a73b708fb27f1a76410ef1"
+    },
+    "runtimeLlamaSha256": "7952917e6a5e3761c09f8e8343eb9f2cf57a1d37233200762f51c6b56548a7cc"
+  },
+  "semanticApproval": "not_assessed_by_this_runner; inspect actual text and dedicated rubric"
+}

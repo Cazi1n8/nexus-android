@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "scope": "Host JVM: actual Kotlin geometry, lesson concepts and backward-compatible progress mapping. No Android UI/camera or physical A03.",
+  "command": "Kotlin2.1.20/JDK17 direct compiler + JUnit4.13.2; no Gradle",
+  "exitCode": 0,
+  "wallSeconds": 22.084,
+  "junitOutput": "JUnit version 4.13.2\n.......................\nTime: 0.181\n\nOK (23 tests)\n\n",
+  "sourcesSha256": {
+    "app/src/main/java/br/com/nexus/assistant/gestures/HandGeometry.kt": "ab9a43fb395b4a0bbcba29de1a9b1baf1ec3ea6289ecb806067e9647cdd5ef4a",
+    "app/src/main/java/br/com/nexus/assistant/libras/LibrasLessons.kt": "664825b15413bd5a19bce6f4d10b1e117d2c69332054f4da7428c7ce6adb1847",
+    "app/src/main/java/br/com/nexus/assistant/libras/LibrasPractice.kt": "5d9aed39298d27ce943b077272f69debf72be50f7ba1de561045f2189e4165e5",
+    "app/src/main/java/br/com/nexus/assistant/libras/LibrasLetterCandidates.kt": "09f3884b99718702d55efebf246c9631599648edff708047d020eb1f423aea08",
+    "app/src/main/java/br/com/nexus/assistant/libras/LibrasProgressRepository.kt": "6b3296738a908aeccfa7098a8709a18d16e274ad11346873cc97ba7f4a5c5980",
+    "app/src/test/java/br/com/nexus/assistant/libras/LibrasLessonsTest.kt": "a7c1bbd31ee319ed8ff68a3fa1b76e2e80d62a5afe6c3bfb020da3a2f2dad470",
+    "app/src/test/java/br/com/nexus/assistant/libras/LibrasPracticeTest.kt": "940ed5e59ec68a11bf605a8f2a6e8ea09d72c804f6b4be4aeac888af28883d6b",
+    "app/src/test/java/br/com/nexus/assistant/libras/LibrasLetterCandidatesTest.kt": "0a26184a723e07f3ab24b6cb316d4944c136ce3741d6b46ab2efa43651ab312d"
+  }
+}

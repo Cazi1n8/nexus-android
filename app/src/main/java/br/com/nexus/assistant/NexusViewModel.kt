@@ -42,7 +42,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         LocalModelManager(File(application.filesDir, "models"), LocalModelCatalog.forProfile(profile))
     }
     private val localProviders = localModels.mapValues { (_, manager) -> LocalAiProvider(manager) { devicePolicy.value } }
-    private val provider: AiProvider = AiCoordinator(LocalImageTextProvider(object : AiProvider {
+    private val provider = AiCoordinator(LocalImageTextProvider(object : AiProvider {
         override suspend fun complete(settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>): String {
             val profile = effectiveProfile(settings)
             return localProviders.getValue(profile).complete(settings.copy(localModelProfile = profile), token, messages, memories)
@@ -104,6 +104,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     private val _busy = MutableStateFlow(false)
     val busy = _busy.asStateFlow()
+    private val _streamedReply = MutableStateFlow("")
+    val streamedReply = _streamedReply.asStateFlow()
+    private val _remoteGeneration = MutableStateFlow<AiStreamResult?>(null)
+    val remoteGeneration = _remoteGeneration.asStateFlow()
+    private val _answerSources = MutableStateFlow<List<AiSource>>(emptyList())
+    val answerSources = _answerSources.asStateFlow()
+    // A failed explicit search can be retried during this process. It is never
+    // inferred from keywords or silently enabled for ordinary conversations.
+    private var pendingSearch: Pair<String, String>? = null
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
     private val _chatDraft = MutableStateFlow<String?>(null)
@@ -141,13 +150,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
 
     fun report(message: String) { _error.value = message }
     fun clearError() { _error.value = null }
-    fun newConversation() { _chatDraft.value = null; conversationGeneration++; cancelResponse(); releaseLocalContext(); _selected.value = null; removeAttachment() }
-    fun openConversation(id: String) { conversationGeneration++; cancelResponse(); releaseLocalContext(); _selected.value = id; removeAttachment() }
+    fun newConversation() { _chatDraft.value = null; pendingSearch = null; conversationGeneration++; cancelResponse(); releaseLocalContext(); _selected.value = null; removeAttachment() }
+    fun openConversation(id: String) { pendingSearch = null; conversationGeneration++; cancelResponse(); releaseLocalContext(); _selected.value = id; removeAttachment() }
     // KV state belongs only to the selected conversation. Never retain it when
     // the user changes the conversation or revokes personal context.
     private fun releaseLocalContext() { localProviders.values.forEach { it.release() } }
     fun cancelResponse() {
         _pendingAction.value = null
+        _streamedReply.value = ""
+        _answerSources.value = emptyList()
         responseJob?.cancel()
         // Keep the send barrier until the cancelled job has finished its short,
         // non-cancellable Room save. Otherwise a second send can create a second
@@ -156,22 +167,29 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** True means this send was accepted; validation failures preserve the UI draft. */
-    fun send(raw: String): Boolean {
+    fun send(raw: String, onlineSearchQuery: String? = null): Boolean {
         if (deletingData || modifyingLocalModel || _busy.value || _importing.value) return false
         val text = raw.trim()
         val image = _attachment.value
         if (text.isEmpty() && image == null) return false
         if (text.length > 24_000) { report("Divida a mensagem em partes de até 24.000 caracteres."); return false }
         val config = settings.value
+        if (onlineSearchQuery != null && (config.aiMode != AiMode.CUSTOM || onlineSearchQuery.isBlank() || onlineSearchQuery.length > 500)) {
+            report("Para pesquisar, selecione um gateway NEXUS configurado e uma pergunta de até 500 caracteres.")
+            return false
+        }
         // CORE can calculate and propose local actions without an optional LLM.
         // Keep image/provider validation for every request not handled by tools.
-        val toolAnswer = AiCoordinator.builtInResponse(AiMessage("user", text, image))
+        val toolAnswer = if (onlineSearchQuery == null) AiCoordinator.builtInResponse(AiMessage("user", text, image)) else null
         if (toolAnswer == null && !canUseAi(config, image != null)) return false
         val selectedAtSend = _selected.value
         val conversationAtSend = conversationGeneration
         val generation = ++responseGeneration
         _pendingAction.value = null
         _error.value = null
+        _streamedReply.value = ""
+        _remoteGeneration.value = null
+        _answerSources.value = emptyList()
         _busy.value = true
         responseJob = viewModelScope.launch {
             var userSaved = false
@@ -187,13 +205,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     repository.addMessage(conversationId, "user", text, image)
                     userSaved = true
                     if (conversationAtSend == conversationGeneration) _selected.value = conversationId
+                    if (conversationAtSend == conversationGeneration) pendingSearch = onlineSearchQuery?.let { conversationId to it }
                     conversationId
                 }
                 val history = repository.conversationMessages(id).map { AiMessage(it.role, it.content, it.imagePath) }
                 val token = if (toolAnswer == null && config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
-                val answer = toolAnswer ?: provider.complete(config, token, history, memories.value.map { it.content })
+                val answer = toolAnswer ?: generateAnswer(config, token, history, generation, onlineSearchQuery)
                 val completion = AiCompletion.fromText(answer)
                 repository.addMessage(id, "assistant", completion.text)
+                pendingSearch = null
                 if (generation == responseGeneration && conversationAtSend == conversationGeneration) {
                     _pendingAction.value = completion.proposal
                     _assistantReplies.emit(completion.text)
@@ -213,6 +233,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     withContext(NonCancellable + Dispatchers.IO) { File(image).delete() }
                 }
                 if (generation == responseGeneration) {
+                    _streamedReply.value = ""
                     _busy.value = false
                     responseJob = null
                 }
@@ -232,6 +253,9 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         val generation = ++responseGeneration
         _busy.value = true
         _error.value = null
+        _streamedReply.value = ""
+        _remoteGeneration.value = null
+        _answerSources.value = emptyList()
         responseJob = viewModelScope.launch {
             try {
                 val history = repository.conversationMessages(id)
@@ -240,13 +264,15 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                     return@launch
                 }
                 val last = history.last()
-                val toolAnswer = AiCoordinator.builtInResponse(AiMessage(last.role, last.content, last.imagePath))
+                val query = pendingSearch?.takeIf { it.first == id }?.second
+                val toolAnswer = if (query == null) AiCoordinator.builtInResponse(AiMessage(last.role, last.content, last.imagePath)) else null
                 if (toolAnswer == null && !canUseAi(config, last.imagePath != null)) return@launch
                 val token = if (toolAnswer == null && config.aiMode == AiMode.CUSTOM) withContext(Dispatchers.IO) { preferences.sessionToken } else ""
-                val answer = toolAnswer ?: provider.complete(config, token,
-                    history.map { AiMessage(it.role, it.content, it.imagePath) }, memories.value.map { it.content })
+                val answer = toolAnswer ?: generateAnswer(config, token,
+                    history.map { AiMessage(it.role, it.content, it.imagePath) }, generation, query)
                 val completion = AiCompletion.fromText(answer)
                 repository.addMessage(id, "assistant", completion.text)
+                pendingSearch = null
                 if (generation == responseGeneration && _selected.value == id) {
                     _pendingAction.value = completion.proposal
                     _assistantReplies.emit(completion.text)
@@ -256,6 +282,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                 if (generation == responseGeneration) report(failure.message ?: "Falha ao tentar novamente.")
             } finally {
                 if (generation == responseGeneration) {
+                    _streamedReply.value = ""
                     _busy.value = false
                     responseJob = null
                 }
@@ -266,6 +293,26 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             job.invokeOnCompletion { runningResponses.remove(job) }
         }
         return true
+    }
+
+    private suspend fun generateAnswer(
+        config: NexusSettings, token: String, history: List<AiMessage>, generation: Long, searchQuery: String?,
+    ): String {
+        val onDelta: suspend (String) -> Unit = { delta ->
+            kotlin.coroutines.coroutineContext.ensureActive()
+            if (generation == responseGeneration && _busy.value) {
+                _streamedReply.value += delta
+            }
+        }
+        val result = if (searchQuery == null) provider.stream(config, token, history, memories.value.map { it.content }, onDelta)
+            else provider.streamWithSearch(config, token, history, memories.value.map { it.content }, searchQuery, onDelta)
+        if (generation == responseGeneration && config.aiMode == AiMode.CUSTOM) {
+            // Keep only technical metadata in the diagnostics state. The answer
+            // is stored once by the caller, never duplicated as partial rows.
+            _remoteGeneration.value = result.copy(text = "", sources = emptyList())
+            _answerSources.value = result.sources
+        }
+        return result.text
     }
 
     /** Takes ownership only of a camera file within our own cache directory. */
@@ -571,6 +618,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                 localModels.values.forEach { it.delete() }
                 br.com.nexus.assistant.commands.CommandStore(getApplication()).clear()
                 br.com.nexus.assistant.libras.LibrasProgressRepository(getApplication()).clear()
+                br.com.nexus.assistant.gestures.SceneStore(getApplication()).delete()
                 withContext(Dispatchers.IO) {
                     preferences.sessionToken = ""
                     check(getApplication<Application>().getSharedPreferences("nexus_gestures", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {

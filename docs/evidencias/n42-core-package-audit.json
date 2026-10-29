@@ -1,0 +1,682 @@
+{
+  "schemaVersion": 1,
+  "auditTimestampUtc": "2026-10-29T15:41:11.759231+00:00",
+  "executionStatus": "passed",
+  "apkPath": "app/build/outputs/apk/coreTest/app-coreTest.apk",
+  "apkBytes": 108635674,
+  "apkSha256": "556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f",
+  "maxApkBytes": 150000000,
+  "universalRequested": true,
+  "entryCount": 592,
+  "uncompressedEntryBytes": 129511335,
+  "compressedEntryBytes": 108209209,
+  "zipSignatureAlignmentDirectoryOverheadBytes": 426465,
+  "categories": [
+    {
+      "category": "dex",
+      "files": 4,
+      "bytes": 32360524,
+      "compressedBytes": 11373754
+    },
+    {
+      "category": "hand_model",
+      "files": 1,
+      "bytes": 7819105,
+      "compressedBytes": 7819105
+    },
+    {
+      "category": "licenses",
+      "files": 17,
+      "bytes": 123322,
+      "compressedBytes": 45822
+    },
+    {
+      "category": "native_libraries",
+      "files": 40,
+      "bytes": 88039960,
+      "compressedBytes": 88039960
+    },
+    {
+      "category": "other_assets",
+      "files": 2,
+      "bytes": 8960,
+      "compressedBytes": 8960
+    },
+    {
+      "category": "resources_manifest_metadata",
+      "files": 528,
+      "bytes": 1159464,
+      "compressedBytes": 921608
+    }
+  ],
+  "nativeAbis": [
+    {
+      "abi": "arm64-v8a",
+      "files": 11,
+      "bytes": 24410848
+    },
+    {
+      "abi": "armeabi-v7a",
+      "files": 9,
+      "bytes": 12955376
+    },
+    {
+      "abi": "x86",
+      "files": 9,
+      "bytes": 22833288
+    },
+    {
+      "abi": "x86_64",
+      "files": 11,
+      "bytes": 27840448
+    }
+  ],
+  "nativeLibraries": [
+    {
+      "path": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "bytes": 10096,
+      "compressedBytes": 10096,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libc++_shared.so",
+      "bytes": 1253544,
+      "compressedBytes": 1253544,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libdatastore_shared_counter.so",
+      "bytes": 7112,
+      "compressedBytes": 7112,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libimage_processing_util_jni.so",
+      "bytes": 29008,
+      "compressedBytes": 29008,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libjpeg.so",
+      "bytes": 251888,
+      "compressedBytes": 251888,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libleptonica.so",
+      "bytes": 2878240,
+      "compressedBytes": 2878240,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libmediapipe_tasks_jni.so",
+      "bytes": 10533648,
+      "compressedBytes": 10533648,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libnexus_llama.so",
+      "bytes": 5058240,
+      "compressedBytes": 5058240,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libpngx.so",
+      "bytes": 219880,
+      "compressedBytes": 219880,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libsurface_util_jni.so",
+      "bytes": 4832,
+      "compressedBytes": 4832,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/arm64-v8a/libtesseract.so",
+      "bytes": 4164360,
+      "compressedBytes": 4164360,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "arm64-v8a",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 183
+    },
+    {
+      "path": "lib/armeabi-v7a/libandroidx.graphics.path.so",
+      "bytes": 7252,
+      "compressedBytes": 7252,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libdatastore_shared_counter.so",
+      "bytes": 4416,
+      "compressedBytes": 4416,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libimage_processing_util_jni.so",
+      "bytes": 20380,
+      "compressedBytes": 20380,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libjpeg.so",
+      "bytes": 187096,
+      "compressedBytes": 187096,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libleptonica.so",
+      "bytes": 2160740,
+      "compressedBytes": 2160740,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libmediapipe_tasks_jni.so",
+      "bytes": 7405000,
+      "compressedBytes": 7405000,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libpngx.so",
+      "bytes": 162104,
+      "compressedBytes": 162104,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libsurface_util_jni.so",
+      "bytes": 3440,
+      "compressedBytes": 3440,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/armeabi-v7a/libtesseract.so",
+      "bytes": 3004948,
+      "compressedBytes": 3004948,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "armeabi-v7a",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 40
+    },
+    {
+      "path": "lib/x86/libandroidx.graphics.path.so",
+      "bytes": 9284,
+      "compressedBytes": 9284,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libdatastore_shared_counter.so",
+      "bytes": 5148,
+      "compressedBytes": 5148,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libimage_processing_util_jni.so",
+      "bytes": 38292,
+      "compressedBytes": 38292,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libjpeg.so",
+      "bytes": 271936,
+      "compressedBytes": 271936,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libleptonica.so",
+      "bytes": 2969648,
+      "compressedBytes": 2969648,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libmediapipe_tasks_jni.so",
+      "bytes": 14961388,
+      "compressedBytes": 14961388,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libpngx.so",
+      "bytes": 234260,
+      "compressedBytes": 234260,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libsurface_util_jni.so",
+      "bytes": 3712,
+      "compressedBytes": 3712,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86/libtesseract.so",
+      "bytes": 4339620,
+      "compressedBytes": 4339620,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86",
+      "elfHeaderValid": true,
+      "elfClass": 1,
+      "elfMachine": 3
+    },
+    {
+      "path": "lib/x86_64/libandroidx.graphics.path.so",
+      "bytes": 10760,
+      "compressedBytes": 10760,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libc++_shared.so",
+      "bytes": 1229808,
+      "compressedBytes": 1229808,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libdatastore_shared_counter.so",
+      "bytes": 6224,
+      "compressedBytes": 6224,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libimage_processing_util_jni.so",
+      "bytes": 48104,
+      "compressedBytes": 48104,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libjpeg.so",
+      "bytes": 281728,
+      "compressedBytes": 281728,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libleptonica.so",
+      "bytes": 3104384,
+      "compressedBytes": 3104384,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libmediapipe_tasks_jni.so",
+      "bytes": 13032736,
+      "compressedBytes": 13032736,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libnexus_llama.so",
+      "bytes": 5558416,
+      "compressedBytes": 5558416,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libpngx.so",
+      "bytes": 231224,
+      "compressedBytes": 231224,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libsurface_util_jni.so",
+      "bytes": 4928,
+      "compressedBytes": 4928,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    },
+    {
+      "path": "lib/x86_64/libtesseract.so",
+      "bytes": 4332136,
+      "compressedBytes": 4332136,
+      "compressionMethod": 0,
+      "category": "native_libraries",
+      "abi": "x86_64",
+      "elfHeaderValid": true,
+      "elfClass": 2,
+      "elfMachine": 62
+    }
+  ],
+  "handModel": {
+    "path": "assets/hand_landmarker.task",
+    "expectedBytes": 7819105,
+    "expectedSha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
+    "present": true,
+    "verified": true,
+    "bytes": 7819105,
+    "sha256": "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1"
+  },
+  "top20": [
+    {
+      "path": "lib/x86/libmediapipe_tasks_jni.so",
+      "bytes": 14961388,
+      "compressedBytes": 14961388,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/x86_64/libmediapipe_tasks_jni.so",
+      "bytes": 13032736,
+      "compressedBytes": 13032736,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "classes.dex",
+      "bytes": 12992000,
+      "compressedBytes": 4468862,
+      "compressionMethod": 8,
+      "category": "dex"
+    },
+    {
+      "path": "lib/arm64-v8a/libmediapipe_tasks_jni.so",
+      "bytes": 10533648,
+      "compressedBytes": 10533648,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "classes2.dex",
+      "bytes": 10215180,
+      "compressedBytes": 3701026,
+      "compressionMethod": 8,
+      "category": "dex"
+    },
+    {
+      "path": "classes3.dex",
+      "bytes": 7910672,
+      "compressedBytes": 2711866,
+      "compressionMethod": 8,
+      "category": "dex"
+    },
+    {
+      "path": "assets/hand_landmarker.task",
+      "bytes": 7819105,
+      "compressedBytes": 7819105,
+      "compressionMethod": 0,
+      "category": "hand_model"
+    },
+    {
+      "path": "lib/armeabi-v7a/libmediapipe_tasks_jni.so",
+      "bytes": 7405000,
+      "compressedBytes": 7405000,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/x86_64/libnexus_llama.so",
+      "bytes": 5558416,
+      "compressedBytes": 5558416,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/arm64-v8a/libnexus_llama.so",
+      "bytes": 5058240,
+      "compressedBytes": 5058240,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/x86/libtesseract.so",
+      "bytes": 4339620,
+      "compressedBytes": 4339620,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/x86_64/libtesseract.so",
+      "bytes": 4332136,
+      "compressedBytes": 4332136,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/arm64-v8a/libtesseract.so",
+      "bytes": 4164360,
+      "compressedBytes": 4164360,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/x86_64/libleptonica.so",
+      "bytes": 3104384,
+      "compressedBytes": 3104384,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/armeabi-v7a/libtesseract.so",
+      "bytes": 3004948,
+      "compressedBytes": 3004948,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/x86/libleptonica.so",
+      "bytes": 2969648,
+      "compressedBytes": 2969648,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/arm64-v8a/libleptonica.so",
+      "bytes": 2878240,
+      "compressedBytes": 2878240,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/armeabi-v7a/libleptonica.so",
+      "bytes": 2160740,
+      "compressedBytes": 2160740,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "lib/arm64-v8a/libc++_shared.so",
+      "bytes": 1253544,
+      "compressedBytes": 1253544,
+      "compressionMethod": 0,
+      "category": "native_libraries"
+    },
+    {
+      "path": "classes4.dex",
+      "bytes": 1242672,
+      "compressedBytes": 492000,
+      "compressionMethod": 8,
+      "category": "dex"
+    }
+  ],
+  "checks": {
+    "withinSizeBudget": true,
+    "handModelPinned": true,
+    "optionalDataAbsent": true,
+    "executableAssetsAbsent": true,
+    "zipNamesUnambiguous": true,
+    "nativeElfHeadersValid": true,
+    "universalAbisPresent": true
+  },
+  "violations": [],
+  "limitations": [
+    "APK bytes are not installed Android storage or private user data.",
+    "This audit does not verify APK signing, ELF debug sections, full ELF semantics or Play Protect approval.",
+    "Asset suffix/header guards do not prove remote provenance or the absence of every possible executable format."
+  ]
+}

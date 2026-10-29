@@ -1,4 +1,5 @@
 #include "nexus_runtime.hpp"
+#include "nexus_chat_template.hpp"
 
 #include "llama.h"
 #include "nlohmann/json.hpp"
@@ -6,6 +7,7 @@
 #include <algorithm>
 #include <atomic>
 #include <climits>
+#include <chrono>
 #include <fstream>
 #include <memory>
 #include <mutex>
@@ -28,6 +30,7 @@ struct Engine {
     std::atomic<bool> closed{false};
     std::atomic<std::uint64_t> cancellation_epoch{0};
     int context_tokens = 1024;
+    std::string architecture;
     std::vector<llama_token> cached_tokens;
     std::uint64_t cache_epoch = 0;
 
@@ -127,7 +130,8 @@ std::string format_prompt(const Engine & engine, const std::vector<Message> & me
         }
         required = written;
     }
-    return std::string(output.data(), static_cast<std::size_t>(required));
+    return finish_generation_prompt(engine.architecture, chat_template,
+        std::string(output.data(), static_cast<std::size_t>(required)));
 }
 
 std::vector<llama_token> tokenize(const Engine & engine, const std::string & prompt) {
@@ -233,6 +237,11 @@ std::uint64_t load(const std::string & path, int context_tokens, int threads) {
     model_parameters.load_mode = LLAMA_LOAD_MODE_MMAP;
     engine->model = llama_model_load_from_file(path.c_str(), model_parameters);
     if (engine->model == nullptr) throw std::runtime_error("Não foi possível carregar a IA local. Verifique o modelo e a memória livre do aparelho.");
+    char architecture[128]{};
+    const auto architecture_size = llama_model_meta_val_str(engine->model, "general.architecture", architecture, sizeof(architecture));
+    if (architecture_size > 0 && architecture_size < static_cast<int32_t>(sizeof(architecture))) {
+        engine->architecture.assign(architecture, static_cast<std::size_t>(architecture_size));
+    }
     if (!llama_model_has_decoder(engine->model) || llama_model_has_encoder(engine->model)) {
         throw std::invalid_argument("Esta versão local aceita modelos GGUF de conversa com decoder de texto.");
     }
@@ -276,9 +285,12 @@ struct Generation {
     int context_tokens = 0;
     int maximum_tokens = 0;
     int reused_prompt_tokens = 0;
+    std::int64_t first_token_ms = -1;
+    std::int64_t total_ms = 0;
 };
 
 Generation generate_internal(std::uint64_t handle, const std::string & chat_json, int maximum_tokens) {
+    const auto started = std::chrono::steady_clock::now();
     auto engine = lookup(handle);
     if (!engine) throw std::runtime_error("A sessão da IA local foi encerrada. Inicie uma nova conversa.");
     if (maximum_tokens < 1 || maximum_tokens > 1024 || maximum_tokens >= engine->context_tokens - 64) {
@@ -352,6 +364,10 @@ Generation generate_internal(std::uint64_t handle, const std::string & chat_json
             break;
         }
         result.text.append(token_piece(*engine, token));
+        if (result.first_token_ms < 0) {
+            result.first_token_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - started).count();
+        }
         ++result.generated_tokens;
         if (result.text.size() > maximum_answer_bytes) throw std::runtime_error("A resposta local ultrapassou o limite de segurança.");
         if (generated + 1 < maximum_tokens) {
@@ -365,6 +381,8 @@ Generation generate_internal(std::uint64_t handle, const std::string & chat_json
     // does not remove repeated words, paragraphs or change generated content.
     trim_incomplete_utf8_tail(result.text);
     if (result.text.empty()) throw std::runtime_error("O modelo local não produziu texto. Tente uma pergunta mais curta.");
+    result.total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - started).count();
     cleanup.completed = true;
     return result;
 }
@@ -385,6 +403,7 @@ std::string generate_result(std::uint64_t handle, const std::string & chat_json,
         {"inputMessages", result.input_messages}, {"usedMessages", result.used_messages},
         {"droppedMessages", result.input_messages - result.used_messages},
         {"contextTokens", result.context_tokens}, {"maxOutputTokens", result.maximum_tokens},
+        {"firstTokenMs", result.first_token_ms}, {"totalMs", result.total_ms},
         {"sampling", {{"temperature", 0.65}, {"topP", 0.9}, {"topK", 40},
                       {"repeatPenalty", 1.08}, {"repeatLastTokens", 128}, {"seed", 42}}}
     }).dump();

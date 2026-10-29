@@ -1,0 +1,10 @@
+{
+  "scope": "Host JVM pure session gate only. No Android UI/camera/network/multimodal quality claim.",
+  "exitCode": 0,
+  "wallSeconds": 9.098,
+  "junitOutput": "JUnit version 4.13.2\n....\nTime: 0.008\n\nOK (4 tests)\n\n",
+  "sourcesSha256": {
+    "app/src/main/java/br/com/nexus/assistant/device/vision/VisionConversationGate.kt": "ec52f9194de203983f38ea49ab6f7e97559c1e13bce4d862e33e79039732477e",
+    "app/src/test/java/br/com/nexus/assistant/device/vision/VisionConversationGateTest.kt": "749be4d4195b5565d38606270524c26578bf94993a8017a2780856c296d2f125"
+  }
+}

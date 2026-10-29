@@ -36,6 +36,26 @@ class AiProviderTest {
         assertFalse(raw.contains("session-for-test"))
     }
 
+    @Test fun `available visual inputs describe actual request rather than generic model ability`() {
+        fun prompt(messages: List<AiMessage>): String {
+            val request = OpenAiCompatibleProvider().buildRequest(settings, "", messages, emptyList())
+            return JSONObject(Buffer().also { request.body!!.writeTo(it) }.readUtf8())
+                .getJSONArray("messages").getJSONObject(0).getString("content")
+        }
+        val textOnly = prompt(listOf(AiMessage("user", "Você consegue ver o que vejo?")))
+        assertTrue(textOnly.contains("Nenhuma imagem foi anexada"))
+        assertTrue(textOnly.contains("Não existe transmissão ao vivo"))
+        val image = File.createTempFile("visual-input-", ".jpg")
+        try {
+            image.writeBytes(byteArrayOf(0xff.toByte(), 0xd8.toByte(), 0xff.toByte(), 0xd9.toByte()))
+            val followUp = prompt(listOf(AiMessage("user", "O que é isso?", image.absolutePath),
+                AiMessage("assistant", "Descrição anterior"), AiMessage("user", "Para que serve?")))
+            assertTrue(followUp.contains("contém 1 foto(s) anexada(s)"))
+            assertFalse(followUp.contains("Nenhuma imagem foi anexada"))
+            assertTrue(followUp.contains("Não existe transmissão ao vivo"))
+        } finally { image.delete() }
+    }
+
     @Test fun `request requires consent and configured model`() {
         expectAiError("Autorize") { OpenAiCompatibleProvider().buildRequest(settings.copy(remoteConsent = false), "", listOf(AiMessage("user", "Olá")), emptyList()) }
         expectAiError("modelo") { OpenAiCompatibleProvider().buildRequest(settings.copy(model = ""), "", listOf(AiMessage("user", "Olá")), emptyList()) }
@@ -64,7 +84,7 @@ class AiProviderTest {
     @Test fun `context keeps newest messages and limits text budget`() {
         val messages = (0 until 80).map { AiMessage(if (it % 2 == 0) "user" else "assistant", "$it:" + "a".repeat(2_000)) }
         val selected = OpenAiCompatibleProvider.selectContext(messages)
-        assertTrue(selected.size <= 24)
+        assertTrue(selected.size <= OpenAiCompatibleProvider.MAX_CONTEXT_MESSAGES)
         assertTrue(selected.sumOf { it.content.length } <= 30_000)
         assertEquals(messages.last(), selected.last())
         assertEquals("user", selected.first().role)
@@ -112,11 +132,13 @@ class AiProviderTest {
 
     @Test fun `transport talks to compatible server and includes real message`() = runBlocking {
         MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(404))
             server.enqueue(MockResponse().setBody("""{"choices":[{"message":{"content":"Resposta recebida do servidor"}}]}"""))
             val result = OpenAiCompatibleProvider(allowInsecureLocal = true).complete(
                 settings.copy(endpoint = server.url("/v1").toString()), "test-session", listOf(AiMessage("user", "Como está?")), emptyList(),
             )
             assertEquals("Resposta recebida do servidor", result)
+            assertEquals("/v1/capabilities", server.takeRequest(2, TimeUnit.SECONDS)!!.path)
             val request = server.takeRequest(2, TimeUnit.SECONDS)!!
             assertEquals("/v1/chat/completions", request.path)
             assertEquals("Bearer test-session", request.getHeader("Authorization"))
@@ -126,6 +148,7 @@ class AiProviderTest {
 
     @Test fun `transport errors do not disclose upstream error or credentials`() = runBlocking {
         MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(404))
             server.enqueue(MockResponse().setResponseCode(401).setBody("private-provider-key-do-not-display"))
             try {
                 OpenAiCompatibleProvider(allowInsecureLocal = true).complete(
@@ -142,6 +165,7 @@ class AiProviderTest {
 
     @Test fun `cancelled coroutine cancels network request promptly`() = runBlocking {
         MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(404))
             server.enqueue(MockResponse().setBody("""{"choices":[{"message":{"content":"atrasada"}}]}""").setHeadersDelay(2, TimeUnit.SECONDS))
             val call = async {
                 OpenAiCompatibleProvider(allowInsecureLocal = true).complete(

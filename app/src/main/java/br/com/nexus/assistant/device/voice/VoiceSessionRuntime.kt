@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class VoiceSessionPhase { IDLE, PREPARING, READY, LISTENING, THINKING, SPEAKING, PAUSED, FAILED }
+enum class VoiceSessionPhase { IDLE, PREPARING, READY, LISTENING, THINKING, SPEAKING, PAUSED, STOPPING, FAILED }
 
 data class BackgroundVoiceState(
     val active: Boolean = false,
@@ -54,9 +54,14 @@ object VoiceSessionRuntime {
     }
     fun stop(context: Context) {
         stopRequested = true
-        if (!context.stopService(Intent(context, BackgroundVoiceService::class.java))) {
-            mutableState.value = BackgroundVoiceState()
-        }
+        // onDestroy releases audio. Keep ownership until then, preventing a
+        // second session from starting during teardown, but reject late work.
+        mutableState.value = BackgroundVoiceState(active = true, phase = VoiceSessionPhase.STOPPING,
+            message = "Encerrando voz e liberando microfone")
+        if (!context.stopService(Intent(context, BackgroundVoiceService::class.java))) mutableState.value = BackgroundVoiceState()
     }
-    internal fun update(state: BackgroundVoiceState) { mutableState.value = state }
+    internal fun update(state: BackgroundVoiceState) {
+        if (stopRequested && state.active) return
+        mutableState.value = state
+    }
 }

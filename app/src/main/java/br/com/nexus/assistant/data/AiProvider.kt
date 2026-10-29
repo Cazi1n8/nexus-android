@@ -10,6 +10,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.Call
@@ -48,7 +53,23 @@ class OpenAiCompatibleProvider(
         .followSslRedirects(false)
         .build(),
     private val allowInsecureLocal: Boolean = BuildConfig.DEBUG,
-) : AiProvider {
+) : StreamingAiProvider {
+    private val capabilityDiscovery = GatewayCapabilityDiscovery(client.newBuilder()
+        .connectTimeout(5, TimeUnit.SECONDS).readTimeout(5, TimeUnit.SECONDS).callTimeout(7, TimeUnit.SECONDS)
+        .followRedirects(false).followSslRedirects(false).build())
+
+    /** No endpoint-name guessing: only the authenticated NEXUS declaration disables tools. */
+    private suspend fun negotiated(request: Request, searchRequested: Boolean = false): Request {
+        val capabilities = capabilityDiscovery.discover(request)
+        if (searchRequested && capabilities?.search != true) {
+            throw AiException("Não foi possível confirmar a ferramenta de pesquisa NEXUS. Verifique conexão, sessão e configuração de pesquisa do gateway.")
+        }
+        if (capabilities?.tools != false) return request
+        val body = JSONObject(okio.Buffer().also { request.body!!.writeTo(it) }.readUtf8())
+        body.remove("tools")
+        body.remove("tool_choice")
+        return request.newBuilder().post(body.toString().toRequestBody("application/json; charset=utf-8".toMediaType())).build()
+    }
     override suspend fun complete(
         settings: NexusSettings,
         token: String,
@@ -56,7 +77,71 @@ class OpenAiCompatibleProvider(
         memories: List<String>,
     ): String = withContext(Dispatchers.IO) {
         val request = buildRequest(settings, token, messages, memories)
-        awaitResponse(client.newCall(request))
+        awaitResponse(client.newCall(negotiated(request)))
+    }
+
+    /** Search is always an explicit request to a developer-configured gateway. */
+    suspend fun completeWithSearch(
+        settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>, query: String,
+    ): String = withContext(Dispatchers.IO) {
+        awaitResponse(client.newCall(negotiated(buildRequest(settings, token, messages, memories, searchQuery = query), searchRequested = true)))
+    }
+
+    override suspend fun stream(
+        settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>,
+        onDelta: suspend (String) -> Unit,
+    ): AiStreamResult {
+        val startedAt = System.nanoTime()
+        return withContext(Dispatchers.IO) {
+            streamRequest(negotiated(buildRequest(settings, token, messages, memories, streaming = true)), onDelta, startedAt)
+        }
+    }
+
+    suspend fun streamWithSearch(
+        settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>, query: String,
+        onDelta: suspend (String) -> Unit,
+    ): AiStreamResult {
+        val startedAt = System.nanoTime()
+        return withContext(Dispatchers.IO) {
+            streamRequest(negotiated(buildRequest(settings, token, messages, memories, streaming = true, searchQuery = query), searchRequested = true), onDelta, startedAt)
+        }
+    }
+
+    private suspend fun streamRequest(request: Request, onDelta: suspend (String) -> Unit, startedAt: Long): AiStreamResult = withContext(Dispatchers.IO) {
+        coroutineScope {
+            var firstTokenMs: Long? = null
+            val call = client.newCall(request)
+            // Cancellation must close an active socket, including while readLine
+            // blocks waiting for the next event. Job-completion-only hooks are too late.
+            val cancellation = launch(start = CoroutineStart.UNDISPATCHED) {
+                try { awaitCancellation() } finally { call.cancel() }
+            }
+            try {
+                call.execute().use { response ->
+                    if (!response.isSuccessful) throw httpError(response.code)
+                    val body = response.body ?: throw AiException("O servidor devolveu uma resposta vazia.")
+                    if (body.contentType()?.let { "${it.type}/${it.subtype}" } != "text/event-stream") {
+                        throw AiException("O servidor não oferece respostas incrementais neste formato.")
+                    }
+                    val decoder = OpenAiStreamDecoder()
+                    val events = SseEventReader(body)
+                    while (!decoder.done) {
+                        ensureActive()
+                        val data = events.nextData() ?: break
+                        val delta = decoder.accept(data)
+                        if (delta.isNotEmpty()) {
+                            if (firstTokenMs == null) firstTokenMs = (System.nanoTime() - startedAt) / 1_000_000L
+                            onDelta(delta)
+                        }
+                    }
+                    AiStreamResult(decoder.finish(), decoder.finishReason ?: "unknown", firstTokenMs,
+                        (System.nanoTime() - startedAt) / 1_000_000L, decoder.inputTokens, decoder.outputTokens, decoder.sources)
+                }
+            } catch (error: IOException) {
+                ensureActive()
+                throw AiException("A conexão com a IA foi interrompida durante a resposta. Tente novamente.", error)
+            } finally { cancellation.cancel() }
+        }
     }
 
     internal fun buildRequest(
@@ -64,17 +149,29 @@ class OpenAiCompatibleProvider(
         token: String,
         messages: List<AiMessage>,
         memories: List<String>,
+        streaming: Boolean = false,
+        searchQuery: String? = null,
     ): Request {
         if (!settings.remoteConsent) throw AiException("Autorize o envio de mensagens, memórias e imagens ao servidor em Configurações antes de usar a IA.")
         if (settings.model.isBlank()) throw AiException("Informe o modelo de IA em Configurações. Para imagens, escolha um modelo com visão.")
         if (settings.model.length > 200) throw AiException("O nome do modelo deve ter até 200 caracteres.")
         if (messages.isEmpty()) throw AiException("Escreva uma mensagem ou selecione uma imagem.")
+        if (messages.last().role != "user") throw AiException("A solicitação atual precisa ser uma mensagem do usuário.")
         if (messages.any { it.role !in setOf("user", "assistant") }) throw AiException("O histórico contém um papel de mensagem inválido.")
         if (token.any { it.code !in 0x20..0x7e } || token.length > 8_192) throw AiException("Token de sessão inválido. Configure uma nova sessão.")
 
         val selected = selectContext(messages)
         val imageIndexes = selected.indices.filter { selected[it].imagePath != null }.takeLast(MAX_IMAGES)
-        val bodyMessages = JSONArray().put(JSONObject().put("role", "system").put("content", systemPrompt(settings, memories)))
+        val omittedHistory = selected.size < messages.size
+        val contextNotice = if (omittedHistory) "\nParte do histórico anterior foi omitida para caber no contexto. Não invente o conteúdo ausente; use apenas os turnos e imagens realmente presentes nesta requisição." else ""
+        val visualInputs = if (imageIndexes.isEmpty()) {
+            "Nenhuma imagem foi anexada a esta requisição. Você recebe somente o texto desta conversa; não está vendo o ambiente do usuário."
+        } else {
+            "Esta requisição contém ${imageIndexes.size} foto(s) anexada(s). Analise somente os pixels dessas fotos; elas podem ser de momentos anteriores."
+        }
+        val bodyMessages = JSONArray().put(JSONObject().put("role", "system").put("content",
+            systemPrompt(settings, memories) + contextNotice + "\nEntradas efetivas desta requisição: " + visualInputs +
+                " Não existe transmissão ao vivo da câmera, da tela ou do microfone para este modelo."))
         selected.forEachIndexed { index, message ->
             val content: Any = if (index in imageIndexes) {
                 JSONArray()
@@ -90,11 +187,20 @@ class OpenAiCompatibleProvider(
             .put("messages", bodyMessages)
             .put("tools", ActionProposal.schemas())
             .put("tool_choice", "auto")
-            .put("stream", false)
+            .put("stream", streaming)
             .put("max_tokens", 1_536)
+            .apply {
+                if (searchQuery != null) {
+                    val query = searchQuery.trim()
+                    if (query.length !in 1..500 || query.any { it.isISOControl() }) {
+                        throw AiException("A pesquisa deve ter entre 1 e 500 caracteres, sem caracteres de controle.")
+                    }
+                    put("nexus_search", JSONObject().put("query", query))
+                }
+            }
             .toString()
         return Request.Builder().url(endpoint(settings.endpoint, allowInsecureLocal))
-            .header("Accept", "application/json")
+            .header("Accept", if (streaming) "text/event-stream" else "application/json")
             .apply { if (token.isNotBlank()) header("Authorization", "Bearer ${token.trim()}") }
             .post(body.toRequestBody("application/json; charset=utf-8".toMediaType()))
             .build()
@@ -147,7 +253,9 @@ class OpenAiCompatibleProvider(
     })
 
     companion object {
-        const val MAX_CONTEXT_MESSAGES = 24
+        // The gateway accepts 64 entries including the system message. This is
+        // a transport boundary; the character budget normally limits it first.
+        const val MAX_CONTEXT_MESSAGES = 63
         const val MAX_CONTEXT_CHARACTERS = 30_000
         const val MAX_IMAGES = 2
         const val MAX_IMAGE_BYTES = 2 * 1_024 * 1_024
@@ -171,16 +279,39 @@ class OpenAiCompatibleProvider(
         }
 
         internal fun selectContext(messages: List<AiMessage>): List<AiMessage> {
-            var remaining = MAX_CONTEXT_CHARACTERS
-            val selected = ArrayList<AiMessage>()
-            for (message in messages.takeLast(MAX_CONTEXT_MESSAGES).asReversed()) {
-                if (remaining <= 0) break
-                val content = message.content.takeLast(remaining)
-                selected.add(message.copy(content = content))
-                remaining -= content.length
+            val turns = mutableListOf<MutableList<AiMessage>>()
+            for (message in messages.dropWhile { it.role != "user" }) {
+                if (message.role == "user") turns += mutableListOf<AiMessage>()
+                turns.last().add(message)
             }
-            return selected.asReversed().dropWhile { it.role != "user" }
-                .ifEmpty { throw AiException("O histórico não contém uma mensagem do usuário.") }
+            if (turns.isEmpty()) throw AiException("O histórico não contém uma mensagem do usuário.")
+            val latest = turns.last()
+            if (latest.sumOf { it.content.length } > MAX_CONTEXT_CHARACTERS || latest.size > MAX_CONTEXT_MESSAGES) {
+                throw AiException("A mensagem atual excede o orçamento de contexto. Divida o texto; o pedido não foi cortado.")
+            }
+            // A visual follow-up must retain the real most recent photo. Pin
+            // its whole turn, never a textual guess pretending to be pixels.
+            val imageAnchor = turns.indexOfLast { turn -> turn.any { it.imagePath != null } }
+            val pinned = if (imageAnchor >= 0 && imageAnchor != turns.lastIndex) turns[imageAnchor] else emptyList()
+            val pinnedCharacters = pinned.sumOf { it.content.length }
+            if (pinnedCharacters + latest.sumOf { it.content.length } > MAX_CONTEXT_CHARACTERS ||
+                pinned.size + latest.size > MAX_CONTEXT_MESSAGES) {
+                throw AiException("A foto anterior e o pedido atual não cabem juntos no contexto. Capture ou anexe a imagem novamente; a análise não prosseguiu sem os pixels.")
+            }
+            var remainingCharacters = MAX_CONTEXT_CHARACTERS - pinnedCharacters
+            var remainingMessages = MAX_CONTEXT_MESSAGES - pinned.size
+            val selected = mutableListOf<Int>()
+            if (pinned.isNotEmpty()) selected += imageAnchor
+            for (index in turns.indices.reversed()) {
+                if (pinned.isNotEmpty() && index == imageAnchor) continue
+                val turn = turns[index]
+                val characters = turn.sumOf { it.content.length }
+                if (characters > remainingCharacters || turn.size > remainingMessages) break
+                selected += index
+                remainingCharacters -= characters
+                remainingMessages -= turn.size
+            }
+            return selected.sorted().flatMap { turns[it] }
         }
 
         internal fun systemPrompt(settings: NexusSettings, memories: List<String>): String =

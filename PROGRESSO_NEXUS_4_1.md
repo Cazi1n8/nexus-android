@@ -1,8 +1,44 @@
 # NEXUS 4.1 — evolução do projeto existente
 
-Dispositivo de validação informado pelo responsável: **Samsung Galaxy A03**. Início: 28/10/2026. A revisão mantém `br.com.nexus.assistant`, os dados existentes e o CORE sem modelos generativos obrigatórios. Versão candidata: **4.1.0-alpha.1-core / 27**.
+Dispositivo de validação informado pelo responsável: **Samsung Galaxy A03**. Início: 28/10/2026; continuidade em 29/10/2026. A revisão mantém `br.com.nexus.assistant`, os dados existentes e o CORE sem modelos generativos obrigatórios. Fonte compilada para avaliação: **4.1.0-alpha.2-core / 28**; não liberada como versão de produção.
 
-Este documento distingue relato físico do usuário, inspeção de código, testes executados no ambiente e testes ainda pendentes. O ambiente não possui o Galaxy A03 conectado nem uma instância do Play Protect com a classificação do arquivo bloqueado.
+Este documento distingue relato físico do usuário, inspeção de código, testes executados no ambiente e testes ainda pendentes. O ambiente não possui o Galaxy A03 conectado nem uma instância do Play Protect com a classificação do arquivo bloqueado. Os resultados da alpha.1 continuam preservados e não contam como aprovação automática da alpha.2.
+
+## Continuidade da alpha.2 — estado de implementação
+
+| Área | Causa ou alteração identificada nesta etapa | Evidência e limite atual |
+| --- | --- | --- |
+| IA geral | Falhas críticas da avaliação real anterior ocorreram em pedidos novos, sem poda do histórico nem truncamento. Corrigido o prefixo não-pensante do candidato Qwen3.5; comparados Qwen2.5 1,5B, Qwen3.5 2B e Qwen3 4B | **53 gerações reais concluídas no host; candidatos reprovados em qualidade**, sem promoção ao catálogo. IA geral continua sem aprovação |
+| Chat remoto | Streaming SSE real, cancelamento do socket, métricas de primeiro texto/total; contexto preserva turnos completos e recusa solicitações grandes em vez de cortá-las | Protocolo testado com upstream controlado e modelo real; fragmentos reais coincidiram com a resposta final. Streaming local não foi simulado |
+| Vision e pesquisa | Sessão CameraX por capturas, perguntas sobre a última foto e modo periódico opcional sem sobreposição; imagens reais no protocolo multimodal; fontes de pesquisa separadas, SearXNG do operador; orçamento de imagem reduzido em dispositivos com menos memória | Caminho Kotlin→gateway→modelo multimodal executado com pixels reais; identificação grosseira correta, mas ingredientes inventados: **qualidade visual reprovada**. Não há serviço público/pesquisa implantados nem teste físico de câmera |
+| Voz | Serviço esperava um modelo ausente no CORE antes de ouvir; seleção pt-BR, prazo de inicialização, foco de áudio e bloqueio de callbacks após PARAR revisados | Correção de código e testes puros registrados; STT/TTS e continuidade física no A03 pendentes |
+| Mouse global | Quadros/gestos pendentes podiam reativar ou continuar após PARAR/PAUSAR; parada imediata, descarte de callbacks e verificação periódica de permissões/notificações | Teste Android negativo adicionado; não foi comprovada operação global no A03. Algoritmos de clique/rolagem preservados |
+| NEXUS 3D | Cena GLES com seis formas, até 12 objetos, pinça, transformações com duas mãos e salvamento privado; controlador separado do mouse | Testes puros integrados à suíte JVM; teste Android EGL incluído, ainda não executado nesta revisão; mãos reais pendentes |
+| Libras | Três aulas introdutórias, progresso separado de leitura e prática, feedback geométrico por dedo, repetição sem parar câmera | 23 testes puros executados; L/V/Y permanecem hipóteses experimentais, sem certificação linguística |
+| CORE e segurança | Sem novos pesos obrigatórios, dependências grandes ou permissões; publicação pública permanece bloqueada | Compilação final e auditorias do APK passaram; **108.635.674 bytes**, quatro ABIs e modelo de mãos incluído. Play Protect permanece sem resolução comprovada |
+
+Relatórios por área: [transporte/Vision](docs/VISION_TRANSPORTE_4_1_CONTINUIDADE.md), [sessão visual](docs/VISION_CONVERSA_4_1.md), [voz](docs/VOZ_NEXUS_4_1_REVISAO.md), [mouse/segurança](docs/NEXUS_GLOBAL_SEGURANCA_4_1_CONTINUIDADE.md), [3D](docs/NEXUS_3D_CENAS_4_1.md) e [Libras](docs/LIBRAS_NEXUS_4_1_REVISAO.md). As contagens isoladas não devem ser somadas a futuras suítes integradas que executem os mesmos métodos.
+
+## Verificações executadas na continuidade alpha.2
+
+| Verificação | Resultado e escopo |
+| --- | --- |
+| Compilação final da alpha.2 | **BUILD SUCCESSFUL**, **7m09s**, 207 tarefas, 61 executadas e 146 atualizadas; APKs debug/coreTest/release e instrumentação coreTest gerados após a última correção de disponibilidade visual |
+| Testes JVM integrados | **298 aprovados**, zero falhas, erros ou ignorados; incluem identidade/capacidades, transporte, ferramentas, voz, mouse, cenas e Libras. Não são testes físicos |
+| Scripts Python | **173 aprovados**; verificam preparação, auditoria, coletores e avaliadores, não precisão do modelo |
+| Servidor opcional | **56 aprovados**, incluindo entrega SSE por socket e negociação de capacidades/ferramentas; testes controlados não contam como inferência real |
+| Lint debug/coreTest | Zero erros, **57 avisos e 1 informação** por variante; relatório release com zero erros, 47 avisos e 1 informação |
+| Investigação real de texto | **53 gerações**, lotes concluídos e saídas preservadas; os modelos continuam reprovados em escrita/interpretação. Não houve nova aprovação dos 15 casos no Android |
+| Modelo multimodal real | Cliente Kotlin de produção→gateway→llama-server com Qwen3.5 2B e projetor verificados; 3 respostas iniciais, incluindo captura e pergunta contextual, sem falha técnica. Reconhece o hambúrguer mas inventa ingredientes: qualidade reprovada |
+| Controle posterior sem imagem | Uma geração real com disponibilidade visual explicitada continua ambígua sobre “ver” o chat; não é aprovação do limite de visão |
+| Novos testes Android | Recusa segura do mouse sem câmera e renderização EGL preparados no runner CORE; ainda **não executados** para esta fonte |
+| Instalação e hardware | Play Protect, mãos/câmera, voz, mouse global e desempenho no Galaxy A03 **não testados fisicamente** |
+
+Fontes e rubricas: [compilação/testes/tamanhos](docs/evidencias/n42-build-verification.json), [investigação de modelos](docs/NEXUS_AI_4_1_INVESTIGACAO_MODELO.md), [53 gerações/revisão](docs/evidencias/n42-ai-quality-review.json), [avaliação visual real](docs/VISION_AVALIACAO_REAL_4_1.md), [respostas multimodais](docs/evidencias/n42-vision-remote-model.json), [revisão visual](docs/evidencias/n42-vision-model-review.json) e [controle sem imagem](docs/evidencias/n42-vision-availability-model.json). O teste visual preserva a foto anterior no contexto, mas também propaga seus detalhes inventados; manter contexto não significa que a observação esteja correta. Os servidores temporários foram encerrados após a coleta.
+
+**APK final local de avaliação:** `app/build/outputs/apk/coreTest/app-coreTest.apk`, **108.635.674 bytes (108,64 MB)**. SHA-256 `556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f`; certificado de teste `ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79`. Aumentou **114.688 bytes (+0,106%)** sobre a alpha.1, preservando a otimização CORE. O pacote mantém quatro ABIs e o modelo de mãos verificado de 7.819.105 bytes, sem GGUF obrigatório. [Conteúdo medido](docs/evidencias/n42-core-package-audit.json) e [manifesto/assinatura](docs/evidencias/n42-security-package-audit.json) passaram nas verificações declaradas. Isso não é aprovação do Play Protect nem medição do espaço instalado no A03.
+
+O release de **108.623.386 bytes** foi compilado **sem assinatura**, porque a chave estável do responsável não está configurada; não é instalável. Nenhum APK novo foi publicado como release público. O pacote de avaliação tem a finalidade delimitada de testar as correções técnicas e coletar as validações ainda ausentes; não deve ser apresentado como IA aprovada ou instalação já liberada pelo Google. A assinatura local não corresponde à do APK público CORE22, portanto não garante atualização direta daquela instalação.
 
 ## Critério de distribuição
 
@@ -15,13 +51,13 @@ O APK público CORE anterior tem 108.210.081 bytes, SHA-256 `e76ff4e228206a11317
 | Fase | Escopo e evidência exigida | Estado nesta implementação |
 | --- | --- | --- |
 | 1 — Segurança | Manifesto final, capacidades, consentimento, dependências, assinatura; instalação com proteção ativa e eventual revisão oficial | Manifesto/APK auditados, dependências corrigidas, testes de limites automatizados; aprovação física pendente |
-| 2 — Mouse | Cadeia CameraX→MediaPipe→gestos→cursor, sessões global/interna, pausa/parada, medição de latência e regressão clique/rolagem | Pipeline e controles corrigidos, testes JVM passaram; regressão Android aprovada; teste global físico A03 pendente |
-| 3 — IA | Ferramenta matemática offline, identidade, contexto, qualidade e latência com modelo real | Bloqueio da calculadora no CORE corrigido e testado no JVM e Android CORE; troca de modelo/serviço integrado não implantada |
-| 4 — Vision | Imagem chegando a provedor multimodal, contexto e fontes de pesquisa verificáveis | Integrações existentes preservadas; serviço público multimodal/pesquisa não configurado |
-| 5 — 3D | Duas mãos medidas, seleção/transformações e múltiplos objetos/cenas | Preservar cubo existente e remover restrição de mãos por RAM; expansão de cenas pendente |
-| 6 — Libras e Voz | Exercícios com referências validadas, STT/TTS reais, sessão autorizada fora do app | Código atual preservado; validação física e ampliação pedagógica pendentes |
+| 2 — Mouse | Cadeia CameraX→MediaPipe→gestos→cursor, sessões global/interna, pausa/parada, medição de latência e regressão clique/rolagem | Pipeline e controles corrigidos, testes JVM passaram; regressão Android da alpha.1 aprovada, instrumentação nova pendente; teste global físico A03 pendente |
+| 3 — IA | Ferramenta matemática offline, identidade, contexto, qualidade e latência com modelo real | Ferramentas aprovadas na alpha.1; 53 gerações comparativas reais concluídas, modelos ainda reprovados; sem backend público implantado |
+| 4 — Vision | Imagem chegando a provedor multimodal, contexto e fontes de pesquisa verificáveis | Transporte real verificado; candidato visual reprovado em detalhes. Modelo competente, pesquisa real e infraestrutura permanecem pendentes |
+| 5 — 3D | Duas mãos medidas, seleção/transformações e múltiplos objetos/cenas | Expansão de cenas implementada com testes puros; EGL integrado e mãos físicas ainda precisam de execução |
+| 6 — Libras e Voz | Exercícios com referências validadas, STT/TTS reais, sessão autorizada fora do app | Aulas/feedback e correções de voz implementados; validação pedagógica e física pendentes |
 | 7 — Extensões e desempenho | Modelos opcionais, remoção segura, tamanho final e perfis por recursos medidos | CORE e centrais preservados; quatro perfis implementados com testes |
-| 8 — Entrega | Compilação, relatórios e pacote identificado por hash/assinatura | Compilação local aprovada; candidato de teste 108,52 MB, distribuição de produção pendente |
+| 8 — Entrega | Compilação, relatórios e pacote identificado por hash/assinatura | Alpha.2 compilada com 108,64 MB, 298 JVM aprovados e auditorias do APK. CI/instrumentação nova e validação física pendentes; sem liberação de produção |
 
 ## Três falhas confirmadas no aparelho
 
@@ -52,7 +88,7 @@ Serão inspecionados o ciclo de vida real da câmera, estados de erro, coordenad
 7. Teste câmera ocupada, rotação, tela bloqueada, permissões revogadas e acessibilidade desconectada. Deve haver cancelamento de toque mantido e erro compreensível, sem ações ocultas.
 8. Sem baixar modelo de conversa, pergunte `Quanto é 50 + 50 + 50 × 50?`: a ferramenta deve calcular **2600**. Perguntas gerais continuam exigindo um modelo real ou serviço configurado; não devem receber respostas simuladas.
 
-## Resultados executados
+## Resultados executados da alpha.1 — histórico
 
 Fonte publicada no repositório existente: [`2602470`](https://github.com/Cazi1n8/nexus-android/commit/260247033611ab2eba76a33aa282f9e74a75a91e). A árvore de fonte local foi comparada à do GitHub e é idêntica. Os resultados históricos da alpha.3 não foram contados como testes da 4.1.
 
@@ -91,4 +127,4 @@ No benchmark Android de preparo de imagens (320×240, 60 amostras + 10 de aqueci
 
 A [avaliação real de IA 6](https://github.com/Cazi1n8/nexus-android/actions/runs/40783551169) concluiu **15 casos, 35 gerações reais e duas ferramentas**, com 37 respostas persistidas e zero falhas técnicas, mas **reprovou o gate de qualidade nos casos 3, 9 e 12** (redação de desculpas, limite de visão e interpretação informal). Não é uma falha corrigida por atualizar dependências ou pelo parser matemático. [Saídas reais](docs/evidencias/nexus41-ai-evaluation6.json) e [resumo](docs/evidencias/nexus41-ai-evaluation6-summary.json). Não foi implantado um modelo de maior capacidade nem um backend público; a inteligência geral continua insuficiente para os objetivos solicitados.
 
-Os cenários de câmera, mãos reais, serviço global sobre outros apps, STT/TTS no A03 e instalação com Play Protect continuam **pendentes de hardware físico**. O backend público de IA, análise multimodal geral, pesquisa online, cenas com múltiplos objetos e ampliação validada de Libras permanecem etapas futuras; não foram apresentados como implementados por esta revisão.
+Na alpha.1, os cenários de câmera, mãos reais, serviço global sobre outros apps, STT/TTS no A03 e instalação com Play Protect ficaram **pendentes de hardware físico**. O backend público, a análise multimodal geral, a pesquisa online, as cenas com múltiplos objetos e a ampliação pedagógica não foram implementados por aquela revisão. A continuidade da alpha.2 acima separa as novas alterações de código daquilo que ainda exige implantação e validação.

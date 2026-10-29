@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "auditTimestampUtc": "2026-10-29T15:41:15.913018+00:00",
+  "status": "passed",
+  "finalManifest": true,
+  "package": "br.com.nexus.assistant",
+  "versionName": "4.1.0-alpha.2-core",
+  "versionCode": "28",
+  "permissions": [
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.CAMERA",
+    "android.permission.FOREGROUND_SERVICE",
+    "android.permission.FOREGROUND_SERVICE_CAMERA",
+    "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+    "android.permission.INTERNET",
+    "android.permission.POST_NOTIFICATIONS",
+    "android.permission.RECORD_AUDIO",
+    "br.com.nexus.assistant.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  ],
+  "components": [
+    {
+      "type": "activity",
+      "name": "br.com.nexus.assistant.MainActivity",
+      "exported": true,
+      "permission": null,
+      "foregroundServiceType": null
+    },
+    {
+      "type": "service",
+      "name": "br.com.nexus.assistant.device.voice.BackgroundVoiceService",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": "0x80"
+    },
+    {
+      "type": "service",
+      "name": "br.com.nexus.assistant.gestures.global.GlobalMouseCameraService",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": "0x40"
+    },
+    {
+      "type": "service",
+      "name": "br.com.nexus.assistant.gestures.global.NexusAccessibilityService",
+      "exported": true,
+      "permission": "android.permission.BIND_ACCESSIBILITY_SERVICE",
+      "foregroundServiceType": null
+    },
+    {
+      "type": "service",
+      "name": "androidx.camera.core.impl.MetadataHolderService",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": null
+    },
+    {
+      "type": "service",
+      "name": "androidx.room.MultiInstanceInvalidationService",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": null
+    },
+    {
+      "type": "service",
+      "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": null
+    },
+    {
+      "type": "service",
+      "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+      "exported": false,
+      "permission": "android.permission.BIND_JOB_SERVICE",
+      "foregroundServiceType": null
+    },
+    {
+      "type": "receiver",
+      "name": "androidx.profileinstaller.ProfileInstallReceiver",
+      "exported": true,
+      "permission": "android.permission.DUMP",
+      "foregroundServiceType": null
+    },
+    {
+      "type": "receiver",
+      "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": null
+    },
+    {
+      "type": "provider",
+      "name": "androidx.startup.InitializationProvider",
+      "exported": false,
+      "permission": null,
+      "foregroundServiceType": null
+    }
+  ],
+  "accessibility": {
+    "description": "@ref/0x7f0b0066",
+    "accessibilityFeedbackType": "0x10",
+    "notificationTimeout": "100",
+    "canRetrieveWindowContent": "false",
+    "canRequestFilterKeyEvents": "false",
+    "canPerformGestures": "true",
+    "canTakeScreenshot": "false",
+    "isAccessibilityTool": "false"
+  },
+  "violations": [],
+  "limitations": [
+    "This is a manifest/resource boundary audit, not a Play Protect verdict.",
+    "Permission prompts, consent, camera/audio lifecycle and OEM behavior require runtime tests.",
+    "Dependencies, private data handling and native code require additional analysis."
+  ],
+  "artifact": {
+    "bytes": 108635674,
+    "sha256": "556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f"
+  },
+  "signing": {
+    "signatureVerified": true,
+    "certificateSha256": [
+      "ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79"
+    ],
+    "testDebugCertificate": true,
+    "productionIdentityVerified": false
+  }
+}

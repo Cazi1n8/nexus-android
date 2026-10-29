@@ -18,8 +18,6 @@ import br.com.nexus.assistant.MainActivity
 import br.com.nexus.assistant.NexusViewModel
 import br.com.nexus.assistant.R
 import br.com.nexus.assistant.commands.PhoneCommands
-import br.com.nexus.assistant.data.AiMode
-import br.com.nexus.assistant.data.local.LocalModelStatus
 import br.com.nexus.assistant.device.VoiceController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +55,12 @@ class BackgroundVoiceService : Service() {
             NexusSessionControls.stopAll(this)
             return START_NOT_STICKY
         }
-        if (intent == null || intent.action == ACTION_STOP || VoiceSessionRuntime.stopRequested) { stopSelf(); return START_NOT_STICKY }
+        if (intent?.action == ACTION_STOP) {
+            VoiceSessionRuntime.stop(this)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        if (intent == null || VoiceSessionRuntime.stopRequested) { stopSelf(); return START_NOT_STICKY }
         if (started) {
             if (intent.action == ACTION_LISTEN) requestListen(manual = true)
             if (intent.action == ACTION_INTERRUPT) interruptTurn()
@@ -98,9 +101,13 @@ class BackgroundVoiceService : Service() {
     }
 
     private fun observeSession() {
-        scope.launch { model.settings.collect { voice.setLanguage(it.language) } }
+        scope.launch { model.settings.collect {
+            voice.selectVoice(it.voiceName)
+            voice.setLanguage(it.language)
+        } }
         scope.launch {
             voice.state.collect { state ->
+                if (VoiceSessionRuntime.stopRequested) return@collect
                 when {
                     state.isListening -> publish(VoiceSessionPhase.LISTENING, "Ouvindo nesta sessão autorizada")
                     state.isSpeaking -> publish(VoiceSessionPhase.SPEAKING, "NEXUS falando; microfone pausado")
@@ -114,9 +121,9 @@ class BackgroundVoiceService : Service() {
                 }
             }
         }
-        scope.launch { model.localModelState.collect { if (listenRequested) tryListen() } }
         scope.launch {
             combine(model.messages, model.busy) { messages, busy -> messages to busy }.collect { (messages, busy) ->
+                if (VoiceSessionRuntime.stopRequested) return@collect
                 val query = awaitingQuery
                 if (query == null) {
                     if (!busy && listenRequested) tryListen()
@@ -163,7 +170,7 @@ class BackgroundVoiceService : Service() {
     }
 
     private fun requestListen(manual: Boolean) {
-        if (!started) return
+        if (!started || VoiceSessionRuntime.stopRequested) return
         if (budget.expired(SystemClock.elapsedRealtime())) {
             terminalMessage = "Limite desta sessão atingido. Inicie outra sessão pelo NEXUS."
             stopSelf(); return
@@ -177,7 +184,10 @@ class BackgroundVoiceService : Service() {
             return
         }
         resumeJob?.cancel()
-        if (manual) budget.manualListen()
+        if (manual) {
+            budget.manualListen()
+            voice.refreshLanguageVoices()
+        }
         listenRequested = true
         tryListen()
     }
@@ -197,7 +207,7 @@ class BackgroundVoiceService : Service() {
     }
 
     private fun tryListen() {
-        if (!started || !listenRequested || model.busy.value || awaitingQuery != null || speakingReply) return
+        if (!started || VoiceSessionRuntime.stopRequested || !listenRequested || model.busy.value || awaitingQuery != null || speakingReply) return
         val state = voice.state.value
         if (state.isListening || state.isSpeaking || state.preparingSpeech) return
         if (!state.available) {
@@ -215,21 +225,9 @@ class BackgroundVoiceService : Service() {
             } else publish(VoiceSessionPhase.PREPARING, "Preparando uma voz no idioma escolhido; confira as vozes instaladas no Android.")
             return
         }
-        if (model.settings.value.aiMode == AiMode.NEXUS_LOCAL && !model.devicePolicy.value.localAiSupported) {
-            listenRequested = false
-            publish(VoiceSessionPhase.PAUSED, model.devicePolicy.value.reason)
-            return
-        }
-        if (model.settings.value.aiMode == AiMode.NEXUS_LOCAL && model.localModelState.value.status != LocalModelStatus.READY) {
-            if (model.localModelState.value.status == LocalModelStatus.FAILED) {
-                listenRequested = false
-                publish(VoiceSessionPhase.PAUSED, "A IA local não ficou pronta. Confira a preparação no NEXUS.")
-            } else {
-                publish(VoiceSessionPhase.PREPARING, "Preparando a IA no aparelho antes de ouvir")
-                model.prepareLocalAi()
-            }
-            return
-        }
+        // Recognition itself needs neither a downloaded LLM nor a configured
+        // server. The shared ViewModel validates each recognized request: local
+        // tools can work in CORE; general chat reports its real missing model.
         listenRequested = false
         voice.clearError()
         voice.startListening(model.settings.value.language, onResult = { heard ->
@@ -292,6 +290,7 @@ class BackgroundVoiceService : Service() {
     }
 
     private fun publish(phase: VoiceSessionPhase, message: String) {
+        if (VoiceSessionRuntime.stopRequested) return
         VoiceSessionRuntime.update(BackgroundVoiceState(true, phase, message, continuous, completedTurns))
         if (started && message != lastNotificationMessage) {
             lastNotificationMessage = message

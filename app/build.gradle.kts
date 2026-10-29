@@ -41,8 +41,8 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 27
-        versionName = "4.1.0-alpha.1-core"
+        versionCode = 28
+        versionName = "4.1.0-alpha.2-core"
         buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
         buildConfigField("boolean", "BUNDLED_VISION", bundleVision.toString())
         buildConfigField("boolean", "CORE_INSTALLATION", (!bundleModel && !bundleVision).toString())

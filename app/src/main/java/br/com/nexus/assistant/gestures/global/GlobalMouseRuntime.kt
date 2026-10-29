@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /** Session metadata only. Camera images, app contents and accessibility events are never stored. */
 data class GlobalMouseState(
@@ -32,10 +33,17 @@ object GlobalMouseRuntime {
     fun stop(context: Context) {
         // Cancel a visible panel's pending camera hand-off as well as an already
         // running service. PARAR must work even during the 350 ms bind transition.
+        markStopping()
+        context.stopService(Intent(context, GlobalMouseCameraService::class.java))
+    }
+    /** Block new input before Android asynchronously delivers Service.onDestroy. */
+    internal fun markStopping() {
         stopGeneration++
-        if (!context.stopService(Intent(context, GlobalMouseCameraService::class.java))) {
-            mutableState.value = GlobalMouseState()
-        }
+        mutableState.update { GlobalMouseState(error = it.error) }
+    }
+    /** A delayed frame can never recreate a paused/stopped session's metadata. */
+    internal fun updateFromFrame(transform: (GlobalMouseState) -> GlobalMouseState) {
+        mutableState.update { current -> if (current.active && !current.paused) transform(current) else current }
     }
     fun calibrate(context: Context) {
         if (state.value.active && !state.value.paused) context.startService(Intent(context, GlobalMouseCameraService::class.java)
@@ -52,14 +60,14 @@ object GlobalMouseRuntime {
             .setAction(GlobalMouseCameraService.ACTION_RESUME))
     }
     internal fun gestureResult(accepted: Boolean, cancelled: Boolean = false) {
-        val state = mutableState.value
-        if (!state.active) return
-        mutableState.value = state.copy(
-            acceptedGestures = state.acceptedGestures + if (accepted && !cancelled) 1 else 0,
-            rejectedGestures = state.rejectedGestures + if (!accepted && !cancelled) 1 else 0,
-            cancelledGestures = state.cancelledGestures + if (cancelled) 1 else 0,
-            message = if (!accepted && !cancelled) "O Android recusou um gesto. Confira a acessibilidade; algumas telas protegidas não aceitam controle." else state.message,
-        )
+        mutableState.update { state ->
+            if (!state.active) state else state.copy(
+                acceptedGestures = state.acceptedGestures + if (accepted && !cancelled) 1 else 0,
+                rejectedGestures = state.rejectedGestures + if (!accepted && !cancelled) 1 else 0,
+                cancelledGestures = state.cancelledGestures + if (cancelled) 1 else 0,
+                message = if (!accepted && !cancelled) "O Android recusou um gesto. Confira a acessibilidade; algumas telas protegidas não aceitam controle." else state.message,
+            )
+        }
     }
     internal fun update(value: GlobalMouseState) { mutableState.value = value }
     internal fun fail(message: String) { mutableState.value = GlobalMouseState(error = message) }

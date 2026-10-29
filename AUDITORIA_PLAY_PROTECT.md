@@ -1,5 +1,19 @@
 # Auditoria de segurança, permissões e Play Protect do NEXUS
 
+## Continuidade alpha.2 / código 28 — 29/10/2026
+
+**Não existe aprovação nova do Play Protect.** A alpha.2 mantém o pacote e as oito permissões Android da alpha.1. A compilação final passou na auditoria do APK real, com a permissão interna AndroidX de nível assinatura, nove `uses-permission` no total, serviços privados e acessibilidade limitada a gestos. O arquivo é assinado com certificado de teste, não identidade de produção. Instalação física com proteção ativa continua pendente.
+
+A revisão do ciclo de vida encontrou comportamentos concretos que precisavam de correção: um resultado de câmera podia repor a sessão como ativa depois de PARAR; a conclusão de um gesto podia disparar outro toque da fila depois de PAUSAR/PARAR; callbacks de escuta/resposta podiam sobreviver ao pedido de encerramento da voz. A fonte agora bloqueia trabalho novo imediatamente e libera os recursos do serviço. O mouse também revê câmera, acessibilidade e notificações durante a sessão. Essas correções diminuem ações indesejadas após uma parada, **sem afirmar que causaram ou resolveram o bloqueio específico do Google**. [Revisão detalhada](docs/NEXUS_GLOBAL_SEGURANCA_4_1_CONTINUIDADE.md) e [voz](docs/VOZ_NEXUS_4_1_REVISAO.md).
+
+O novo transporte usa SSE real, limita eventos/texto, exige conclusão válida e cancela o socket ao interromper a solicitação. A pesquisa opcional aceita somente uma consulta para um SearXNG configurado pelo operador: não aceita URL arbitrária do cliente/modelo nem visita as páginas dos resultados. Imagens e contexto só podem ser enviados ao provedor autorizado; reduzir resolução não substitui consentimento. O gateway atual é para ambiente controlado e ainda não é serviço público multiusuário implantado. [Protocolo, autenticação e implantação](server/README.md).
+
+Nenhuma permissão, capacidade de leitura de outros aplicativos, dependência grande ou modelo obrigatório foi adicionada por essas alterações. Os protótipos de modelos usados no computador são dados de avaliação, não código remoto carregado no Android. A publicação automática continua suspensa. Assinatura de produção estável, teste físico e eventual [revisão oficial](docs/PLAY_PROTECT_REVISAO.md) permanecem pendentes; não foi solicitado desativar a proteção.
+
+A compilação final da alpha.2 passou em 7m09s com **298 testes JVM**, 173 testes Python e 56 testes do servidor aprovados. O Lint debug/coreTest não reportou erros, com 57 avisos e uma informação por variante. Isso não aprova o Play Protect nem dispensa os novos testes Android e físicos. A avaliação real de texto e visão **reprovou a qualidade dos candidatos**; nenhuma resposta do modelo é tomada como evidência de acesso a câmera ou conteúdo de outros aplicativos.
+
+O APK CORE final local tem **108.635.674 bytes**, SHA-256 `556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f`, certificado de teste `ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79`. As [verificações compiladas](docs/evidencias/n42-security-package-audit.json) confirmam HTTPS, capacidades/componentes e assinatura dentro da política auditada; o [relatório integrado](docs/evidencias/n42-build-verification.json) identifica os arquivos. Não é uma análise de todas as vulnerabilidades nem o veredito do Google. O release de 108.623.386 bytes continua sem assinatura e não instalável por falta da chave estável do responsável. A publicação pública permanece suspensa.
+
 ## Revisão prioritária NEXUS 4.1 — Galaxy A03, 28/10/2026
 
 **O aparelho de teste informado é o Samsung Galaxy A03.** O usuário confirmou que o APK CORE continuou bloqueado com a mensagem sobre acesso a dados sensíveis. Não há acesso físico a esse aparelho neste ambiente. Não houve varredura do novo APK pelo Play Protect, resposta do Google ou confirmação de liberação. **A distribuição de uma versão considerada pronta permanece pendente desses requisitos.** O histórico abaixo conserva os identificadores das versões anteriores; referências antigas ao S9+ não representam o aparelho desta revisão.
@@ -217,7 +231,7 @@ A [minuta de revisão](docs/PLAY_PROTECT_REVISAO.md) identifica o APK exato bloq
 
 ## Protocolo físico proposto: 13 cenários ainda pendentes
 
-Os cenários abaixo são um plano de validação em aparelho. **Nenhum foi marcado como aprovado por esta auditoria.** Instrumentação com emulador sem Google Play não reproduz a classificação do Play Protect nem garante o comportamento de um Samsung Galaxy S9+.
+Os cenários abaixo são um plano de validação em aparelho. **Nenhum foi marcado como aprovado por esta auditoria.** Instrumentação com emulador sem Google Play não reproduz a classificação do Play Protect nem garante o comportamento do Samsung Galaxy A03 informado nesta revisão.
 
 | Caso | Critério de aceitação | Estado |
 | --- | --- | --- |

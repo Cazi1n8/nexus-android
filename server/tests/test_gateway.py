@@ -43,6 +43,20 @@ class UpstreamHandler(BaseHTTPRequestHandler):
             "payload": payload,
         })
         mode = self.server.mode
+        if mode == "sse":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            try:
+                self.wfile.write(b'data: {"choices":[{"index":0,"delta":{"content":"First"},"finish_reason":null}],"private_metadata":"secret"}\n\n')
+                self.wfile.flush()
+                self.server.stream_release.wait(3)
+                self.wfile.write(b'data: {"choices":[{"index":0,"delta":{"content":" second"},"finish_reason":null}]}\n\ndata: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n')
+                self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
         if mode == "redirect":
             self.send_response(302)
             self.send_header("Location", f"http://127.0.0.1:{self.server.server_port}/stolen")
@@ -145,7 +159,6 @@ class GatewayTests(unittest.TestCase):
             "model": "test-model",
             "messages": [{"role": "user", "content": "Olá"}],
             "api_key": "malicious-client-key", "base_url": "http://127.0.0.1:1",
-            "tools": [{"name": "should_not_be_forwarded"}],
         })
         self.assertEqual(200, status)
         self.assertEqual("Resposta real do upstream de teste.", answer["choices"][0]["message"]["content"])
@@ -454,7 +467,7 @@ class ConfigurationAndValidationTests(unittest.TestCase):
 
     def test_request_parameters_are_bounded(self):
         base = {"messages": [{"role": "user", "content": "Olá"}]}
-        for extra in ({"temperature": float("nan")}, {"temperature": 10**400}, {"max_tokens": 999_999}, {"stream": True}):
+        for extra in ({"temperature": float("nan")}, {"temperature": 10**400}, {"max_tokens": 999_999}, {"stream": "true"}):
             with self.subTest(extra=extra), self.assertRaises(InvalidPayload):
                 validate_payload({**base, **extra}, "test-model")
 

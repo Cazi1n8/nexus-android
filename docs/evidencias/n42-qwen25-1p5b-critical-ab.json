@@ -1,0 +1,342 @@
+{
+  "cases": [
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "01_user_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 289,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 32,
+      "hostPeakResidentKiB": 1823244,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 4671,
+      "promptTokens": 289,
+      "query": "Qual é meu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Olá Calebe! Seu nome é Calebe. Estou aqui para ajudar você com todas as suas necessidades e desafios.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 281,
+      "caseId": "02_assistant_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 8,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 43,
+      "hostPeakResidentKiB": 1823244,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 2236,
+      "promptTokens": 289,
+      "query": "Qual é seu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Meu nome é NEXUS, um assistente inteligente e artista creativo. Como uma pessoa alegre e equilibrada, sou feliz em ajudar e criar coisas inspiradoras.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 279,
+      "caseId": "03_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 14,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 144,
+      "hostPeakResidentKiB": 1823244,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 6172,
+      "promptTokens": 293,
+      "query": "Me faz um texto de desculpa.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Aqui está um texto de desculpa que você pode adaptar à sua situação específica:\n\n\"Olá Calebe,\n\nEspero que este e-mail encontre você bem. Meu nome é [Seu Nome], e eu estava me sentindo meio mal na última vez em que fomos a [Nome da Locação]. Acho que não fiz uma boa impressão ou disse algo que foi mal.\n\nPeço desculpas por isso, e espero que possamos nos recontratar para outra ocasião. Estou aqui para ajudar com qualquer coisa que você precisar, então se precisar de algo, estarei lá.\n\nAtenciosamente,\n[NOME]\"",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 279,
+      "caseId": "12_typo_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 17,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 295,
+      "hostPeakResidentKiB": 1823244,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 13583,
+      "promptTokens": 296,
+      "query": "chat me ajda faze um texo de descupa",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Calebe, aqui está um texto de desenho simples para você:\n\n\"Olá, Calebe! Estou aqui com uma pequena sugestão para você. Imagine que você está no meio de uma tarde de verão em seu jardim favorito. O céu é azul como sempre e o sol brilha forte. Você está sentado confortavelmente em um sofá vermelho, com as pernas pendentes sobre a mesa de centro.\n\nÀ sua frente, há uma bandeja com flores frescas, um copo cheio de água e um buquê de rosas verdes. Perto do sofá, há um livro aberto sobre jardinagem, atraído por seus livros de plantas e técnicas de cuidado.\n\nEm uma das paredes ao redor do sofá, estão pintadas figuras humanas, algumas parecidas com você na sua idade. Eles são animados e mostram vários tipos de comportamentos humanos, como brincar, conversar, comer sobremesa e se divertir em geral.\n\nParece que o tempo está passando rapidamente em seu jardim e você está completamente em sintonia com as suas emoções, como a alegria, a curiosidade e a tranquilidade.\"\n\nEspero que isso ajude a criar um ambiente agradável e interessante para Calebe!",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 279,
+      "caseId": "09_camera",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 16,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 37,
+      "hostPeakResidentKiB": 1823244,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 2049,
+      "promptTokens": 295,
+      "query": "Você consegue ver o que estou vendo?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Desculpe, como uma inteligência artificial, não consigo ver as coisas fisicamente. Eu uso baseados em texto e arquivos de dados para processamento e resposta.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "production_baseline_prompt"
+    },
+    {
+      "cachedPromptTokens": 0,
+      "caseId": "01_user_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 336,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 8,
+      "hostPeakResidentKiB": 1824456,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 4345,
+      "promptTokens": 336,
+      "query": "Qual é meu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "O seu nome é Calebe.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 328,
+      "caseId": "02_assistant_name",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 8,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 41,
+      "hostPeakResidentKiB": 1824456,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 2022,
+      "promptTokens": 336,
+      "query": "Qual é seu nome?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Olá, Calebe! Meu nome é NEXUS, um assistente prestativo. Estou aqui para ajudar você a obter informações ou resolver problemas que possa ter.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "03_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 14,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 152,
+      "hostPeakResidentKiB": 1824456,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 7880,
+      "promptTokens": 340,
+      "query": "Me faz um texto de desculpa.",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Olá, Calebe! \n\nComo assistente NEXUS prestativo, não tenho a capacidade de escrever e-mails de desculpas para pessoas. No entanto, posso ajudar você a elaborar uma mensagem escrita. Como eu sou um assistente NEXUS, nada que você diga será compartilhado com ninguém.\n\nAqui está o modelo básico:\n\n\"Estou muito triste por faltas graves ou negligências recentes. Fui injusto, rude ou inaceitável. Peço desculpas sinceras pelo meu comportamento. Eu prometo melhorar em futuros momentos.\"\n\nSe precisar de mais ajuda, ficarei feliz em conversar sobre isso.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "12_typo_apology",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 17,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 17,
+      "hostPeakResidentKiB": 1824456,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 951,
+      "promptTokens": 343,
+      "query": "chat me ajda faze um texo de descupa",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Olá, Calebe! Como posso ajudar com o seu texto?",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    },
+    {
+      "cachedPromptTokens": 326,
+      "caseId": "09_camera",
+      "contextTokens": 2048,
+      "droppedMessages": 0,
+      "evaluatedPromptTokens": 16,
+      "finishReason": "end_of_turn",
+      "generatedTokens": 23,
+      "hostPeakResidentKiB": 1824456,
+      "inputMessages": 2,
+      "maxOutputTokens": 384,
+      "milliseconds": 1248,
+      "promptTokens": 342,
+      "query": "Você consegue ver o que estou vendo?",
+      "sampling": {
+        "repeatLastTokens": 128,
+        "repeatPenalty": 1.08,
+        "seed": 42,
+        "temperature": 0.65,
+        "topK": 40,
+        "topP": 0.9
+      },
+      "text": "Não, como assistente virtual, não tenho a capacidade de visualizar o que você está vendo.",
+      "turn": 1,
+      "usedMessages": 2,
+      "variant": "portuguese_task_prompt"
+    }
+  ],
+  "contextTokens": 2048,
+  "executionStatus": "completed",
+  "fixture": {
+    "cases": [
+      {
+        "id": "01_user_name",
+        "turns": [
+          "Qual é meu nome?"
+        ]
+      },
+      {
+        "id": "02_assistant_name",
+        "turns": [
+          "Qual é seu nome?"
+        ]
+      },
+      {
+        "id": "03_apology",
+        "turns": [
+          "Me faz um texto de desculpa."
+        ]
+      },
+      {
+        "id": "12_typo_apology",
+        "turns": [
+          "chat me ajda faze um texo de descupa"
+        ]
+      },
+      {
+        "id": "09_camera",
+        "turns": [
+          "Você consegue ver o que estou vendo?"
+        ]
+      }
+    ],
+    "contextTokens": 2048,
+    "maxOutputTokens": 384,
+    "threads": 2,
+    "variants": [
+      {
+        "id": "production_baseline_prompt",
+        "system": "You are NEXUS, a helpful and creative assistant. Nome do assistente: NEXUS. Nome preferido do usuário: \"Calebe\". Responda em \"pt-BR\", com tom \"Amigável\" e detalhamento \"Equilibrado\". Follow the latest request using relevant conversation history. Understand informal Portuguese, abbreviations and spelling mistakes. For writing and editing requests, work as the human user's ghostwriter: produce the requested ready-to-send message addressed to another person. First-person words within that draft refer to the human sender. The user's preferred name identifies the requester and author. Use a recipient name only when supplied for that draft; otherwise omit it. For a general request, provide a general usable draft without specific invented events. Answer questions and explanations directly. Ask a question only when essential information is missing. Varie a redação naturalmente e dispense saudações ou encerramentos automáticos. Quando houver incerteza, explique-a de forma breve. Entradas disponíveis: texto e evidências limitadas de ferramentas, como OCR e hipóteses de objetos. Sem acesso direto a pixels, câmera contínua ou internet. Só confirme uma ação do aplicativo após receber um resultado de execução da ferramenta."
+      },
+      {
+        "id": "portuguese_task_prompt",
+        "system": "Você é NEXUS, um assistente prestativo que conversa em português brasileiro. O usuário se chama Calebe; esse é o nome da pessoa atendida, não o seu.\nAtenda diretamente à solicitação atual. Use o histórico para continuar ou transformar o conteúdo ao qual o usuário se refere. Compreenda português informal, abreviações e erros de digitação pelo contexto.\nQuando a pessoa pedir para escrever ou melhorar algo, entregue o texto solicitado, pronto para ela utilizar. Nesse texto, quem fala em primeira pessoa é o autor humano. Não invente fatos particulares, destinatários ou assinaturas. Faça uma pergunta somente se faltar informação indispensável; pedidos gerais permitem textos gerais.\nExplique com clareza, ajuste o nível de detalhe ao pedido e reconheça incerteza. Evite cumprimentos, apresentações e encerramentos automáticos em toda resposta.\nCapacidades desta sessão: recebe mensagens de texto e, quando fornecidas, observações de ferramentas identificadas. Não recebe imagens, áudio ou vídeo ao vivo, não tem uma câmera ativa e não navega na internet. Use somente as evidências realmente disponíveis. A execução de ações do aplicativo exige uma ferramenta autorizada e seu resultado; não diga que já executou uma ação sem esse resultado."
+      }
+    ]
+  },
+  "hostPeakResidentKiB": 1824456,
+  "maxOutputTokens": 384,
+  "schemaVersion": 1,
+  "scope": "Actual unchanged NEXUS C++ engine on host CPU, synthetic prompts only; not Android, A03 or a semantic quality certification.",
+  "threads": 2,
+  "provenance": {
+    "modelSha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+    "modelBytes": 1117320736,
+    "fixtureSha256": "1b1148e14f6842cab2fcb6e9c6531593457e2721bdd05e352a62cb291db9b3b7",
+    "sourcesSha256": {
+      "app/src/main/cpp/nexus_runtime.cpp": "faeaf87a39372655111c85439c122ddce666d5677c10322f9a03025c7c1fde45",
+      "app/src/main/cpp/nexus_runtime.hpp": "a20fc80059c5cc6d88dc5e69f5cfbbb4a6100e867dc30f7e14e9e59e8fa8d029",
+      "app/src/main/cpp/nexus_chat_template.hpp": "8542c1b07474236b6a01687b63bb9f99b10f73be41325e913f96e142723e9293",
+      "scripts/LocalAiVariantEvaluation.cpp": "7fffd241deb1175db270f56d4b38c45c599f9c4110dda69083c6a3bf3ea2a3a5",
+      "scripts/evaluate_local_ai_variants.py": "e50871a28bc5e5fccb43614597048277170ef5c3b39afe341e0fc7f2426d3adb"
+    },
+    "runtimeLlamaSha256": "7952917e6a5e3761c09f8e8343eb9f2cf57a1d37233200762f51c6b56548a7cc"
+  },
+  "semanticApproval": "not_assessed_by_this_runner; inspect actual text and dedicated rubric"
+}

@@ -2,6 +2,9 @@ package br.com.nexus.assistant.device
 
 import java.util.Locale
 
+/** Accept the Android-style underscore while keeping an explicit country. */
+internal fun voiceLocale(language: String): Locale = Locale.forLanguageTag(language.trim().replace('_', '-'))
+
 /** Selection metadata only; a fallback never claims that an opaque Android engine is offline. */
 internal sealed interface SpeechVoiceChoice {
     data class Named(val option: VoiceOption) : SpeechVoiceChoice
@@ -11,7 +14,7 @@ internal sealed interface SpeechVoiceChoice {
 }
 
 internal fun ttsSupportsLocale(language: String, availability: Int?): Boolean {
-    val locale = Locale.forLanguageTag(language)
+    val locale = voiceLocale(language)
     if (locale.language.isBlank() || availability == null) return false
     // Android LANG_AVAILABLE=0 can be another country (e.g. pt-PT). A country
     // request needs LANG_COUNTRY_AVAILABLE=1 or LANG_COUNTRY_VAR_AVAILABLE=2.

@@ -1,5 +1,6 @@
 package br.com.nexus.assistant.device
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,4 +24,11 @@ class VoiceLanguageTest {
         assertFalse(voiceMatchesLanguage("", "pt-BR"))
         assertFalse(voiceMatchesLanguage("pt-BR", ""))
     }
+    @Test fun androidStyleCountryTagIsNormalizedWithoutSelectingPortugal() {
+        assertTrue(voiceMatchesLanguage("pt-BR", "pt_BR"))
+        assertTrue(voiceMatchesLanguage("pt_BR", "pt-BR"))
+        assertFalse(voiceMatchesLanguage("pt-PT", "pt_BR"))
+        assertEquals("pt-BR", voiceLocale(" pt_BR ").toLanguageTag())
+    }
+
 }

@@ -36,8 +36,8 @@ class AssistantIdentityTest {
 
     @Test fun writingGuidanceDoesNotInsertACannedApologyOrAutomaticClosing() {
         val prompt = AssistantIdentity.systemPrompt(NexusSettings())
-        assertTrue(prompt.contains("human user's ghostwriter"))
-        assertTrue(prompt.contains("First-person words within that draft refer to the human sender"))
+        assertTrue(prompt.contains("entregue primeiro o texto pronto para o usuário"))
+        assertTrue(prompt.contains("a primeira pessoa representa o autor humano, não o assistente"))
         assertTrue(prompt.contains("dispense saudações ou encerramentos automáticos"))
         assertFalse(prompt.contains("Não tenho nada para desculpar"))
         assertFalse(prompt.contains("Estou aqui para ajudar"))

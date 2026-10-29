@@ -13,9 +13,9 @@ data class CubeState(
 )
 
 /** Independent 3D grab state. A pinch begun outside the object never teleports it. */
-class CubeController {
-    var state = CubeState(); private set
-    private val pinches = mutableMapOf<String, Boolean>()
+class CubeController(initialState: CubeState = CubeState(), initialPinches: Map<String, Boolean> = emptyMap()) {
+    var state = initialState.copy(selected = false, bimanual = false); private set
+    private val pinches = initialPinches.toMutableMap()
     private var selectedHand: String? = null
     private var previousPoint: HandPoint? = null
     private var pairDistance: Float? = null

@@ -27,6 +27,25 @@ class GenerationQualityTest {
         assertEquals("Texto interrompido antes do fim", parsed.text)
     }
 
+    @Test fun recordsActualNativeLatencyWithoutAddingTextOrInventingLegacyMeasurements() {
+        val measured = result("Resposta exata").put("firstTokenMs", 182L).put("totalMs", 974L)
+        val parsed = LocalGenerationResult.parse(measured.toString().toByteArray())
+        assertEquals(182L, parsed.firstTokenMilliseconds)
+        assertEquals(974L, parsed.nativeElapsedMilliseconds)
+        assertEquals("Resposta exata", parsed.text)
+        val legacy = LocalGenerationResult.parse(result().toString().toByteArray())
+        assertNull(legacy.firstTokenMilliseconds)
+        assertNull(legacy.nativeElapsedMilliseconds)
+    }
+
+    @Test fun rejectsNegativeOrInconsistentLatencyMetadata() {
+        for (invalid in listOf(
+            result().put("firstTokenMs", -1).put("totalMs", 20),
+            result().put("firstTokenMs", 30).put("totalMs", 20),
+            result().put("firstTokenMs", 10), result().put("totalMs", 20),
+        )) assertThrows(IllegalArgumentException::class.java) { LocalGenerationResult.parse(invalid.toString().toByteArray()) }
+    }
+
     @Test fun cachedTokensAreAccountedForWithoutChangingModelText() {
         val payload = result("Resposta exata").put("cachedPromptTokens", 420).put("evaluatedPromptTokens", 80)
         val parsed = LocalGenerationResult.parse(payload.toString().toByteArray())

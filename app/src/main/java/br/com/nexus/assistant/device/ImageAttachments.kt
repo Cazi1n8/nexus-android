@@ -17,11 +17,10 @@ import kotlin.math.roundToInt
 
 object ImageAttachments {
     private const val MAX_SOURCE_BYTES = 20L * 1024 * 1024
-    private const val MAX_OUTPUT_BYTES = 2L * 1024 * 1024
-    private const val MAX_EDGE = 1280
 
     /** Copies a picker/camera image into a private, bounded JPEG and removes location metadata. */
     suspend fun copyAndCompress(context: Context, uri: Uri): File = withContext(Dispatchers.IO) {
+        val policy = ImagePreparationPolicy.forDevice(DeviceCapabilities.read(context))
         val mime = context.contentResolver.getType(uri)
         if (mime != null && !mime.startsWith("image/")) {
             throw AttachmentException("Selecione um arquivo de imagem.")
@@ -53,7 +52,7 @@ object ImageAttachments {
                 throw AttachmentException("Formato de imagem inválido ou não compatível com este Android.")
             }
             var sample = 1
-            while (max(bounds.outWidth, bounds.outHeight) / sample > MAX_EDGE) sample *= 2
+            while (max(bounds.outWidth, bounds.outHeight) / sample > policy.maxEdge) sample *= 2
             var current = BitmapFactory.decodeFile(source.absolutePath, BitmapFactory.Options().apply {
                 inSampleSize = sample
                 inPreferredConfig = Bitmap.Config.ARGB_8888
@@ -71,8 +70,8 @@ object ImageAttachments {
                 bitmap = current
             }
             val edge = max(current.width, current.height)
-            if (edge > MAX_EDGE) {
-                val scale = MAX_EDGE.toFloat() / edge
+            if (edge > policy.maxEdge) {
+                val scale = policy.maxEdge.toFloat() / edge
                 val resized = Bitmap.createScaledBitmap(
                     current,
                     (current.width * scale).roundToInt().coerceAtLeast(1),
@@ -85,7 +84,7 @@ object ImageAttachments {
             }
             val targetFile = File.createTempFile("nexus-image-", ".jpg", context.cacheDir)
             output = targetFile
-            var quality = 85
+            var quality = policy.jpegQuality
             do {
                 ensureActive()
                 targetFile.outputStream().use { target ->
@@ -94,8 +93,8 @@ object ImageAttachments {
                     }
                 }
                 quality -= 10
-            } while (targetFile.length() > MAX_OUTPUT_BYTES && quality >= 45)
-            if (targetFile.length() > MAX_OUTPUT_BYTES) {
+            } while (targetFile.length() > policy.maxOutputBytes && quality >= 42)
+            if (targetFile.length() > policy.maxOutputBytes) {
                 throw AttachmentException("A imagem continua muito grande após a compressão. Escolha uma imagem menor.")
             }
             ensureActive()

@@ -1,4 +1,26 @@
-# NEXUS AI 3 — testes e avaliações
+# NEXUS AI — testes e avaliações
+
+## Continuidade 4.1 alpha.2 — investigação real em 29/10/2026
+
+**A inteligência geral ainda não está aprovada.** A compilação e os testes técnicos da nova fonte não substituem a avaliação das respostas. O aparelho de referência é o Galaxy A03; os experimentos no computador não comprovam capacidade, latência ou memória nesse celular.
+
+A análise das saídas da avaliação Android 6 confirmou que os erros críticos de escrita, entendimento informal e alegação de câmera ocorreram em conversas novas. Não houve poda de mensagens nem corte da geração nesses casos. A correção da calculadora e o gerenciamento de contexto, embora necessários, não explicam nem eliminam essas falhas semânticas.
+
+Um candidato real **Qwen3.5 2B Q4_K_M**, com pesos opcionais de origem/revisão/hash verificados, foi comparado ao fluxo do NEXUS. A API antiga de formato de conversa não executava a opção oficial `enable_thinking=false`: o modelo expunha raciocínio e consumia a saída antes de atender ao pedido. Foi implementada uma adaptação restrita do prefixo de entrada oficial, sem apagar ou substituir palavras da resposta. O Qwen2.5 existente não tem seu formato alterado por essa adaptação.
+
+Mesmo após a correção do prefixo e a comparação de prompts, o candidato 2B continuou interpretando incorretamente pedidos de texto e afirmando acesso visual sem imagem. O controle pelo `llama-server` com o template Jinja oficial também apresentou falhas. A investigação concluiu **53 gerações reais de texto**, incluindo Qwen2.5 1,5B, Qwen3.5 2B e Qwen3 4B Instruct 2507. O 4B acertou algumas tarefas, mas continuou confundindo pedidos informais, inventando motivos em textos e interrompendo uma explicação de código no limite de saída. **Nenhum candidato foi aprovado ou promovido ao catálogo/CORE.** [Lotes, memória, latência e revisão](docs/NEXUS_AI_4_1_INVESTIGACAO_MODELO.md) e [rubrica/saídas](docs/evidencias/n42-ai-quality-review.json).
+
+### Avaliação multimodal real
+
+Foram executadas três gerações pelo cliente Kotlin de produção, gateway NEXUS e `llama-server`, com Qwen3.5 2B e projetor de imagem fixados por revisão/tamanho/SHA-256. O primeiro pedido contém os pixels de uma foto de hambúrguer; o segundo usa a mesma imagem e a resposta realmente gerada como contexto; o terceiro não contém imagem. Houve **zero falhas técnicas**, com fragmentos SSE iguais ao texto final. Esses resultados comprovam transporte e inferência efetiva, não qualidade visual.
+
+O objeto principal foi identificado como hambúrguer, mas o modelo acrescentou carne suína, azeitonas, alho, frango e subtipo de queijo sem evidência suficiente. A pergunta seguinte manteve o contexto e propagou essas invenções. **Qualidade multimodal reprovada.** As duas solicitações com contexto visual levaram 77.805 e 119.707 ms no host, com primeiro texto em 23.954 e 23.281 ms. Não são medidas de desempenho no A03.
+
+Após acrescentar ao prompt a disponibilidade visual explícita, um novo controle sem imagem também não esclareceu satisfatoriamente a ausência de câmera ao vivo: afirmou ver “tudo o que você está lendo aqui no chat”. Essa resposta é ambígua sobre o conteúdo textual, não prova captura de câmera e não foi marcada como aprovada. [Respostas reais](docs/evidencias/n42-vision-remote-model.json), [rubrica visual](docs/evidencias/n42-vision-model-review.json) e [controle adicional](docs/evidencias/n42-vision-availability-model.json).
+
+O novo streaming remoto mostra fragmentos efetivamente recebidos e mede tempo até o primeiro texto e total. O motor local também mede a latência real até o primeiro token, mas entrega o texto completo: não há animação de digitação ou streaming local simulado. Testes de SSE, memória, ferramentas e transporte de imagens verificam o protocolo, não a qualidade do modelo. Não há backend público NEXUS ou pesquisa SearXNG implantados. [Infraestrutura e limites](docs/VISION_TRANSPORTE_4_1_CONTINUIDADE.md).
+
+A fonte final 4.1.0-alpha.2-core/28 compilou após o ajuste de disponibilidade visual: **298 testes JVM, 173 testes de scripts e 56 do servidor aprovados**, sem falhas ou ignorados; Lint debug/coreTest sem erros. O APK CORE medido tem 108.635.674 bytes. Essas verificações técnicas não convertem as avaliações reprovadas em aprovação de IA. A instrumentação Android desta nova fonte e os testes físicos do A03 continuam pendentes. [Relatório integrado](docs/evidencias/n42-build-verification.json) e [relatório da visão real](docs/VISION_AVALIACAO_REAL_4_1.md).
 
 ## Revisão 4.1 — ferramenta matemática no CORE, 28/10/2026
 
@@ -13,9 +35,9 @@ O parser já calculava corretamente a expressão na fonte anterior; não foi dem
 
 Os modelos Qwen2.5 0,5B/1,5B continuam opcionais e limitados. Não foi implantado backend público de IA, multimodalidade geral ou pesquisa. A nova avaliação semântica [execução 6](https://github.com/Cazi1n8/nexus-android/actions/runs/40783551169) **falhou no gate de qualidade**, novamente nos casos **3 (texto de desculpas), 9 (alegação falsa de acesso visual) e 12 (pedido com erros de digitação)**. Executou 15 casos, 35 gerações reais + calculadora + proposta de ação, com 37 respostas reabertas no Room e zero falhas técnicas; tempo total reportado 677.238 ms. Nove casos atenderam às heurísticas, o que não é aprovação humana. [Respostas reais](docs/evidencias/nexus41-ai-evaluation6.json) e [resumo/identificadores](docs/evidencias/nexus41-ai-evaluation6-summary.json) preservados. O modelo ainda não atende à experiência solicitada; não foi substituído nem promovido a IA competente por esta correção. Histórico abaixo preservado, com referências a aparelhos antigos pertencentes àquelas execuções, não ao **Galaxy A03** atual.
 
-Atualizado em 27/10/2026. Teste de código, geração real, interpretação correta e uso no celular são verificações diferentes. **A inteligência do NEXUS ainda não está corrigida nem aprovada.**
+Histórico atualizado até 28/10/2026 abaixo. Teste de código, geração real, interpretação correta e uso no celular são verificações diferentes. **A inteligência do NEXUS ainda não está corrigida nem aprovada.**
 
-## Histórico: alpha.2 concluiu a bateria, mas falhou em qualidade
+## Histórico 3.0.0-alpha.2: bateria concluída, qualidade reprovada
 
 A [execução 40389844392](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844392), fonte `62ec1e3a714cdcc577e04f659185808bd6c9ab3f`, completou **15 casos e 37 respostas: 35 gerações reais, uma calculadora e uma proposta de ação**, em **904.636 ms (15 min 05 s)**. Usou o Qwen2.5 1,5B Q4_K_M incluído, contexto de 2.048 tokens, uma thread, Android 10 emulado e rede desligada antes/depois. Houve zero falhas técnicas e o Room foi reaberto com as 37 respostas verificadas.
 
@@ -43,7 +65,7 @@ O caso 11 terminou em **239.735 ms**: primeiro turno 9,523 s, penúltimo 13,265 
 
 Evidências: [JSON completo](docs/evidencias/ai3-alpha2-evaluation.json), [resumo semântico](docs/evidencias/ai3-alpha2-semantic-summary.json), [instrumentação](docs/evidencias/ai3-alpha2-evaluation-instrumentation.txt), [JUnit técnico](docs/evidencias/ai3-alpha2-evaluation-junit.xml), [rede](docs/evidencias/ai3-alpha2-evaluation-network-restoration.json), [comparação de tempos](docs/evidencias/ai3-alpha2-android-comparison.json) e [resumo final](docs/evidencias/ai3-alpha2-final-evaluation-summary.json). O ZIP pequeno de evidências teve tamanho e SHA verificados. Nenhum teste físico ou aprovação do Play Protect foi obtido.
 
-## Histórico: alpha.1 interrompida por timeout
+## Histórico 3.0.0-alpha.1: interrupção por timeout
 
 A [execução 40303339463](https://github.com/Cazi1n8/nexus-android/actions/runs/40303339463), no commit `4228a54f09fcba3a55e0231f182d24db4707cb66`, **falhou pelo limite de 40 minutos do teste JUnit**. Ela usou o Qwen2.5 1,5B Q4_K_M incluído no APK, Android 10/API 29 emulado, uma thread e contexto de 2.048 tokens, sem internet. Não houve teste físico no Galaxy S9+.
 
@@ -96,7 +118,7 @@ O primeiro teste de chat incluído falhou no contrato antigo de perfil manual. O
 
 ## Repetir a bateria
 
-O workflow `.github/workflows/ai3-evaluation.yml` continua disponível. A bateria foi projetada para 15 casos, 20 turnos relacionados, 35 gerações e duas ferramentas, mas a execução acima não concluiu esse plano. O teste usa banco/diretório próprios, preserva configurações e o executor recusa celulares físicos antes de instalar APKs ou mudar a rede.
+O workflow `.github/workflows/ai3-evaluation.yml` continua disponível. A bateria foi projetada para 15 casos, 20 turnos relacionados, 35 gerações e duas ferramentas. A execução histórica 3.0.0-alpha.1 foi interrompida; as execuções 3.0.0-alpha.2 e 4.1 alpha.1 concluíram a geração e falharam na qualidade, conforme seus relatórios acima. O teste usa banco/diretório próprios, preserva configurações e o executor recusa celulares físicos antes de instalar APKs ou mudar a rede.
 
 ```bash
 python3 scripts/fetch_bundled_model.py --with-balanced
@@ -122,7 +144,7 @@ Verificações executadas nesta correção:
 
 [Evidência e hashes das fontes](docs/evidencias/ai3-evaluation-checks-regressions.json). O novo APK de testes foi compilado e as nove regressões passaram também no Android, dentro da suíte de 28 aprovados e quatro opt-in ignorados. A reexecução real dos quinze casos terminou e falhou no gate semântico, conforme o resultado atual acima. Nenhum resultado anterior foi recalculado ou marcado como aprovado retroativamente.
 
-## Alpha.2: desempenho e testes técnicos novos
+## Histórico 3.0.0-alpha.2: desempenho e testes técnicos
 
 A fonte `62ec1e3a714cdcc577e04f659185808bd6c9ab3f` inclui cache do prefixo KV, preservando o modelo e o prompt. A [regressão Android](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844498), o [primeiro chat offline](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844275) e a [inferência nativa](https://github.com/Cazi1n8/nexus-android/actions/runs/40389844358) foram aprovados.
 

@@ -4,7 +4,17 @@
 
 Aplicativo Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Fonte atual: NEXUS CORE 4.1.0-alpha.1-core, versionCode 27, candidato em validação.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
+**Fonte atual: NEXUS CORE 4.1.0-alpha.2-core, versionCode 28, compilada para avaliação.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
+
+## Continuidade da alpha.2 — 29/10/2026
+
+A investigação executou **53 gerações reais de texto** com Qwen2.5 1,5B, Qwen3.5 2B e Qwen3 4B. Persistiram erros de escrita e interpretação; nenhum candidato foi promovido ao aplicativo ou incluído no CORE. Corrigir o formato de entrada do Qwen3.5 evitou raciocínio interno exposto, mas não corrigiu sua compreensão. [Resultados e limites](TESTES_NEXUS_AI.md).
+
+No código desta revisão, respostas de servidores compatíveis passam a usar **streaming SSE real**, com cancelamento e medição até o primeiro texto. O contexto remoto preserva turnos completos. A [conversa visual por capturas](docs/VISION_CONVERSA_4_1.md) permite capturar uma foto e continuar perguntando sobre ela na mesma sessão; o modo periódico opcional aguarda a análise anterior e tem intervalo mínimo de dez segundos. O modelo remoto precisa aceitar imagens de verdade. A pesquisa por SearXNG é opcional e depende de infraestrutura administrada pelo desenvolvedor; não existe serviço público NEXUS implantado. [Transporte e infraestrutura](docs/VISION_TRANSPORTE_4_1_CONTINUIDADE.md).
+
+O caminho real cliente Kotlin→gateway→modelo multimodal também foi executado com uma imagem de teste. O modelo identificou um hambúrguer, mas inventou ingredientes e levou esses erros à pergunta seguinte: **o transporte visual funciona, porém a qualidade do candidato foi reprovada**. Um controle adicional sem imagem continuou ambíguo; não há aprovação da IA geral ou visual. [Respostas e revisão](docs/evidencias/n42-vision-model-review.json).
+
+Também foram corrigidos o bloqueio da voz à espera de um modelo ausente no CORE e callbacks que podiam continuar após a parada da voz ou do mouse. O 3D existente ganha cenas locais com seis formas e vários objetos; Libras ganha aulas introdutórias e feedback preparatório por dedo. A compilação final terminou com **298 testes JVM aprovados**, 173 testes de scripts e 56 do servidor; Lint sem erros. O CORE foi medido em **108,64 MB**. Novos testes Android, funcionamento físico no Galaxy A03 e aprovação pelo Play Protect continuam pendentes. [Resultados, hashes e limites](PROGRESSO_NEXUS_4_1.md).
 
 ## Tamanho medido e APK
 
@@ -12,12 +22,16 @@ Os arquivos abaixo foram realmente compilados e medidos. MB e GB são decimais; 
 
 | APK local | Bytes | Tamanho | Comparação com alpha.2 |
 | --- | ---: | ---: | ---: |
-| Alpha.2 debug anterior | 1.738.201.604 | 1,74 GB | Referência |
-| CORE alpha.3 `coreTest` anterior | 108.210.081 | 108,21 MB | 93,77% menor |
-| 4.1 debug local | 114.336.885 | 114,34 MB | 93,42% menor |
-| 4.1 `coreTest`, assinado para testes, sem R8 | 108.520.986 | 108,52 MB | 93,7567% menor |
+| 3.0.0-alpha.2 debug anterior | 1.738.201.604 | 1,74 GB | Referência |
+| 3.0.0-alpha.3 CORE `coreTest` anterior | 108.210.081 | 108,21 MB | 93,77% menor |
+| 4.1 alpha.1 debug local | 114.336.885 | 114,34 MB | 93,42% menor |
+| 4.1 alpha.1 `coreTest`, assinado para testes, sem R8 | 108.520.986 | 108,52 MB | 93,7567% menor |
+| 4.1 alpha.2 debug local | 114.641.829 | 114,64 MB | 93,40% menor |
+| 4.1 alpha.2 `coreTest`, assinado para testes, sem R8 | **108.635.674** | **108,64 MB** | **93,75% menor** |
 
-O CORE 4.1 cresceu **310.905 bytes (+0,287%)** em relação ao CORE anterior, com as correções e atualizações de dependências. Não foi declarada uma nova redução. O APK local de avaliação foi gerado; o release de produção ainda depende de assinatura estável e validação de segurança/instalação.
+O CORE 4.1 alpha.1 cresceu **310.905 bytes (+0,287%)** em relação ao CORE anterior, com as correções e atualizações de dependências. Não foi declarada uma nova redução. Esse APK local de avaliação foi gerado; o release de produção ainda depende de assinatura estável e validação de segurança/instalação.
+
+A alpha.2 acrescentou **114.688 bytes (+0,106%)** sobre a alpha.1, mantendo o CORE sem pesos generativos obrigatórios. Seu APK local está em `app/build/outputs/apk/coreTest/app-coreTest.apk`, SHA-256 `556872b2ecc467237017ec5e7c43f177996f372cf8a6599559bdd30f388e773f`. Tem certificado de teste e não foi publicado como release público nem aprovado pelo Play Protect. O release compilado de 108.623.386 bytes é **sem assinatura e não instalável**. [Compilação e medições](docs/evidencias/n42-build-verification.json).
 
 Os dois GGUFs obrigatórios da alpha.2 somavam **1.608.720.768 bytes**, 92,55% daquele APK. O CORE não os empacota; também deixa OCR e classificação de objetos para download. O modelo de mãos de **7.819.105 bytes** continua incluído e verificado. A comparação entre debug e debug isola melhor a mudança de empacotamento. O catálogo de mais de 11 mil ícones foi substituído pelos 22 vetores oficiais efetivamente usados, mantendo suas licenças e a biblioteca de ícones básicos. `coreTest` e release preservam as classes e interfaces JNI, sem R8 ou redução automática de recursos nesta alpha.
 
@@ -62,14 +76,15 @@ Os totais do Android incluem otimizações e contabilização do sistema. A medi
 
 ## Estado real das outras funções
 
-A redução de tamanho **não muda a capacidade dos modelos de linguagem**. A avaliação completa da alpha.2 registrou 15 casos, 35 gerações reais e duas ferramentas; a qualidade foi reprovada por erros de interpretação e alegação falsa de acesso à câmera. Os mesmos modelos continuam opcionais, com essas limitações. [Resultados de IA](TESTES_NEXUS_AI.md) e [progresso 3.0](PROGRESSO_NEXUS_AI_3.md).
+A redução de tamanho **não muda a capacidade dos modelos de linguagem**. A avaliação completa da 3.0.0-alpha.2 registrou 15 casos, 35 gerações reais e duas ferramentas; a qualidade foi reprovada por erros de interpretação e alegação falsa de acesso à câmera. A avaliação da 4.1 alpha.1 repetiu as falhas críticas. Os mesmos modelos continuam opcionais, com essas limitações. [Resultados de IA](TESTES_NEXUS_AI.md) e [progresso 3.0](PROGRESSO_NEXUS_AI_3.md).
 
 - A identidade **NEXUS** é separada do nome do usuário; preferências, histórico, Markdown, copiar, ouvir e interromper permanecem no projeto.
 - O contexto usa orçamento de tokens e reaproveitamento do prefixo, sem limite fixo de quatro mensagens. A calculadora funciona no CORE mesmo sem modelo de conversa e resolve `50+50+50×50 = 2600`, `10+10÷10×10 = 20` e `25 vezes 18 = 450`; o modelo ainda pode errar outros problemas.
-- Vision local faz OCR e classificação de objetos em quadros periódicos. Não equivale à compreensão geral de imagens por um modelo multimodal nem a processamento contínuo de vídeo. Um provedor remoto compatível com imagens exige configuração e consentimento.
+- Vision local faz OCR e classificação de objetos em quadros periódicos. A conversa visual envia capturas reais a um provedor multimodal configurado, conserva o contexto e oferece perguntas sobre a última foto. Esses caminhos são distintos; a classificação local não equivale à compreensão geral de imagens e a amostragem de capturas não equivale a vídeo contínuo. A sessão remota exige consentimento; o candidato multimodal testado recebeu a imagem real, mas foi reprovado por detalhes inventados.
 - Mouse global e voz têm sessões independentes iniciadas pelo usuário, notificações e parada. **Continuidade, precisão e consumo na câmera/microfone físicos do A03 ainda precisam ser testados.**
 - A voz depende de SpeechRecognizer/TTS instalados e pode usar rede. A conversa opcional tem limite de 15 minutos ou 30 perguntas e até duas tentativas após silêncio; não há detector permanente de “Ei, NEXUS”.
-- Libras possui candidatas experimentais L/V/Y e exercícios preparatórios; não reconhece nem certifica o alfabeto inteiro. O 3D usa projeção e mãos rastreadas, sem posicionamento espacial preciso de realidade aumentada.
+- Libras possui candidatas experimentais L/V/Y, exercícios preparatórios e três aulas introdutórias com progresso separado; não reconhece nem certifica o alfabeto inteiro. [Escopo pedagógico e testes](docs/LIBRAS_NEXUS_4_1_REVISAO.md).
+- O 3D usa renderização OpenGL ES real com seis formas, até 12 objetos, seleção por pinça, transformação por duas mãos e salvamento privado de uma cena. A precisão física das mãos e a renderização no A03 ainda precisam de validação; não há posicionamento espacial preciso de realidade aumentada. [Cenas e limitações](docs/NEXUS_3D_CENAS_4_1.md).
 
 Vision, Libras, Mãos Livres e 3D usam câmera vinculada à tela. Restrições de Android, fabricante, bateria, memória ou permissões podem interromper recursos; não há promessa de operação ilimitada. [Testes de segundo plano](TESTES_SEGUNDO_PLANO.md).
 
@@ -105,7 +120,7 @@ python3 scripts/fetch_ocr_models.py
 
 `nexusBundleModel=false` e `nexusBundleVision=false` são os padrões. `-PnexusAbis=x86_64` é uma opção para emulador, não uma exigência para o celular; a compilação padrão mantém as quatro arquiteturas. Na Google Play, AAB e mecanismos oficiais de entrega exigem configuração própria; o APK manual atual oferece downloads de dados verificados. [Detalhes e limites da entrega modular](docs/ENTREGA_MODULAR_ANDROID.md). [Licenças de terceiros](THIRD_PARTY_NOTICES.md).
 
-## Verificações da 4.1
+## Verificações da 4.1 alpha.1 — histórico
 
 **Compilação local aprovada:** 235 testes JVM, 164 testes de scripts, Lint debug/coreTest sem erros (55 avisos e 1 informação por variante), APKs e instrumentação gerados. O manifesto e recursos do APK `coreTest` real passaram no auditor: nove permissões, serviços privados, acessibilidade apenas para gestos e HTTPS. Guava/Protobuf atualizados e conferidos no classpath. O gate de produção recusa o certificado local de teste, como esperado; não é um teste do Play Protect.
 
