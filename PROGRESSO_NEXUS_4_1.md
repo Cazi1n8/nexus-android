@@ -1,5 +1,31 @@
 # Progresso NEXUS 4.1
 
+## NEXUS AI online — alpha.3 / código 29
+
+Atualização de 30/10/2026 no aplicativo existente. Fonte `4.1.0-alpha.3-core` / 29; aparelho de teste solicitado: **Samsung Galaxy A03**. [Relatório desta etapa](docs/NEXUS_AI_ONLINE_RESULTADOS.md).
+
+**Estado: arquitetura online integrada; operação de produção e qualidade do candidato ainda não comprovadas.** Não há credenciais de provedor ou hospedagem disponíveis. O avaliador real terminou em `not_run_unconfigured`, com zero inferências. Os modelos locais anteriormente reprovados continuam opcionais, sem serem apresentados como solução da qualidade.
+
+| Entrega | Estado real | Evidência/limite |
+| --- | --- | --- |
+| Provedor principal | Preset `anthropic` com `claude-haiku-5-5`; alternativa `gemini` com `gemini-3.8-flash` | [Comparação oficial de capacidade/custo](docs/PROVEDORES_NEXUS_ONLINE.md); nenhum candidato novo aprovado por inferência |
+| Experiência comum | `NEXUS_ONLINE` para novas configurações; conexão por convite e consentimento, sem URL/chave do provedor | URL pública compilada pelo desenvolvedor; ausente por padrão. Escolhas offline/avançadas persistidas são preservadas |
+| Sessões e segurança | Convites únicos; acesso de 15 minutos; renovação rotativa com limite absoluto; hashes/quotas SQLite privados; credenciais Keystore no Android | Testes de expiração, concorrência, revogação/replay e isolamento. Implantação HTTPS não executada |
+| Identidade/memória | NEXUS AI chamado NEXUS; perfil do usuário, personalidade, memórias autorizadas e histórico existentes mantidos | O modelo recebe dados separados, sem confundir nome do usuário com identidade do assistente; qualidade semântica ainda depende da avaliação real |
+| Streaming e ferramentas | SSE real, cancelamento, limites e medição; calculadora com precedência; ações Android somente propostas confirmadas | Transporte e parser testados. Resultado de ferramenta não equivale a ação global física nem a qualidade geral |
+| Vision | Mesma sessão online para foto real/contexto; modelo multimodal configurado somente no servidor | Transporte controlado testado; reconhecimento com o candidato real ainda não executado |
+| CORE e extensões | Sem novos pesos/dependências grandes/permissões; modelos offline e dados de visão permanecem opcionais | Compilação aprovada; CORE alpha.3 medido em 108.668.442 bytes (108,67 MB), sem GGUF obrigatório; auditorias sem violações nas regras verificadas |
+| Avaliações | Bateria reproduzível de escrita, matemática, contexto de 20 turnos e imagem sintética criada | Preflight sem configuração, zero inferências; nova qualidade **não avaliada** |
+| Distribuição | Publicação automática de releases suspensa | Play Protect continua bloqueador; assinatura estável e teste físico com proteção ativa pendentes |
+
+Verificações executadas até este registro: **122 testes do servidor** e **191 testes de scripts**, sem falhas. São contratos e integrações de transporte controladas, separados da avaliação do modelo. **320 testes JVM passaram**, sem falhas, erros ou ignorados, em 47 suítes. Compilação final aprovada em 4m53s; Lint CORE com zero erros, 57 avisos e 1 informação. APK de 108.668.442 bytes, assinatura e alinhamento de 16 KiB verificados. [Medição e limites](docs/evidencias/n43-build-verification.json).
+
+Para concluir a IA integrada, o responsável precisa configurar uma conta de API com orçamento, implantar o backend em HTTPS com disco persistente, definir `nexusServiceUrl` no build e emitir um convite individual. O [guia de implantação](docs/IMPLANTACAO_NEXUS_AI_ONLINE.md) descreve os arquivos, comandos, custos potenciais e limites do piloto. Não há chave privada no APK ou no repositório.
+
+## Registro anterior — alpha.2
+
+As medições, contagens e hashes seguintes pertencem à alpha.2 e ficam preservados para comparação; não aprovam a alpha.3 nem o novo modelo online.
+
 Atualizado em 29/10/2026. Continuação do aplicativo existente, sem novo repositório. Dispositivo de teste solicitado: Samsung Galaxy A03. Fonte do aplicativo compilada: `de3e22b1a99f103dc75924f8cf6e50841e5a6a05`, versão `4.1.0-alpha.2-core` / 28; Android mínimo 26 e alvo 35.
 
 **Estado: compilação e verificações técnicas aprovadas, IA geral reprovada, testes físicos e Play Protect pendentes.** Nenhum modelo experimental foi promovido. A distribuição automática de releases permanece suspensa.

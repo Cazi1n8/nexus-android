@@ -2,11 +2,11 @@ package br.com.nexus.assistant.data
 
 import br.com.nexus.assistant.data.local.LocalModelProfile
 
-enum class AiMode { NEXUS_LOCAL, CUSTOM }
+enum class AiMode { NEXUS_ONLINE, NEXUS_LOCAL, CUSTOM }
 
 /** Preferences only: credentials are deliberately excluded from DataStore. */
 data class NexusSettings(
-    val aiMode: AiMode = AiMode.NEXUS_LOCAL,
+    val aiMode: AiMode = AiMode.NEXUS_ONLINE,
     val localModelProfile: LocalModelProfile = LocalModelProfile.COMPACT,
     val automaticProfile: Boolean = true,
     val endpoint: String = "",
@@ -22,6 +22,7 @@ data class NexusSettings(
     val voiceName: String = "",
     val autoSpeak: Boolean = false,
     val remoteConsent: Boolean = false,
+    val onlineConsent: Boolean = false,
 ) {
     /** The assistant's identity is not an editable user-profile preference. */
     val assistantName: String get() = AssistantIdentity.NAME

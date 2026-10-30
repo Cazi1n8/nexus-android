@@ -58,7 +58,7 @@ class LocalActionRouterTest {
         }
         val coordinator = AiCoordinator(provider)
         val writing = listOf(AiMessage("user", "Me faz um texto de desculpa."))
-        assertEquals("Conteúdo exato fornecido pelo modelo.", coordinator.complete(NexusSettings(), "", writing, emptyList()))
+        assertEquals("Conteúdo exato fornecido pelo modelo.", coordinator.complete(NexusSettings(aiMode = br.com.nexus.assistant.data.AiMode.NEXUS_LOCAL), "", writing, emptyList()))
         assertEquals(listOf(writing), calls)
         val command = coordinator.complete(NexusSettings(), "", listOf(AiMessage("user", "NEXUS, abra as configurações.")), emptyList())
         assertEquals("settings", AiCompletion.fromText(command).proposal?.action)
@@ -73,7 +73,7 @@ class LocalActionRouterTest {
                 return "Resultado do provedor de imagem."
             }
         }
-        val result = AiCoordinator(provider).complete(NexusSettings(), "", listOf(AiMessage("user", "Abra as configurações", "image.jpg")), emptyList())
+        val result = AiCoordinator(provider).complete(NexusSettings(aiMode = br.com.nexus.assistant.data.AiMode.NEXUS_LOCAL), "", listOf(AiMessage("user", "Abra as configurações", "image.jpg")), emptyList())
         assertTrue(receivedImage)
         assertEquals("Resultado do provedor de imagem.", result)
     }

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "versionName": "4.1.0-alpha.3-core",
+  "versionCode": 29,
+  "applicationId": "br.com.nexus.assistant",
+  "sourceBaseCommit": "0be12c19b636a6a2f293f9f35893525282fc8550",
+  "build": {
+    "status": "passed",
+    "durationSeconds": 293,
+    "actionableTasks": 134,
+    "executedTasks": 43,
+    "upToDateTasks": 91,
+    "targets": [
+      "testDebugUnitTest",
+      "lintCoreTest",
+      "assembleCoreTest",
+      "assembleDebugAndroidTest"
+    ]
+  },
+  "jvm": {
+    "tests": 320,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": 47
+  },
+  "scripts": {
+    "tests": 191,
+    "failures": 0,
+    "elapsedSeconds": 2.995
+  },
+  "server": {
+    "tests": 122,
+    "failures": 0,
+    "elapsedSeconds": 28.007
+  },
+  "lintCoreTest": {
+    "errors": 0,
+    "warnings": 57,
+    "information": 1
+  },
+  "apk": {
+    "bytes": 108668442,
+    "sha256": "30d0928839840fc997ea582d59cc48f3d5eaa30e5533c283361e01c80049a9d1",
+    "signatureVerified": true,
+    "certificateSha256": "ffc6524eee21a185872e946e78649a977f4b82011ee573c20adf5ca6ba376f79",
+    "testCertificate": true,
+    "zipAlignment16KiBVerified": true,
+    "previousLocalAlpha2Bytes": 108635674,
+    "increaseBytes": 32768,
+    "permissionCount": 9,
+    "packageAuditViolations": 0,
+    "largeGenerativeModelsBundled": false,
+    "nativeComparison": {
+      "nativeEntries": 40,
+      "addedNativeEntries": 0,
+      "removedNativeEntries": 0,
+      "differentNativeEntries": 2,
+      "baseline": "CI26 alpha.2 (separate build)"
+    }
+  },
+  "onlineModelEvaluation": {
+    "status": "not_run_unconfigured",
+    "clientInferenceRequests": 0,
+    "qualityApproved": false,
+    "productionBackendDeployed": false
+  },
+  "pending": [
+    "real online model writing/mathematics/context/vision evaluation",
+    "physical Galaxy A03",
+    "real Android Keystore/process lifecycle instrumentation",
+    "Play Protect approval",
+    "production hosting/TLS/runtime",
+    "stable production signing"
+  ],
+  "distribution": {
+    "publicReleaseCreated": false,
+    "playProtectBlocker": true
+  },
+  "newDependencies": [],
+  "newPermissions": []
+}

@@ -1,5 +1,48 @@
 # Testes NEXUS AI — estado verificável
 
+## NEXUS AI online — alpha.3 / código 29
+
+Atualizado em 30/10/2026. O candidato escolhido para a próxima avaliação é `claude-haiku-5-5`, através do backend NEXUS, com alternativa `gemini-3.8-flash`. A escolha usa documentação oficial de capacidade, protocolo e custo, não uma avaliação já aprovada. [Comparação](docs/PROVEDORES_NEXUS_ONLINE.md) e [relatório da integração](docs/NEXUS_AI_ONLINE_RESULTADOS.md).
+
+**Avaliação real do novo modelo: NÃO EXECUTADA.** A configuração disponível não contém endpoint implantado nem convite válido do serviço. O avaliador registrou `not_run_unconfigured`, `actualInferenceRequests=0` e código de saída 2. [Resumo técnico sem diálogos](docs/evidencias/n43-online-evaluation.json). Escrita, matemática respondida pelo modelo, contexto e visão do novo candidato continuam sem nota de qualidade. Não foram usados textos de teste para simular respostas da IA.
+
+Foi criado `scripts/run_nexus_online_evaluation.py`, com nove grupos de casos e orçamento padrão de até 32 solicitações HTTP do cliente/512 tokens de saída por solicitação. As até duas continuações internas de cálculo podem chegar a três chamadas de provedor por pedido: no máximo 96 chamadas e teto de saída solicitado de 49.152 tokens nessa configuração, além dos tokens de entrada cobrados. Inclui escrita/refino/linguagem informal, identidade, cálculos, contexto de 20 turnos, programação, visão com PNG sintético e pergunta contextual, limites de câmera e proposta de ação. Usa autenticação individual, renovação, JSON/SSE real, revogação e coleta de TTFT/duração/uso quando o backend estiver configurado. A imagem é sintética, sem conteúdo pessoal; não são publicados nomes, prompts ou respostas geradas.
+
+A transcrição completa exige um arquivo novo e privado fora do repositório, com permissão `0600`. O resumo público contém apenas campos técnicos permitidos. Completar requisições não significa aprovar semanticamente o modelo: o resultado exige revisão independente; o avaliador não certifica qualidade e não comprova execução física de ações Android.
+
+### Verificações técnicas executadas
+
+| Verificação | Resultado | O que comprova |
+| --- | --- | --- |
+| Suíte do servidor | 122 aprovados | Sessões, quotas, parser seguro, transporte, ferramentas permitidas e contratos estáticos de implantação |
+| Suíte de scripts | 191 aprovados | Avaliador, proteção de evidências e preparação/auditoria existentes |
+| Calculadora do servidor | Casos 2600, 20 e 450 aprovados, além de precedência/parênteses/potência e rejeição de código | Execução real do parser; **não** é raciocínio do modelo |
+| Streaming controlado | Primeiro delta entregue por socket antes da conclusão upstream | Fluxo real de transporte com servidor de teste; **não** é inferência externa |
+| JVM Android | 320 aprovados, zero falhas/erros/ignorados em 47 suítes | Contratos e lógica, não teste físico ou qualidade geral |
+| Compilação final e APK alpha.3 | Aprovada em 4m53s; 108.668.442 bytes | Assinatura de teste; Lint CORE zero erros/57 avisos/1 informação. Não aprova o Play Protect |
+
+### Como executar a avaliação real
+
+Após implantar o serviço e emitir um convite novo, execute na raiz:
+
+```bash
+python3 scripts/run_nexus_online_evaluation.py \
+  --endpoint https://SEU-DOMINIO/v1 \
+  --invitation-file /caminho/privado/convite.private \
+  --private-output /caminho/privado/novo-transcript.private \
+  --public-output /caminho/privado/technical-summary.json
+```
+
+O endpoint acima é um marcador, não um serviço existente. O convite não deve ser impresso, publicado nem reutilizado. O teste chama uma API potencialmente paga e deve respeitar o orçamento definido no provedor. A credencial privada da API nunca é argumento do avaliador Android/cliente.
+
+O workflow **NEXUS AI online — avaliação manual** só é disparado por `workflow_dispatch`, sem execução paga em push/PR. Configure o Environment `nexus-ai-evaluation`, a variável pública `NEXUS_SERVICE_URL` e o Secret `NEXUS_EVAL_INVITATION`; recomenda-se revisão obrigatória do Environment. Um convite novo é necessário a cada execução. O workflow publica apenas o resumo técnico e remove credencial/transcrição do runner; não arquiva diálogos completos. Sem configuração, registra bloqueio e falha, em vez de aprovar uma IA inexistente. O workflow novo ainda não foi executado no GitHub nesta etapa.
+
+A reprovação histórica dos modelos locais abaixo permanece válida; não foi apagada nem convertida em aprovação pelo novo transporte.
+
+## Registro anterior — avaliações da alpha.2
+
+As baterias seguintes foram realmente executadas nos modelos e na fonte indicados. Não avaliam o novo candidato online da alpha.3.
+
 Atualizado em 29/10/2026. Fonte Android avaliada: `de3e22b1a99f103dc75924f8cf6e50841e5a6a05`, versão `4.1.0-alpha.2-core` / 28. Este relatório técnico não publica nomes pessoais, prompts nem respostas geradas. Os registros completos permanecem preservados privadamente; o histórico anterior do documento permanece no Git.
 
 **Resultado geral: reprovado.** A investigação encontrou limitações reais dos modelos e falsos positivos dos verificadores mecânicos. Não basta remover repetições, simular respostas ou aumentar o número do modelo. Nenhum candidato novo foi promovido ao aplicativo.

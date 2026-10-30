@@ -78,11 +78,13 @@ jobs:
           emulator-boot-timeout: 600
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -partition-size 6144 -camera-back none -camera-front none
           script: python3 scripts/run_android_ai3_evaluation.py --allow-reset-emulator --require-critical-checks
-      - name: Guardar respostas sintéticas, verificações e falhas observadas
+      # Raw transcripts can contain names/conversation content. Publish only the
+      # allowlisted quality summary; preserve failures without exposing replies.
+      - name: Guardar somente resumo semântico sem diálogos
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nexus-ai3-evaluation-${{ github.run_number }}
-          path: build/ai3-evaluation/
+          path: build/ai3-evaluation/semantic-summary.json
           if-no-files-found: ignore
           retention-days: 30

@@ -19,6 +19,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import org.json.JSONObject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -29,7 +30,6 @@ private val Context.nexusPreferences by preferencesDataStore(name = "nexus_prefe
 class SettingsRepository(context: Context) {
     private val appContext = context.applicationContext
     private val encryptedPreferences = appContext.getSharedPreferences("nexus_session", Context.MODE_PRIVATE)
-    private val tokenLock = Any()
 
     val settings: Flow<NexusSettings> = appContext.nexusPreferences.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
@@ -39,42 +39,59 @@ class SettingsRepository(context: Context) {
         appContext.nexusPreferences.edit { preferences -> encodeNexusSettings(preferences, settings) }
     }
 
-    /** Store a backend session token here, never a provider's private API key. */
+    /** Advanced-provider credential, deliberately separate from the integrated account. */
     var sessionToken: String
-        get() = synchronized(tokenLock) {
-            val stored = encryptedPreferences.getString(TOKEN_VALUE, null) ?: return@synchronized ""
+        get() = readProtected(TOKEN_VALUE)
+        set(value) = writeProtected(TOKEN_VALUE, value.trim())
+
+    /** Tokens and URL binding are committed as one encrypted record, outside DataStore/backups. */
+    val onlineSessionStorage: OnlineSessionStorage = object : OnlineSessionStorage {
+        override fun read(): StoredOnlineSession? {
+            val raw = readProtected(ONLINE_SESSION_VALUE).takeIf(String::isNotBlank) ?: return null
             try {
-                val parts = stored.split(':', limit = 2)
-                check(parts.size == 2)
-                val cipher = Cipher.getInstance(TRANSFORMATION)
-                cipher.init(
-                    Cipher.DECRYPT_MODE,
-                    secretKey(),
-                    GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)),
-                )
-                String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), Charsets.UTF_8)
+                val data = JSONObject(raw)
+                return StoredOnlineSession(data.getString("service_url"), data.getString("access_token"),
+                    data.getString("refresh_token"), data.getLong("expires_at"))
             } catch (error: Exception) {
-                throw IllegalStateException("Não foi possível abrir o token protegido. Apague-o e configure uma nova sessão.", error)
+                throw IllegalStateException("Não foi possível abrir a sessão NEXUS AI. Desconecte e conecte novamente.", error)
             }
         }
-        set(value) = synchronized(tokenLock) {
-            if (value.isBlank()) {
-                check(encryptedPreferences.edit().remove(TOKEN_VALUE).commit()) {
-                    "Não foi possível apagar o token de sessão."
-                }
-            } else {
-                require(value.length <= 8_192) { "Token de sessão muito longo." }
-                try {
-                    val cipher = Cipher.getInstance(TRANSFORMATION)
-                    cipher.init(Cipher.ENCRYPT_MODE, secretKey())
-                    val iv = Base64.encodeToString(cipher.iv, Base64.NO_WRAP)
-                    val encrypted = Base64.encodeToString(cipher.doFinal(value.trim().toByteArray(Charsets.UTF_8)), Base64.NO_WRAP)
-                    check(encryptedPreferences.edit().putString(TOKEN_VALUE, "$iv:$encrypted").commit())
-                } catch (error: Exception) {
-                    throw IllegalStateException("Não foi possível proteger o token de sessão neste aparelho.", error)
-                }
+        override fun write(value: StoredOnlineSession?) {
+            val raw = value?.let { JSONObject().put("service_url", it.serviceUrl).put("access_token", it.accessToken)
+                .put("refresh_token", it.refreshToken).put("expires_at", it.expiresAtEpochSeconds).toString() }.orEmpty()
+            writeProtected(ONLINE_SESSION_VALUE, raw)
+        }
+    }
+
+    private fun readProtected(key: String): String = synchronized(tokenLock) {
+        val stored = encryptedPreferences.getString(key, null) ?: return@synchronized ""
+        try {
+            val parts = stored.split(':', limit = 2)
+            check(parts.size == 2)
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey(), GCMParameterSpec(128, Base64.decode(parts[0], Base64.NO_WRAP)))
+            String(cipher.doFinal(Base64.decode(parts[1], Base64.NO_WRAP)), Charsets.UTF_8)
+        } catch (error: Exception) {
+            throw IllegalStateException("Não foi possível abrir a sessão protegida. Apague-a e conecte novamente.", error)
+        }
+    }
+
+    private fun writeProtected(key: String, value: String) = synchronized(tokenLock) {
+        require(value.length <= 16_384) { "Sessão muito longa." }
+        if (value.isBlank()) {
+            check(encryptedPreferences.edit().remove(key).commit()) { "Não foi possível apagar a sessão." }
+        } else {
+            try {
+                val cipher = Cipher.getInstance(TRANSFORMATION)
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey())
+                val iv = Base64.encodeToString(cipher.iv, Base64.NO_WRAP)
+                val encrypted = Base64.encodeToString(cipher.doFinal(value.toByteArray(Charsets.UTF_8)), Base64.NO_WRAP)
+                check(encryptedPreferences.edit().putString(key, "$iv:$encrypted").commit())
+            } catch (error: Exception) {
+                throw IllegalStateException("Não foi possível proteger a sessão neste aparelho.", error)
             }
         }
+    }
 
     private fun secretKey(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
@@ -92,7 +109,9 @@ class SettingsRepository(context: Context) {
 
     private companion object {
         const val KEY_ALIAS = "nexus.backend.session.v1"
+        private val tokenLock = Any()
         const val TOKEN_VALUE = "encrypted_token"
+        const val ONLINE_SESSION_VALUE = "encrypted_online_session_v1"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
     }
 }
@@ -116,6 +135,7 @@ private object Keys {
     val voiceName = stringPreferencesKey("voice_name")
     val autoSpeak = booleanPreferencesKey("auto_speak")
     val remoteConsent = booleanPreferencesKey("remote_consent")
+    val onlineConsent = booleanPreferencesKey("online_consent")
 }
 
 /** Pure mapping keeps migrations testable without starting Android sensors or a database. */
@@ -123,7 +143,7 @@ internal fun decodeNexusSettings(preferences: Preferences): NexusSettings {
     val legacyStyle = preferences[Keys.personality]
     val legacyCustomInstructions = legacyStyle?.takeUnless { it in AssistantIdentity.personalities }.orEmpty()
     return NexusSettings(
-        aiMode = preferences[Keys.aiMode]?.let { value -> AiMode.entries.firstOrNull { it.name == value } } ?: AiMode.NEXUS_LOCAL,
+        aiMode = preferences[Keys.aiMode]?.let { value -> AiMode.entries.firstOrNull { it.name == value } } ?: AiMode.NEXUS_ONLINE,
         localModelProfile = preferences[Keys.localModelProfile]?.let { value -> LocalModelProfile.entries.firstOrNull { it.name == value } } ?: LocalModelProfile.COMPACT,
         automaticProfile = preferences[Keys.automaticProfile] ?: true,
         endpoint = preferences[Keys.endpoint].orEmpty(), model = preferences[Keys.model].orEmpty(),
@@ -137,6 +157,7 @@ internal fun decodeNexusSettings(preferences: Preferences): NexusSettings {
         voiceRate = preferences[Keys.voiceRate] ?: 1f, voicePitch = preferences[Keys.voicePitch] ?: 1f,
         voiceName = preferences[Keys.voiceName].orEmpty(), autoSpeak = preferences[Keys.autoSpeak] ?: false,
         remoteConsent = preferences[Keys.remoteConsent] ?: false,
+        onlineConsent = preferences[Keys.onlineConsent] ?: false,
     )
 }
 
@@ -160,4 +181,5 @@ internal fun encodeNexusSettings(preferences: MutablePreferences, settings: Nexu
     preferences[Keys.voiceName] = settings.voiceName.take(200)
     preferences[Keys.autoSpeak] = settings.autoSpeak
     preferences[Keys.remoteConsent] = settings.remoteConsent
+    preferences[Keys.onlineConsent] = settings.onlineConsent
 }

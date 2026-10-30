@@ -67,6 +67,7 @@ fun NexusDiagnosticsScreen(
     val backgroundVoice by br.com.nexus.assistant.device.voice.VoiceSessionRuntime.state.collectAsStateWithLifecycle()
     val voices by voice.voices.collectAsStateWithLifecycle()
     val localModel by model.localModelState.collectAsStateWithLifecycle()
+    val onlineConnection by model.onlineConnection.collectAsStateWithLifecycle()
     val generation by model.generationDiagnostics.collectAsStateWithLifecycle()
     val policy by model.devicePolicy.collectAsStateWithLifecycle()
     val effectiveProfile by model.effectiveLocalProfile.collectAsStateWithLifecycle()
@@ -97,7 +98,12 @@ fun NexusDiagnosticsScreen(
         CheckRow(LocalCheck("Síntese de voz", if (voiceState.ttsReady) "Mecanismo inicializado" else "Ainda indisponível"))
         CheckRow(LocalCheck("Idioma ${settings.language}", if (voiceState.languageReady) "Voz disponível no mecanismo" else "Dados de voz ausentes ou mecanismo ainda não pronto"))
         CheckRow(LocalCheck("Vozes deste idioma", "${voices.count { !it.requiresNetwork }} locais · ${voices.count { it.requiresNetwork }} de rede"))
-        CheckRow(LocalCheck("IA selecionada", if (settings.aiMode == AiMode.NEXUS_LOCAL) "NEXUS AI local" else "Provedor personalizado"))
+        CheckRow(LocalCheck("IA selecionada", when (settings.aiMode) {
+            AiMode.NEXUS_ONLINE -> "NEXUS AI online"
+            AiMode.NEXUS_LOCAL -> "NEXUS AI offline opcional"
+            AiMode.CUSTOM -> "Provedor personalizado"
+        }))
+        if (settings.aiMode == AiMode.NEXUS_ONLINE) CheckRow(LocalCheck("Sessão NEXUS AI", onlineConnection.message))
         CheckRow(LocalCheck("Modelo local", when (localModel.status) {
             br.com.nexus.assistant.data.local.LocalModelStatus.READY -> "Preparado e verificado"
             br.com.nexus.assistant.data.local.LocalModelStatus.ABSENT -> if (BuildConfig.BUNDLED_MODEL) "Incluído no APK; prepare ao abrir o Chat" else "Ainda não preparado"

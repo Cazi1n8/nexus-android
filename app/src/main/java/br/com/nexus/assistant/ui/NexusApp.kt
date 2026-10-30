@@ -388,8 +388,12 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
     val capabilities by model.deviceCapabilities.collectAsStateWithLifecycle()
     val effectiveProfile by model.effectiveLocalProfile.collectAsStateWithLifecycle()
     val local = settings.aiMode == AiMode.NEXUS_LOCAL
+    val integrated = settings.aiMode == AiMode.NEXUS_ONLINE
+    val onlineConnection by model.onlineConnection.collectAsStateWithLifecycle()
     val compatibleLocal = policy.localAiSupported && DevicePolicy.canRunProfile(capabilities, effectiveProfile)
-    val configured = if (local) compatibleLocal && localState.status == LocalModelStatus.READY else settings.endpoint.isNotBlank() && settings.model.isNotBlank() && settings.remoteConsent
+    val configured = if (local) compatibleLocal && localState.status == LocalModelStatus.READY
+        else if (integrated) onlineConnection.serviceConfigured && onlineConnection.connected && settings.onlineConsent
+        else settings.endpoint.isNotBlank() && settings.model.isNotBlank() && settings.remoteConsent
     val bundledChat = local && BuildConfig.BUNDLED_MODEL && compatibleLocal
     ScrollPage {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -407,17 +411,18 @@ private fun Home(model: NexusViewModel, settings: NexusSettings, navigate: (Stri
         Button(onClick = { navigate("mouse") }, modifier = Modifier.fillMaxWidth()) { Text("Abrir mouse offline") }
         OutlinedButton(onClick = { navigate("extensions") }, modifier = Modifier.fillMaxWidth()) { Text("Escolher pacotes opcionais") }
     }
-    InfoCard(if (local) "NEXUS AI · NO APARELHO" else "PROVEDOR PERSONALIZADO",
+    InfoCard(if (local) "NEXUS AI · NO APARELHO" else if (integrated) "NEXUS AI · ONLINE" else "PROVEDOR PERSONALIZADO",
         if (local && !compatibleLocal) {
             if (!policy.localAiSupported) policy.reason else "O modelo escolhido exige mais memória do que o perfil deste aparelho permite. Ative o ajuste automático ou selecione o modelo compacto em Configurações."
         }
         else if (local && configured) "Modelo local pronto. Suas conversas são processadas neste aparelho, sem servidor ou chave."
         else if (bundledChat) "A IA de texto já está incluída neste APK. Abra o Chat: a cópia local e a verificação são feitas no aparelho, sem baixar outro modelo."
         else if (local) "IA de conversa opcional: escolha e autorize um modelo em Modelos de IA para conversar offline. O mouse não depende desses dados."
+        else if (integrated) onlineConnection.message
         else if (configured) "Modelo: ${settings.model}. A disponibilidade será verificada ao enviar uma mensagem."
         else "Configure seu provedor opcional ou selecione NEXUS AI local nas configurações.")
     Button(onClick = { navigate(if (configured || bundledChat) "chat" else "settings") }, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(8.dp)); Text(if (bundledChat) "Conversar com NEXUS" else if (configured) "Iniciar conversa" else if (local) "Preparar NEXUS AI" else "Configurar provedor")
+        Icon(Icons.Default.AutoAwesome, null); Spacer(Modifier.width(8.dp)); Text(if (bundledChat) "Conversar com NEXUS" else if (configured) "Iniciar conversa" else if (local) "Preparar NEXUS AI" else if (integrated) "Conectar NEXUS AI" else "Configurar provedor")
     }
     Text("EXPLORE O NEXUS", color = NexusCyan, style = MaterialTheme.typography.labelLarge)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -477,6 +482,7 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
     }
     val local = settings.aiMode == AiMode.NEXUS_LOCAL
     val localState by model.localModelState.collectAsStateWithLifecycle()
+    val onlineConnection by model.onlineConnection.collectAsStateWithLifecycle()
     val bundledReady = !local || !BuildConfig.BUNDLED_MODEL || localState.status == LocalModelStatus.READY
     Column(Modifier.fillMaxSize().imePadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -487,7 +493,9 @@ private fun ChatScreen(model: NexusViewModel, voice: VoiceController, settings: 
             BundledModelPanel(model, onUseCustom = { navigate("settings") }, showDetails = false)
         } else if (local && localState.status != LocalModelStatus.READY) {
             TextButton(onClick = { navigate("models") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Gerenciar modelo offline opcional") }
-        } else if (!local && (settings.endpoint.isBlank() || !settings.remoteConsent)) {
+        } else if (settings.aiMode == AiMode.NEXUS_ONLINE && (!onlineConnection.connected || !settings.onlineConsent)) {
+            TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Conectar NEXUS AI · ${onlineConnection.message}") }
+        } else if (settings.aiMode == AiMode.CUSTOM && (settings.endpoint.isBlank() || !settings.remoteConsent)) {
             TextButton(onClick = { navigate("settings") }, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Configurar provedor personalizado") }
         }
         if (local && generation.finishReason == "token_limit" && !busy) {
@@ -969,8 +977,8 @@ private fun VisionScreen(model: NexusViewModel, voice: VoiceController, settings
                 model.stageChatDraft(question)
                 navigate("chat")
             } else if (model.send(question)) navigate("chat")
-        }, enabled = (settings.aiMode == AiMode.NEXUS_LOCAL || settings.remoteConsent) && attachment != null && !busy && !importing && !reading && !cameraActive && !voiceState.isListening) { Text(if (settings.aiMode == AiMode.NEXUS_LOCAL) "Levar imagem e pergunta ao Chat" else "Analisar com a IA") }
-        if (settings.aiMode == AiMode.CUSTOM && !settings.remoteConsent) Text("Autorize o envio para o servidor em Configurações antes de analisar.", color = MaterialTheme.colorScheme.error)
+        }, enabled = (settings.aiMode == AiMode.NEXUS_LOCAL || if (settings.aiMode == AiMode.NEXUS_ONLINE) settings.onlineConsent else settings.remoteConsent) && attachment != null && !busy && !importing && !reading && !cameraActive && !voiceState.isListening) { Text(if (settings.aiMode == AiMode.NEXUS_LOCAL) "Levar imagem e pergunta ao Chat" else "Analisar com a IA") }
+        if ((settings.aiMode == AiMode.CUSTOM && !settings.remoteConsent) || (settings.aiMode == AiMode.NEXUS_ONLINE && !settings.onlineConsent)) Text("Autorize o envio para o servidor em Configurações antes de analisar.", color = MaterialTheme.colorScheme.error)
         Text("OCR e categorias de objetos são observações limitadas. A interpretação geral de fotos, circuitos ou ambientes exige modelo multimodal compatível.", style = MaterialTheme.typography.bodySmall)
     }
     memoryDraft?.let { draft ->
@@ -1028,16 +1036,24 @@ private fun SettingsScreen(model: NexusViewModel, voice: VoiceController, settin
     val context = LocalContext.current
     ScrollPage {
         Text("Inteligência artificial", fontSize = 24.sp)
-        ChoiceField("Modo de IA", if (mode == AiMode.NEXUS_LOCAL) "NEXUS AI · local" else "Provedor personalizado",
-            listOf("NEXUS AI · local", "Provedor personalizado")) {
-            mode = if (it == "NEXUS AI · local") AiMode.NEXUS_LOCAL else AiMode.CUSTOM
-            // The visible mode and the actual Chat provider must change together.
+        ChoiceField("Modo de IA", when (mode) {
+            AiMode.NEXUS_ONLINE -> "NEXUS AI · online"
+            AiMode.NEXUS_LOCAL -> "NEXUS AI · offline opcional"
+            AiMode.CUSTOM -> "Provedor personalizado · avançado"
+        }, listOf("NEXUS AI · online", "NEXUS AI · offline opcional", "Provedor personalizado · avançado")) {
+            mode = when (it) {
+                "NEXUS AI · online" -> AiMode.NEXUS_ONLINE
+                "NEXUS AI · offline opcional" -> AiMode.NEXUS_LOCAL
+                else -> AiMode.CUSTOM
+            }
             model.saveSettings(settings.copy(aiMode = mode))
         }
-        if (mode == AiMode.NEXUS_LOCAL) {
+        if (mode == AiMode.NEXUS_ONLINE) {
+            OnlineServiceCard(model, settings)
+        } else if (mode == AiMode.NEXUS_LOCAL) {
             LocalModelCard(model, settings, onUseCustom = {
-                mode = AiMode.CUSTOM
-                model.saveSettings(settings.copy(aiMode = AiMode.CUSTOM))
+                mode = AiMode.NEXUS_ONLINE
+                model.saveSettings(settings.copy(aiMode = AiMode.NEXUS_ONLINE))
             })
         } else {
             InfoCard("PROVEDOR OPCIONAL", "Use seu servidor NEXUS com Ollama ou outro serviço compatível. Configure apenas se desejar. Chaves privadas de serviços pagos devem ficar no servidor.")
@@ -1093,7 +1109,7 @@ private fun SettingsScreen(model: NexusViewModel, voice: VoiceController, settin
             }
         }, modifier = Modifier.fillMaxWidth()) { Text("Salvar configurações") }
         OutlinedButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))) }) { Text("Gerenciar permissões do Android") }
-        InfoCard("PRIVACIDADE", "O modo NEXUS AI processa texto no aparelho. A câmera e o microfone são solicitados nas suas funções. Conversas ficam no armazenamento privado do app. O token opcional é protegido pelo Android Keystore. Backup automático está desativado.")
+        InfoCard("PRIVACIDADE", "O modo offline processa texto no aparelho. Nos modos online, mensagem, histórico selecionado, preferências, memórias autorizadas e imagens anexadas são enviados ao serviço consentido. Câmera e microfone só são ativados nas suas funções. Histórico local e tokens protegidos pelo Android Keystore ficam no armazenamento privado; backup automático está desativado.")
         Text("Tema escuro padrão • interface adaptável • versão ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall)
     }
     DisposableEffect(Unit) { onDispose { voice.stopSpeaking() } }
@@ -1140,7 +1156,7 @@ private fun LocalModelCard(model: NexusViewModel, settings: NexusSettings, onUse
     Text("O perfil de 0.5B tem capacidade limitada, especialmente em português. Ambos podem errar. Depois do download verificado, o chat de texto funciona sem internet.", style = MaterialTheme.typography.bodySmall)
     if (!compatible) {
         InfoCard("IA LOCAL INDISPONÍVEL NESTE PERFIL", if (!policy.localAiSupported) policy.reason else "O modelo escolhido exige mais RAM do que este aparelho oferece com a margem de segurança. Ative o ajuste automático ou selecione o perfil compacto.")
-        OutlinedButton(onClick = onUseCustom, enabled = !busy) { Text("Usar provedor personalizado opcional") }
+        OutlinedButton(onClick = onUseCustom, enabled = !busy) { Text("Conectar NEXUS AI online") }
         Text("O provedor exige um servidor real e sua autorização. O NEXUS não enviará mensagens automaticamente.", style = MaterialTheme.typography.bodySmall)
     }
     val receivedFraction = if (state.totalBytes > 0) (state.downloadedBytes.toFloat() / state.totalBytes).coerceIn(0f, 1f) else 0f

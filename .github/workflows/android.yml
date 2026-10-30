@@ -55,7 +55,9 @@ jobs:
       - name: Testar servidor intermediário
         run: python3 -m unittest discover -s server/tests -v
       - name: Testes, lint e APK de depuração
-        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process --stacktrace testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleDebugAndroidTest
+        env:
+          NEXUS_SERVICE_URL: ${{ vars.NEXUS_SERVICE_URL }}
+        run: gradle --no-daemon --max-workers=2 -Pkotlin.compiler.execution.strategy=in-process -PnexusServiceUrl="$NEXUS_SERVICE_URL" --stacktrace testDebugUnitTest lintDebug lintCoreTest assembleDebug assembleCoreTest assembleDebugAndroidTest
       - name: Resumo SHA256 do APK
         run: sha256sum app/build/outputs/apk/coreTest/app-coreTest.apk > app/build/outputs/apk/coreTest/SHA256SUMS.txt
       - name: Auditar conteúdo e orçamento do CORE universal

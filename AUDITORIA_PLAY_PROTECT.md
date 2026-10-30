@@ -1,5 +1,25 @@
 # Auditoria de segurança, permissões e Play Protect do NEXUS
 
+## NEXUS AI online — alpha.3 / código 29
+
+Revisão de 30/10/2026 no mesmo pacote Android. **O bloqueio pelo Google Play Protect continua como bloqueador de distribuição.** Não há veredito novo do Google, teste de instalação física aprovado ou causa interna confirmada. A escolha de outro modelo de linguagem não resolve esse bloqueio e não autoriza desativar proteções.
+
+O modo online acrescenta uma fronteira de dados explícita: mensagens, histórico selecionado, preferências/memórias autorizadas e fotos anexadas podem ser enviados ao backend NEXUS e ao provedor configurado, após consentimento destacado. Não existe leitura automática de conteúdo de outros aplicativos, captura secreta de câmera/microfone nem envio remoto como fallback do modo offline. Nenhuma nova permissão Android foi acrescentada por esta integração; o manifesto compilado da alpha.3 foi auditado: as mesmas 9 permissões (8 Android e uma interna AndroidX), sem violações das regras verificadas. [Manifesto, componentes e assinatura](docs/evidencias/n43-security-package-audit.json).
+
+O servidor usa sessões individuais com convite único, tokens opacos de acesso/renovação, rotação e revogação por replay. Somente hashes de credenciais e contadores são persistidos em SQLite privado; chaves do provedor ficam exclusivamente no servidor. O APK recebe apenas URL pública de implantação e protege a sessão individual pelo Android Keystore. O exemplo de ambiente publicado tem chave em branco. O serviço de contas escuta em loopback atrás do proxy HTTPS documentado, sem exposição direta da porta interna.
+
+O cliente não pode escolher destino upstream/modelo caro arbitrário. Ferramentas são limitadas e os schemas são definidos pelo servidor; a calculadora não usa `eval`, shell ou código remoto. Ações Android são propostas validadas, sujeitas à confirmação no celular. Cotas persistentes são reservadas antes de cada rodada upstream; representam unidades conservadoras, não faturamento em dólares. O operador deve impor orçamento no provedor. Falhas e logs não devolvem prompts, fotos, chaves ou corpos privados do provedor.
+
+A implantação entregue é um **piloto administrado**, com conta individual por convite, HTTPS, disco persistente, Nginx/systemd e uma instância SQLite. Não foi implantada ou auditada como serviço público de alta escala. Os 122 testes do servidor passaram, incluindo segurança de sessão, concorrência e transporte; os testes estáticos de configuração não substituem executar Nginx/systemd. Neste sandbox a verificação systemd foi limitada por `SO_PASSCRED`; Nginx não está instalado. A configuração precisa ser validada no host real.
+
+O novo candidato de modelo não recebeu chamadas reais: o avaliador registrou ausência de infraestrutura/credenciais e zero inferências. Não há alegação de segurança, precisão visual ou inteligência aprovada com base em respostas simuladas. Também não há aprovação do Play Protect por testes técnicos. Assinatura estável, instalação física com proteção ativa e eventual revisão oficial continuam pendentes; a publicação automática de releases permanece suspensa.
+
+[Resultado desta integração](docs/NEXUS_AI_ONLINE_RESULTADOS.md) · [Implantação e limites](docs/IMPLANTACAO_NEXUS_AI_ONLINE.md) · [Comparação e políticas dos provedores](docs/PROVEDORES_NEXUS_ONLINE.md) · [Procedimento oficial de revisão](docs/PLAY_PROTECT_REVISAO.md).
+
+## Registro anterior — auditorias da alpha.2 e versões anteriores
+
+Os pacotes, certificados, hashes e contagens abaixo identificam suas respectivas versões históricas; não são medições da alpha.3.
+
 ## Continuidade alpha.2 / código 28 — 29/10/2026
 
 **Não existe aprovação nova do Play Protect.** A alpha.2 mantém o pacote e as oito permissões Android da alpha.1. A compilação final passou na auditoria do APK real, com a permissão interna AndroidX de nível assinatura, nove `uses-permission` no total, serviços privados e acessibilidade limitada a gestos. O arquivo é assinado com certificado de teste, não identidade de produção. Instalação física com proteção ativa continua pendente.

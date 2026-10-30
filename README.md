@@ -1,10 +1,32 @@
 # NEXUS para Android
 
+## NEXUS AI online — alpha.3 / código 29
+
+Continuação do **mesmo NEXUS CORE**, versão de fonte `4.1.0-alpha.3-core`, em 30/10/2026. A prioridade desta etapa é substituir a dependência dos modelos locais reprovados por um serviço online administrado pelo desenvolvedor, preservando os modelos offline opcionais e as funções existentes.
+
+**A arquitetura foi implementada, mas o novo modelo ainda não foi avaliado com credenciais reais.** O ambiente não tem conta de API nem hospedagem configurada. A execução do avaliador registrou `not_run_unconfigured` e **zero inferências**; isso não é um teste aprovado de inteligência. O APK continua mostrando a indisponibilidade quando a URL pública do serviço não foi definida pelo responsável. Não existe serviço NEXUS público implicitamente incluído.
+
+O candidato principal é **Claude Haiku 5.5**, com **Gemini 3.8 Flash** como alternativa do servidor. A [comparação de provedores](docs/PROVEDORES_NEXUS_ONLINE.md) usa fontes oficiais atuais, custos de API e limitações. A identidade é NEXUS AI, chamado NEXUS; nome do usuário, personalidade, preferências autorizadas, memória e histórico permanecem separados.
+
+No modo comum, o usuário conecta uma sessão por convite de uso único e autoriza o envio de texto e fotos. **Não digita URL, nome técnico do modelo nem chave de API.** O desenvolvedor configura a conta paga, HTTPS, banco persistente e apenas a URL pública no build. Chaves do provedor ficam no servidor; tokens individuais ficam protegidos pelo Android Keystore. O modo avançado de outros provedores e as escolhas offline já salvas são preservados, sem envio remoto silencioso.
+
+Foram integrados streaming real, renovação/revogação de sessão, cotas persistentes e calculadora segura no backend. Ações do aplicativo continuam propostas validadas, com confirmação e execução no celular. Vision compartilha a sessão multimodal e o contexto da foto; não se trata de compreensão contínua de vídeo. Nenhum peso generativo, dependência grande ou permissão adicional foi acrescentado.
+
+**Verificações desta etapa:** 122 testes do servidor e 191 testes de scripts passaram; são testes técnicos com upstream controlado, não aprovação do modelo. **320 testes JVM passaram**, sem falhas, erros ou ignorados, em 47 suítes; a compilação final passou e o CORE foi medido em **108.668.442 bytes (108,67 MB)**. Assinatura de teste e alinhamento de 16 KiB verificados; nenhuma nova permissão ou peso generativo obrigatório. [Medição e verificações](docs/evidencias/n43-build-verification.json).
+
+[Resultados e limites desta etapa](docs/NEXUS_AI_ONLINE_RESULTADOS.md) · [Implantação pelo desenvolvedor](docs/IMPLANTACAO_NEXUS_AI_ONLINE.md) · [Protocolo do servidor](server/README.md) · [Progresso](PROGRESSO_NEXUS_4_1.md).
+
+**O bloqueio pelo Play Protect continua como impedimento de distribuição.** Não há aprovação nova, release público novo ou recomendação de desativar a proteção. Testes físicos no Galaxy A03 continuam necessários.
+
+## Registro anterior — alpha.2 e versões históricas
+
+O conteúdo abaixo preserva os resultados e pacotes anteriores. Datas, contagens, hashes e afirmações de fonte atual nessa parte referem-se à revisão indicada; não identificam a alpha.3 acima.
+
 > **NEXUS 4.1 em validação (Galaxy A03):** correções de segurança, mouse global e latência estão sendo verificadas no projeto existente. Consulte [PROGRESSO_NEXUS_4_1.md](PROGRESSO_NEXUS_4_1.md). O bloqueio pelo Play Protect ainda não foi comprovadamente resolvido; não desative a proteção. CORE continua sem pesos generativos obrigatórios. A distribuição automática de novos APKs permanece suspensa nesta revisão.
 
 Aplicativo Android existente em Kotlin e Jetpack Compose, em português brasileiro, com interface preta, azul e ciano. Código e histórico: https://github.com/Cazi1n8/nexus-android.
 
-**Fonte atual: NEXUS CORE 4.1.0-alpha.2-core, versionCode 28, compilada para avaliação.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
+**Fonte histórica da alpha.2: NEXUS CORE 4.1.0-alpha.2-core, versionCode 28, compilada para avaliação.** A instalação padrão preserva o rastreamento de mãos e o mouse offline e deixa os modelos grandes de conversa e os dados de visão como downloads opcionais. Não é um aplicativo novo. Veja a [auditoria com os 20 maiores arquivos](AUDITORIA_ARMAZENAMENTO.md), o [progresso do armazenamento](PROGRESSO_ARMAZENAMENTO.md) e a [arquitetura de entrega modular](docs/ENTREGA_MODULAR_ANDROID.md).
 
 ## Continuidade da alpha.2 — 29/10/2026
 

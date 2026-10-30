@@ -106,7 +106,7 @@ class LocalModelTest {
         assertEquals("Mensagem 12", context.getJSONObject(context.length() - 1).getString("content"))
     }
 
-    @Test fun defaultCoordinatorDoesNotSendTokenOrUseRemoteProvider() = runTest {
+    @Test fun explicitLocalSelectionDoesNotSendTokenOrUseRemoteProvider() = runTest {
         var localCalls = 0
         var remoteCalls = 0
         val local = object : AiProvider {
@@ -123,8 +123,8 @@ class LocalModelTest {
             }
         }
         val provider = AiCoordinator(local, remote)
-        assertEquals(AiMode.NEXUS_LOCAL, NexusSettings().aiMode)
-        assertEquals("local-test-provider", provider.complete(NexusSettings(), "private-token", emptyList(), emptyList()))
+        assertEquals(AiMode.NEXUS_ONLINE, NexusSettings().aiMode)
+        assertEquals("local-test-provider", provider.complete(NexusSettings(aiMode = AiMode.NEXUS_LOCAL), "private-token", emptyList(), emptyList()))
         assertEquals(1, localCalls)
         assertEquals(0, remoteCalls)
         assertEquals("custom-test-provider", provider.complete(NexusSettings(aiMode = AiMode.CUSTOM), "custom-token", emptyList(), emptyList()))

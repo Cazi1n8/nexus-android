@@ -19,7 +19,7 @@ class AiCoordinatorStreamingTest {
             }
         }
         val deltas = mutableListOf<String>()
-        val result = AiCoordinator(local, unexpected()).stream(NexusSettings(), "private", history, emptyList(), deltas::add)
+        val result = AiCoordinator(local, unexpected()).stream(NexusSettings(aiMode = AiMode.NEXUS_LOCAL), "private", history, emptyList(), deltas::add)
         assertEquals("Conteúdo completo", result.text)
         assertTrue(deltas.isEmpty())
         assertNull(result.firstTokenMs)
@@ -52,7 +52,7 @@ class AiCoordinatorStreamingTest {
 
     @Test fun localModeRejectsExplicitSearchRatherThanForwardingPrivateConversation() = runBlocking {
         try {
-            AiCoordinator(unexpected(), unexpected()).streamWithSearch(NexusSettings(), "private", history, emptyList(), "query") { error("No deltas") }
+            AiCoordinator(unexpected(), unexpected()).streamWithSearch(NexusSettings(aiMode = AiMode.NEXUS_LOCAL), "private", history, emptyList(), "query") { error("No deltas") }
             fail("Search must require explicit remote mode")
         } catch (failure: AiException) { assertTrue(failure.message!!.contains("modo local")) }
     }

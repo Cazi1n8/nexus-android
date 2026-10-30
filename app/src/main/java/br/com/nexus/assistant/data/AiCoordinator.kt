@@ -6,6 +6,7 @@ import br.com.nexus.assistant.commands.LocalActionRouter
 class AiCoordinator(
     private val local: AiProvider,
     private val custom: AiProvider = OpenAiCompatibleProvider(),
+    private val online: AiProvider? = null,
 ) : StreamingAiProvider {
     override suspend fun complete(
         settings: NexusSettings,
@@ -15,6 +16,7 @@ class AiCoordinator(
     ): String {
         builtInResponse(messages.lastOrNull())?.let { return it }
         return when (settings.aiMode) {
+            AiMode.NEXUS_ONLINE -> onlineProvider().complete(settings, "", messages, memories)
             AiMode.NEXUS_LOCAL -> local.complete(settings, "", messages, memories)
             AiMode.CUSTOM -> custom.complete(settings, token, messages, memories)
         }
@@ -32,6 +34,7 @@ class AiCoordinator(
             return AiStreamResult(it, "tool", null, (System.nanoTime() - started) / 1_000_000L)
         }
         val selected = when (settings.aiMode) {
+            AiMode.NEXUS_ONLINE -> onlineProvider()
             AiMode.NEXUS_LOCAL -> local
             AiMode.CUSTOM -> custom
         }
@@ -47,11 +50,19 @@ class AiCoordinator(
         settings: NexusSettings, token: String, messages: List<AiMessage>, memories: List<String>, query: String,
         onDelta: suspend (String) -> Unit,
     ): AiStreamResult {
+        if (settings.aiMode == AiMode.NEXUS_ONLINE) {
+            val provider = onlineProvider() as? NexusOnlineProvider
+                ?: throw AiException("A pesquisa exige o serviço NEXUS AI configurado.")
+            return provider.streamWithSearch(settings, messages, memories, query, onDelta)
+        }
         if (settings.aiMode != AiMode.CUSTOM || custom !is OpenAiCompatibleProvider) {
             throw AiException("A pesquisa precisa de um gateway NEXUS com a ferramenta de pesquisa configurada. O modo local não pesquisa na internet.")
         }
         return custom.streamWithSearch(settings, token, messages, memories, query, onDelta)
     }
+
+    private fun onlineProvider(): AiProvider = online
+        ?: throw AiException("O serviço NEXUS AI ainda não foi configurado pelo desenvolvedor. Os modelos offline continuam opcionais.")
 
     companion object {
         /**

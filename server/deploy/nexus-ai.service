@@ -1,0 +1,43 @@
+# Controlled single-instance pilot; see docs/IMPLANTACAO_NEXUS_AI_ONLINE.md.
+# Install after creating the unprivileged account and a PRIVATE environment file.
+[Unit]
+Description=NEXUS AI authenticated online gateway
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=nexus-ai
+Group=nexus-ai
+WorkingDirectory=/opt/nexus-ai
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/nexus-ai/gateway.env
+ExecStart=/usr/bin/python3 -m server.nexus_gateway
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+StateDirectory=nexus-ai
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/nexus-ai
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+LockPersonality=true
+LimitNOFILE=1024
+TasksMax=64
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

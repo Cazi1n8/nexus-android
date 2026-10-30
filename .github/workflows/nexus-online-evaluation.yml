@@ -1,0 +1,52 @@
+name: NEXUS AI online — avaliação manual
+
+# Never run a potentially billed model evaluation on push or pull_request.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexus-online-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    environment: nexus-ai-evaluation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Coletar respostas reais para revisão ou registrar configuração ausente
+        env:
+          NEXUS_EVAL_SERVICE_URL: ${{ vars.NEXUS_SERVICE_URL }}
+          NEXUS_EVAL_INVITATION: ${{ secrets.NEXUS_EVAL_INVITATION }}
+        shell: bash
+        run: |
+          umask 077
+          mkdir -p evaluation-public
+          if [[ -z "$NEXUS_EVAL_INVITATION" || -z "$NEXUS_EVAL_SERVICE_URL" ]]; then
+            python3 scripts/run_nexus_online_evaluation.py --public-output evaluation-public/technical-summary.json
+          else
+            printf '%s' "$NEXUS_EVAL_INVITATION" > "$RUNNER_TEMP/nexus-invitation.private"
+            python3 scripts/run_nexus_online_evaluation.py \
+              --invitation-file "$RUNNER_TEMP/nexus-invitation.private" \
+              --private-output "$RUNNER_TEMP/nexus-transcript.private" \
+              --public-output evaluation-public/technical-summary.json
+          fi
+      - name: Guardar somente resultados técnicos sem diálogos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-online-technical-${{ github.run_number }}
+          path: evaluation-public/technical-summary.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Apagar credenciais e transcrição do runner
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/nexus-invitation.private" "$RUNNER_TEMP/nexus-transcript.private"

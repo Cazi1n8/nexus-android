@@ -1,0 +1,97 @@
+# Example only. Replace example.invalid and install a valid TLS certificate.
+# Include this file from nginx's http {} context, never from inside another server.
+# The Python gateway stays on loopback; no proxy cache and no raw access log.
+limit_req_zone $binary_remote_addr zone=nexus_auth:10m rate=5r/m;
+limit_req_zone $binary_remote_addr zone=nexus_chat:10m rate=30r/m;
+limit_conn_zone $binary_remote_addr zone=nexus_connections:10m;
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ai.example.invalid;
+
+    ssl_certificate /etc/letsencrypt/live/ai.example.invalid/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ai.example.invalid/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_tickets off;
+    server_tokens off;
+
+    access_log off;
+    error_log /var/log/nginx/nexus-ai-error.log warn;
+    client_max_body_size 8m;
+    client_header_timeout 10s;
+    client_body_timeout 10s;
+    keepalive_timeout 15s;
+    limit_req_status 429;
+    limit_conn_status 429;
+    limit_conn nexus_connections 4;
+
+    # Tokens belong only in Authorization/JSON; query strings are not an API.
+    if ($args != "") { return 400; }
+
+    location ~ ^/v1/sessions/(redeem|refresh|revoke)$ {
+        limit_except POST { deny all; }
+        limit_req zone=nexus_auth burst=3 nodelay;
+        client_max_body_size 8k;
+        proxy_pass http://127.0.0.1:8787;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "";
+        proxy_set_header Authorization $http_authorization;
+        # Gateway does not trust forwarded addresses for account authorization.
+        proxy_set_header X-Forwarded-For "";
+        proxy_set_header X-Real-IP "";
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 15s;
+        proxy_send_timeout 15s;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_hide_header Server;
+        add_header Cache-Control "no-store" always;
+    }
+
+    location = /v1/chat/completions {
+        limit_except POST { deny all; }
+        limit_req zone=nexus_chat burst=4 nodelay;
+        proxy_pass http://127.0.0.1:8787;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "";
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header X-Forwarded-For "";
+        proxy_set_header X-Real-IP "";
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 100s;
+        proxy_send_timeout 100s;
+        # Necessary for real SSE delivery. These are idle I/O timeouts, not a
+        # promise to bound the total billable execution time at the provider.
+        proxy_buffering off;
+        proxy_request_buffering on;
+        proxy_cache off;
+        gzip off;
+        proxy_hide_header Server;
+        add_header Cache-Control "no-store" always;
+        add_header X-Accel-Buffering "no" always;
+    }
+
+    location = /v1/capabilities {
+        limit_except GET { deny all; }
+        limit_req zone=nexus_chat burst=4 nodelay;
+        proxy_pass http://127.0.0.1:8787;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Connection "";
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header X-Forwarded-For "";
+        proxy_set_header X-Real-IP "";
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 15s;
+        proxy_cache off;
+        proxy_hide_header Server;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # Health is available to the operator through loopback, not a public model test.
+    location = /healthz { return 404; }
+    location / { return 404; }
+}

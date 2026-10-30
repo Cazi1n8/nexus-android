@@ -94,7 +94,12 @@ fun VisionConversationPanel(
     var ownsResponse by remember { mutableStateOf(false) }
     var sessionConversation by remember { mutableStateOf<String?>(null) }
     var hasImage by remember { mutableStateOf(false) }
-    val configured = settings.aiMode == AiMode.CUSTOM && settings.remoteConsent && settings.endpoint.isNotBlank() && settings.model.isNotBlank()
+    val onlineConnection by model.onlineConnection.collectAsStateWithLifecycle()
+    val integrated = settings.aiMode == AiMode.NEXUS_ONLINE
+    val configured = if (integrated) onlineConnection.serviceConfigured && onlineConnection.connected && settings.onlineConsent
+        else settings.aiMode == AiMode.CUSTOM && settings.remoteConsent && settings.endpoint.isNotBlank() && settings.model.isNotBlank()
+    val selectedEndpoint = if (integrated) "nexus-online:" + br.com.nexus.assistant.BuildConfig.NEXUS_SERVICE_URL else settings.endpoint
+    val selectedModel = if (integrated) "nexus-ai" else settings.model
     var sessionEndpoint by remember { mutableStateOf("") }
     var sessionModel by remember { mutableStateOf("") }
 
@@ -129,8 +134,8 @@ fun VisionConversationPanel(
         voice.stopListening()
         voice.stopSpeaking()
         model.newConversation()
-        sessionEndpoint = settings.endpoint
-        sessionModel = settings.model
+        sessionEndpoint = selectedEndpoint
+        sessionModel = selectedModel
         gate.start()
         sessionConversation = null
         hasImage = false
@@ -257,8 +262,8 @@ fun VisionConversationPanel(
         if (active && selected != null && sessionConversation == null) sessionConversation = selected
         else if (active && sessionConversation != null && selected != sessionConversation) stop()
     }
-    LaunchedEffect(global.active, backgroundVoice.active, configured, settings.endpoint, settings.model) {
-        if (active && (global.active || backgroundVoice.active || !configured || settings.endpoint != sessionEndpoint || settings.model != sessionModel)) stop()
+    LaunchedEffect(global.active, backgroundVoice.active, configured, selectedEndpoint, selectedModel) {
+        if (active && (global.active || backgroundVoice.active || !configured || selectedEndpoint != sessionEndpoint || selectedModel != sessionModel)) stop()
     }
     LaunchedEffect(active, periodic) {
         while (active && periodic) {
@@ -285,7 +290,7 @@ fun VisionConversationPanel(
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("CONVERSA VISUAL MULTIMODAL", style = MaterialTheme.typography.titleMedium)
             Text("Captura uma foto real e envia ao modelo de imagens configurado. As perguntas seguintes usam a foto e o histórico desta sessão. A análise periódica usa quadros separados; não é compreensão contínua de vídeo.", style = MaterialTheme.typography.bodySmall)
-            if (!configured) Text("Disponível com um provedor multimodal autorizado em Configurações. O CORE não inclui modelo generativo de imagens nem um serviço online já implantado.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (!configured) Text("Disponível com NEXUS AI conectado ou um provedor multimodal autorizado em Configurações. Uma sessão configurada não comprova a qualidade do modelo; o CORE não inclui pesos generativos visuais.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             Button(onClick = { if (active) stop() else confirm = true }, enabled = active || configured && capabilities.hasCamera && !busy && !importing && !global.active && !backgroundVoice.active) {
                 Text(if (active) "Encerrar conversa visual" else "Iniciar conversa visual")
             }

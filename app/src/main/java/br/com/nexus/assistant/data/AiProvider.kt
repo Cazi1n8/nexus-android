@@ -41,19 +41,27 @@ interface AiProvider {
     ): String
 }
 
-class AiException(message: String, cause: Throwable? = null) : Exception(message, cause)
+open class AiException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+/** Typed transport status; no upstream body, credential or message content is retained. */
+class AiHttpException(val statusCode: Int, message: String) : AiException(message)
 
 /** Real OpenAI-compatible HTTP transport. No mock response and no embedded API key. */
 class OpenAiCompatibleProvider(
-    private val client: OkHttpClient = OkHttpClient.Builder()
+    client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(90, TimeUnit.SECONDS)
         .callTimeout(120, TimeUnit.SECONDS)
         .followRedirects(false)
         .followSslRedirects(false)
+        .retryOnConnectionFailure(false)
         .build(),
     private val allowInsecureLocal: Boolean = BuildConfig.DEBUG,
 ) : StreamingAiProvider {
+    // A POST may already have consumed a paid inference when its socket fails.
+    // Do not silently repeat it, even if an injected client enables retries.
+    private val client = client.newBuilder().followRedirects(false).followSslRedirects(false)
+        .retryOnConnectionFailure(false).build()
     private val capabilityDiscovery = GatewayCapabilityDiscovery(client.newBuilder()
         .connectTimeout(5, TimeUnit.SECONDS).readTimeout(5, TimeUnit.SECONDS).callTimeout(7, TimeUnit.SECONDS)
         .followRedirects(false).followSslRedirects(false).build())
@@ -241,7 +249,7 @@ class OpenAiCompatibleProvider(
         })
     }
 
-    private fun httpError(code: Int): AiException = AiException(when (code) {
+    private fun httpError(code: Int): AiException = AiHttpException(code, when (code) {
         400, 422 -> "O servidor recusou a mensagem. Confira o nome do modelo e se ele aceita imagens."
         401, 403 -> "A sessão não foi autorizada: o token pode estar incorreto ou expirado. Atualize-o nas Configurações."
         404 -> "Endereço ou modelo não encontrado. Confira a URL da API e o modelo nas Configurações."

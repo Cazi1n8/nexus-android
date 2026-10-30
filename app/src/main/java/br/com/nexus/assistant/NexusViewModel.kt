@@ -30,12 +30,22 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+data class OnlineConnectionState(
+    val serviceConfigured: Boolean = false,
+    val connected: Boolean = false,
+    val working: Boolean = false,
+    val message: String = "Verificando a configuração local da sessão; nenhuma conversa foi enviada.",
+)
+
 class NexusViewModel(application: Application) : AndroidViewModel(application) {
     // Keep a stable startup budget. A download or retained model must not switch
     // profiles halfway through a conversation as the amount of free RAM changes.
     val deviceCapabilities = MutableStateFlow(DeviceCapabilities.read(application)).asStateFlow()
     val devicePolicy = MutableStateFlow(DevicePolicy.evaluate(deviceCapabilities.value)).asStateFlow()
     private val preferences = SettingsRepository(application)
+    private val onlineSessions = NexusOnlineSessionManager(BuildConfig.NEXUS_SERVICE_URL, preferences.onlineSessionStorage)
+    private val _onlineConnection = MutableStateFlow(OnlineConnectionState(serviceConfigured = onlineSessions.configured))
+    val onlineConnection = _onlineConnection.asStateFlow()
     private val imageDirectory = File(application.filesDir, "chat-images").apply { mkdirs() }
     private val repository = NexusRepository(NexusDatabase.getInstance(application), imageDirectory)
     private val localModels = LocalModelProfile.entries.associateWith { profile ->
@@ -51,7 +61,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         br.com.nexus.assistant.device.vision.LocalObjectClassifier(application).use { classifier -> classifier.classify(File(path)) }
     }, readText = { path ->
         br.com.nexus.assistant.device.vision.LocalTextReader(application).use { reader -> reader.read(File(path)).text }
-    }))
+    }), online = NexusOnlineProvider(onlineSessions))
     private var modelDownloadJob: Job? = null
     private val _localModelDownloadActive = MutableStateFlow(false)
     val localModelDownloadActive = _localModelDownloadActive.asStateFlow()
@@ -139,12 +149,53 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
     val clearingTemporaryCache = _clearingTemporaryCache.asStateFlow()
 
     init {
+        viewModelScope.launch(Dispatchers.IO) { refreshOnlineConnection() }
         if (!BuildConfig.BUNDLED_MODEL) {
             viewModelScope.launch {
                 settings.map(::effectiveProfile).distinctUntilChanged().collectLatest { profile ->
                     localModels.getValue(profile).refresh()
                 }
             }
+        }
+    }
+
+    private fun refreshOnlineConnection(preserveWorking: Boolean = false) {
+        val working = preserveWorking && _onlineConnection.value.working
+        _onlineConnection.value = try {
+            val connected = onlineSessions.hasSession()
+            OnlineConnectionState(onlineSessions.configured, connected, working = working, message = when {
+                !onlineSessions.configured -> "NEXUS AI online ainda indisponível."
+                connected -> "Sua conta NEXUS AI está conectada."
+                else -> "Conecte sua conta usando um convite emitido pelo responsável do NEXUS. Nenhuma chave de provedor é necessária."
+            })
+        } catch (_: Exception) {
+            OnlineConnectionState(onlineSessions.configured, working = working, message = "Não foi possível abrir a sessão protegida. Desconecte para apagá-la e conecte novamente.")
+        }
+    }
+
+    fun connectOnline(invitationCode: String, consent: Boolean) = mutate {
+        require(consent) { "Leia e autorize o envio ao serviço NEXUS AI antes de conectar." }
+        _onlineConnection.value = _onlineConnection.value.copy(working = true)
+        try {
+            cancelResponse()
+            runningResponses.toList().forEach { it.join() }
+            withContext(Dispatchers.IO) { onlineSessions.redeem(invitationCode) }
+            val current = preferences.settings.first()
+            preferences.save(current.copy(aiMode = AiMode.NEXUS_ONLINE, onlineConsent = true))
+            report("Conta NEXUS AI conectada.")
+        } finally { withContext(Dispatchers.IO) { refreshOnlineConnection() } }
+    }
+
+    fun disconnectOnline() = mutate {
+        cancelResponse()
+        runningResponses.toList().forEach { it.join() }
+        _onlineConnection.value = _onlineConnection.value.copy(working = true)
+        try {
+            withContext(Dispatchers.IO) { onlineSessions.revoke() }
+        } finally {
+            val current = preferences.settings.first()
+            preferences.save(current.copy(onlineConsent = false))
+            withContext(Dispatchers.IO) { refreshOnlineConnection() }
         }
     }
 
@@ -174,7 +225,7 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         if (text.isEmpty() && image == null) return false
         if (text.length > 24_000) { report("Divida a mensagem em partes de até 24.000 caracteres."); return false }
         val config = settings.value
-        if (onlineSearchQuery != null && (config.aiMode != AiMode.CUSTOM || onlineSearchQuery.isBlank() || onlineSearchQuery.length > 500)) {
+        if (onlineSearchQuery != null && (config.aiMode == AiMode.NEXUS_LOCAL || onlineSearchQuery.isBlank() || onlineSearchQuery.length > 500)) {
             report("Para pesquisar, selecione um gateway NEXUS configurado e uma pergunta de até 500 caracteres.")
             return false
         }
@@ -304,15 +355,23 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                 _streamedReply.value += delta
             }
         }
-        val result = if (searchQuery == null) provider.stream(config, token, history, memories.value.map { it.content }, onDelta)
-            else provider.streamWithSearch(config, token, history, memories.value.map { it.content }, searchQuery, onDelta)
-        if (generation == responseGeneration && config.aiMode == AiMode.CUSTOM) {
-            // Keep only technical metadata in the diagnostics state. The answer
-            // is stored once by the caller, never duplicated as partial rows.
-            _remoteGeneration.value = result.copy(text = "", sources = emptyList())
-            _answerSources.value = result.sources
+        try {
+            val result = if (searchQuery == null) provider.stream(config, token, history, memories.value.map { it.content }, onDelta)
+                else provider.streamWithSearch(config, token, history, memories.value.map { it.content }, searchQuery, onDelta)
+            if (generation == responseGeneration && config.aiMode != AiMode.NEXUS_LOCAL) {
+                // Keep only technical metadata in the diagnostics state. The answer
+                // is stored once by the caller, never duplicated as partial rows.
+                _remoteGeneration.value = result.copy(text = "", sources = emptyList())
+                _answerSources.value = result.sources
+            }
+            return result.text
+        } finally {
+            if (config.aiMode == AiMode.NEXUS_ONLINE) {
+                // Refresh rejection can erase credentials while the request is running.
+                // Update the local UI even on cancellation, without another network call.
+                withContext(NonCancellable + Dispatchers.IO) { refreshOnlineConnection(preserveWorking = true) }
+            }
         }
-        return result.text
     }
 
     /** Takes ownership only of a camera file within our own cache directory. */
@@ -397,6 +456,14 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
         if (value.automaticProfile) devicePolicy.value.recommendedProfile ?: LocalModelProfile.COMPACT else value.localModelProfile
 
     private fun canUseAi(value: NexusSettings, hasImage: Boolean = false): Boolean {
+        if (value.aiMode == AiMode.NEXUS_ONLINE) {
+            if (!onlineSessions.configured || !value.onlineConsent || !_onlineConnection.value.connected) {
+                report(if (!onlineSessions.configured) "O serviço NEXUS AI ainda não foi implantado/configurado pelo desenvolvedor. Modelos offline continuam opcionais."
+                    else "Conecte o NEXUS AI e autorize o envio de mensagens/imagens em Configurações.")
+                return false
+            }
+            return true
+        }
         if (value.aiMode == AiMode.NEXUS_LOCAL) {
             if (modifyingLocalModel) {
                 report("Aguarde a alteração do modelo local terminar.")
@@ -543,7 +610,9 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
             throw IllegalArgumentException("O token de sessão contém caracteres inválidos.")
         }
         val previous = preferences.settings.first()
-        val changingAi = normalized.aiMode != previous.aiMode || effectiveProfile(normalized) != effectiveProfile(previous)
+        val changingAi = normalized.aiMode != previous.aiMode || effectiveProfile(normalized) != effectiveProfile(previous) ||
+            normalized.onlineConsent != previous.onlineConsent || normalized.remoteConsent != previous.remoteConsent ||
+            normalized.endpoint != previous.endpoint || normalized.model != previous.model
         val changingPrompt = normalized.userPreferredName != previous.userPreferredName ||
             normalized.assistantPersonality != previous.assistantPersonality ||
             normalized.assistantInstructions != previous.assistantInstructions ||
@@ -621,6 +690,8 @@ class NexusViewModel(application: Application) : AndroidViewModel(application) {
                 br.com.nexus.assistant.gestures.SceneStore(getApplication()).delete()
                 withContext(Dispatchers.IO) {
                     preferences.sessionToken = ""
+                    onlineSessions.clearLocal()
+                    refreshOnlineConnection()
                     check(getApplication<Application>().getSharedPreferences("nexus_gestures", android.content.Context.MODE_PRIVATE).edit().clear().commit()) {
                         "Não foi possível apagar as preferências de gestos. Tente novamente."
                     }

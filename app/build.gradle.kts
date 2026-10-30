@@ -1,4 +1,5 @@
 import java.security.MessageDigest
+import java.net.URI
 
 plugins {
     id("com.android.application")
@@ -10,6 +11,16 @@ plugins {
 // CORE ships the hand tracker; large conversation/vision data is opt-in.
 val bundleModel = providers.gradleProperty("nexusBundleModel").map(String::toBoolean).getOrElse(false)
 val bundleVision = providers.gradleProperty("nexusBundleVision").map(String::toBoolean).getOrElse(false)
+// Public deployment address only. Provider/API credentials never belong in BuildConfig.
+val nexusServiceUrl = providers.gradleProperty("nexusServiceUrl").orNull.orEmpty().trim().removeSuffix("/")
+if (nexusServiceUrl.isNotEmpty()) {
+    val service = runCatching { URI(nexusServiceUrl) }.getOrElse { error("nexusServiceUrl inválida.") }
+    check(nexusServiceUrl.length <= 500 && nexusServiceUrl.none { it.code < 33 || it.code > 126 } &&
+        service.scheme == "https" && !service.host.isNullOrBlank() && service.rawUserInfo == null &&
+        service.rawQuery == null && service.rawFragment == null && !nexusServiceUrl.contains('"') && !nexusServiceUrl.contains('\\')) {
+        "nexusServiceUrl deve ser uma URL HTTPS pública, sem credenciais, query, fragmento ou caracteres de controle."
+    }
+}
 val bundledAssets = rootProject.file(".build-deps/bundled-assets")
 val preparedAssets = layout.buildDirectory.dir("generated/nexusAssets")
 val prepareNexusAssets by tasks.registering(Sync::class) {
@@ -41,11 +52,12 @@ android {
         applicationId = "br.com.nexus.assistant"
         minSdk = 26
         targetSdk = 35
-        versionCode = 28
-        versionName = "4.1.0-alpha.2-core"
+        versionCode = 29
+        versionName = "4.1.0-alpha.3-core"
         buildConfigField("boolean", "BUNDLED_MODEL", bundleModel.toString())
         buildConfigField("boolean", "BUNDLED_VISION", bundleVision.toString())
         buildConfigField("boolean", "CORE_INSTALLATION", (!bundleModel && !bundleVision).toString())
+        buildConfigField("String", "NEXUS_SERVICE_URL", "\"$nexusServiceUrl\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         // Universal installation; local LLM inference is packaged only for 64-bit ABIs.

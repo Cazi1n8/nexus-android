@@ -11,6 +11,13 @@ local.properties
 .env
 .env.*
 !.env.example
+!server/.env.online.example
+# Individual sessions, invitations and private evaluations never belong in Git.
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.private
 __pycache__/
 *.py[cod]
 .venv/

@@ -1,5 +1,61 @@
 # Ponte de IA do NEXUS
 
+## NEXUS AI online — alpha.3 / código 29
+
+O servidor existente agora oferece **dois modos explícitos**: serviço NEXUS AI com sessões individuais para um piloto administrado e a ponte legada de token compartilhado para testes controlados. A ponte legada não é usada como segredo embutido no APK. Este código não inclui conta, crédito, domínio, HTTPS implantado ou hospedagem já operacional.
+
+Para o modo comum do app, o desenvolvedor configura `NEXUS_SESSION_DB`, uma conta de API e HTTPS no servidor. O APK contém somente a URL pública, escolhida no build (`nexusServiceUrl`). O usuário recebe convite de uso único e autoriza o envio de texto/imagens; não configura URL, modelo ou chave de API. O cliente guarda tokens individuais no Android Keystore e renova a sessão antes de inferir, sem repetir automaticamente uma geração potencialmente cobrada.
+
+O preset principal é `NEXUS_PROVIDER=anthropic`, modelo `claude-haiku-5-5`; `gemini` configura `gemini-3.8-flash`, e `generic` preserva integração avançada compatível. A escolha do modelo e do upstream pertence ao operador; o cliente usa o alias estável `nexus-ai`. Para Haiku, o servidor omite parâmetros de amostragem incompatíveis. [Comparação oficial e custos](../docs/PROVEDORES_NEXUS_ONLINE.md).
+
+### Sessões individuais
+
+| Rota | Corpo/credencial | Resultado |
+| --- | --- | --- |
+| `POST /v1/sessions/redeem` | JSON com `invitation_code`, convite único emitido pelo operador | `access_token`, `refresh_token`, `expires_in`, `refresh_expires_at`, `model=nexus-ai` |
+| `POST /v1/sessions/refresh` | JSON com `refresh_token` | Novas credenciais rotativas; repetir o refresh consumido revoga a família |
+| `POST /v1/sessions/revoke` | JSON com `refresh_token` | Revogação da sessão; o cliente também apaga seu registro local |
+| `GET /v1/capabilities` | Bearer individual | Capacidades configuradas, sem afirmar disponibilidade/qualidade de modelo |
+| `POST /v1/chat/completions` | Bearer individual e modelo `nexus-ai` | JSON final ou SSE real; cálculo seguro e propostas Android validadas |
+
+Convites possuem 160 bits aleatórios, expiram e são consumidos atomicamente. Tokens possuem 256 bits aleatórios, acesso de 15 minutos e limite absoluto de renovação de 30 dias. Somente hashes e contadores são guardados no banco; não há registro de prompts, fotos ou respostas. Autenticação não oferece cadastro público anônimo irrestrito. A emissão de convites é pelo CLI no host, com arquivo privado `0600`.
+
+### Configuração do piloto
+
+[Guia completo de implantação](../docs/IMPLANTACAO_NEXUS_AI_ONLINE.md), [exemplo de ambiente](.env.online.example), [proxy TLS](deploy/nginx.conf.example) e [serviço](deploy/nexus-ai.service). O exemplo não contém credenciais reais.
+
+| Variável | Uso |
+| --- | --- |
+| `NEXUS_SESSION_DB` | Arquivo privado persistente; habilita contas individuais e desabilita token compartilhado |
+| `NEXUS_PROVIDER` | `anthropic`, `gemini` ou `generic`; padrão online `anthropic` |
+| `UPSTREAM_API_KEY` | Chave privada somente no servidor; obrigatória para os presets de API |
+| `NEXUS_MODEL` / `UPSTREAM_BASE_URL` | Definidos pelo operador; os presets fornecem modelo/destino padrão |
+| `NEXUS_UPSTREAM_WORKSPACE_ID` | Header de workspace Anthropic quando exigido pela conta, somente no servidor |
+| `NEXUS_ACCOUNT_DAILY_REQUESTS` / `NEXUS_GLOBAL_DAILY_REQUESTS` | Limites padrão de 100/1.000 chamadas upstream por dia, incluindo continuações de cálculo |
+| `NEXUS_ACCOUNT_DAILY_UNITS` / `NEXUS_GLOBAL_DAILY_UNITS` | Reservas padrão 8.000.000/80.000.000 unidades por dia; entrada UTF-8 e quatro vezes o teto de saída, incluindo imagens e histórico |
+| `NEXUS_BIND` / `NEXUS_PORT` | Loopback `127.0.0.1:8787`; serviço de contas recusa bind não local |
+| `NEXUS_RATE_PER_MINUTE` / `NEXUS_CONCURRENCY` | Limites temporários de autenticação/conta e duas inferências simultâneas por padrão |
+
+Unidades não representam tokens faturados nem limite em dólares; **configure orçamento também no provedor**. Reservas não são devolvidas automaticamente depois de erro/timeout porque a execução pode já ter sido cobrada. Uma instância precisa de disco persistente; não escale copiando o SQLite para réplicas independentes. O `ThreadingHTTPServer` deve permanecer atrás do proxy TLS documentado, com limites de corpo, conexões e tempo. A configuração é de piloto, não uma prova de capacidade pública de alta escala.
+
+### Streaming, ferramentas e visão
+
+O servidor encaminha deltas reais do provedor, com limite de evento/texto, marcador de conclusão obrigatório e erro explícito se o fluxo for interrompido. Não transforma uma resposta fixa em animação de tokens. JSON final coleta a mesma engine SSE. Credenciais, IDs privados e assinaturas de pensamento do provedor não são enviados ao APK; assinaturas necessárias a continuações ficam apenas na memória daquele pedido.
+
+A calculadora é uma ferramenta executada no servidor com parser delimitado, sem `eval`, e pode continuar o contexto do modelo por no máximo duas rodadas. Cada chamada upstream reserva cota antes da execução. Somente as três ações permitidas do Android são propostas ao dispositivo; o servidor não abre apps, executa toques ou confirma resultados inexistentes. O aplicativo valida novamente e pede confirmação.
+
+Imagens anexadas seguem o transporte multimodal existente, sem URLs remotas arbitrárias; o app reduz tamanho conforme os recursos do aparelho. O endpoint de capacidades informa `operator_declared_not_tested`, pois a configuração visual não comprova que a imagem foi corretamente compreendida. Vision não recebe compreensão contínua de vídeo. Pesquisa SearXNG continua opcional e depende de instância real administrada pelo operador.
+
+### Resultados desta etapa
+
+**122 testes do servidor e 191 de scripts passaram**, com upstream controlado. A avaliação real do candidato novo **não foi executada**: ausência de endpoint implantado/convite resultou em `not_run_unconfigured`, zero inferências. [Resultados e limitações](../docs/NEXUS_AI_ONLINE_RESULTADOS.md). Não há aprovação semântica ou instalação aprovada pelo Play Protect.
+
+Execute testes de protocolo na raiz com `python3 -m unittest discover -s server/tests -v`. Para avaliação do modelo, use `scripts/run_nexus_online_evaluation.py` após a implantação, com convite em arquivo privado e transcrição fora do repositório. O workflow manual publica apenas o resumo técnico; não executa inferência paga em push/PR. Consulte [TESTES_NEXUS_AI.md](../TESTES_NEXUS_AI.md).
+
+## Ponte legada — registro e uso controlado
+
+As instruções abaixo continuam disponíveis para testes locais com token compartilhado. Referências a “esta primeira ponte” e à ausência de contas descrevem o modo legado, não as sessões individuais implementadas acima. Não publique esse modo como serviço multiusuário aberto.
+
 Servidor opcional em Python 3.10+, somente com biblioteca padrão. O app chama `/v1/chat/completions`; a ponte chama um modelo Ollama ou uma API compatível com esse protocolo. Ela não responde com texto predefinido fingindo IA.
 
 As chaves privadas do provedor ficam aqui, fora do APK. O app recebe apenas um token de sessão da ponte. Esta primeira ponte atende um ambiente controlado com um token compartilhado; contas, emissão individual de tokens e revogação por usuário precisam ser implementadas antes de um serviço público para várias pessoas.
